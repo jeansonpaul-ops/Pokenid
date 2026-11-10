@@ -357,7 +357,7 @@ function mystery(){const l=DEX.map((d,i)=>i+1).filter(i=>!dex(i).prev&&!dex(i).f
 function raised(id){S.dex[id]=2;if(S.pet&&S.pet.shiny)S.shinies[id]=1;touch()}
 const busy=()=>mode!=='idle';
 function guard(){const p=S.pet;
-  if(!p||busy()){if(mode==='none')flash('Charge d\'abord pokelabel.html.');else if(mode==='egg')flash('Touche l\'œuf pour le réchauffer !');else if(mode==='empty')flash('Choisis un œuf dans le carnet.');return false}
+  if(!p||busy()){if(mode==='none')flash('Charge d\'abord pokelabel.html.');else if(mode==='egg')flash('Touche l\'œuf pour le réchauffer !');else if(mode==='empty')flash('Prends ton œuf mystère dans le carnet.');return false}
   if(p.ko){flash(`${petName(p)} est K.O. Emmène-le au Centre Pokémon.`);return false}
   if(p.away){flash(`${petName(p)} est en expédition.`);return false}
   if(p.asleep){flash(`${petName(p)} dort. Touche Dormir pour le réveiller.`);return false}
@@ -518,7 +518,7 @@ function refreshMsg(){
   ['kFeed','kPlay','kWash','kHeal','kSleep'].forEach(id=>{$(id).classList.toggle('alert',id===hint);$(id).setAttribute('aria-disabled',mode==='idle'?'false':'true')});
   document.title=(hint?'(!) ':'')+'PokéNid';
   if(['quiz','catch','evo','capture','battle','fish','memo','rhythm','walk'].includes(mode)||Date.now()<msgUntil||!$('menu').hidden)return;
-  let t='';if(mode==='none')t=loadTried?'Charge pokelabel.html pour commencer.':'Chargement des Pokémon…';else if(mode==='empty')t='Choisis un œuf dans le carnet.';else if(mode==='egg')t='Touche l\'œuf pour le réchauffer !';else if(S.pet)t=status(S.pet).t;
+  let t='';if(mode==='none')t=loadTried?'Charge pokelabel.html pour commencer.':'Chargement des Pokémon…';else if(mode==='empty')t='Prends ton œuf mystère dans le carnet.';else if(mode==='egg')t='Touche l\'œuf pour le réchauffer !';else if(S.pet)t=status(S.pet).t;
   setMsg(t);
 }
 lcd.addEventListener('pointerdown',e=>{catchMove(e);

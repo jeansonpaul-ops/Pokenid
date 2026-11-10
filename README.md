@@ -17,3 +17,7 @@ Onglet **Amis** : copie ton code de dresseur et envoie-le par message. Ton ami l
 - La partie est gardée dans le navigateur : changer d'appareil ou vider le navigateur repart de zéro.
 - Sur téléphone, « Ajouter à l'écran d'accueil » permet de l'ouvrir comme une appli.
 - Les sprites viennent de [PokeAPI](https://github.com/PokeAPI/sprites). Projet de fan, non commercial, pour un test entre amis. Pokémon appartient à Nintendo, Game Freak et The Pokémon Company.
+
+## Crédits graphiques
+
+Objets du décor et fonds « Plaine », « Désert », « Givre » : packs **Pixel Platformer** et **Roguelike Indoors** de [Kenney](https://kenney.nl), licence CC0 (domaine public). Voir `LICENSE-kenney.txt`.

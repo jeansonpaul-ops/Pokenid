@@ -1,0 +1,12 @@
+{
+  "v": 1,
+  "cap": 600,
+  "gain": 1,
+  "prix": 1,
+  "oeufH": 24,
+  "oeufPrix": 3000,
+  "shiny": 64,
+  "annonce": "",
+  "evt": {"du": "", "au": "", "gain": 1, "txt": ""},
+  "cadeau": {"id": "", "txt": "", "argent": 0, "ball": 0, "candy": 0}
+}

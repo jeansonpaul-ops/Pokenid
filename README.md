@@ -21,3 +21,9 @@ Onglet **Amis** : copie ton code de dresseur et envoie-le par message. Ton ami l
 ## Crédits graphiques
 
 Objets du décor et fonds « Plaine », « Désert », « Givre » : packs **Pixel Platformer** et **Roguelike Indoors** de [Kenney](https://kenney.nl), licence CC0 (domaine public). Voir `LICENSE-kenney.txt`.
+
+Icônes des boutons et des onglets : sprites d'objets Pokémon issus de [PokeAPI/sprites](https://github.com/PokeAPI/sprites) (images © The Pokémon Company, comme les sprites des Pokémon).
+
+## Administration
+
+Le panneau Admin s'ouvre avec `#admin` à la fin de l'adresse. Il demande une clé GitHub (fine-grained token) avec l'accès « Contents : Read and write » sur ce dépôt uniquement. Les réglages publiés sont écrits dans `config.json` et lus par tous les joueurs au chargement.

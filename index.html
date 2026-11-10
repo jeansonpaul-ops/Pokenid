@@ -1,0 +1,1098 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>body{margin:0}img{max-width:100%}</style></head><body>
+<title>PokéNid</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;700&family=Pixelify+Sans:wght@500;700&family=VT323&display=swap">
+<style>
+/* Mise en page : un jouet en plastique posé sur son carton d'emballage imprimé, la notice à côté.
+   La coque prend la couleur du type du compagnon ; tout le reste en découle. */
+:root{
+  color-scheme:light;
+  --shell:#2fb3a6;
+  --shell-hi:color-mix(in oklab,var(--shell) 72%,#fff);
+  --shell-lo:color-mix(in oklab,var(--shell) 72%,#10141f);
+  --ground:color-mix(in oklab,var(--shell) 34%,#eef3f8);
+  --dots:color-mix(in oklab,var(--shell) 55%,#eef3f8);
+  --paper:#fbfcfe;
+  --ink:#1b2030;
+  --muted:#596077;
+  --line:color-mix(in oklab,var(--shell) 22%,#d9dee8);
+  --accent:color-mix(in oklab,var(--shell) 72%,#10141f);
+  --bezel:#20232f;
+  --key:#fbfcfe;
+  --ok:#2e8b57; --warn:#c77a12; --bad:#c43b3b;
+  --display:"Pixelify Sans","Courier New",monospace;
+  --lcd:"VT323","Courier New",monospace;
+  --body:"Lexend",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{min-height:100%}
+body{margin:0;font-family:var(--body);color:var(--ink);background-color:var(--ground);
+  background-image:radial-gradient(var(--dots) 1.3px,transparent 1.7px);background-size:11px 11px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:24px 40px;
+  transition:background-color .5s}
+.stage{display:grid;grid-template-columns:minmax(0,420px) minmax(0,600px);gap:40px;justify-content:center;align-items:start;max-width:1080px;margin:0 auto}
+@media (max-width:900px){.stage{grid-template-columns:minmax(0,300px) minmax(0,1fr);gap:20px}}
+@media (max-width:640px){.stage{grid-template-columns:minmax(0,440px);gap:18px}}
+@media (orientation:landscape) and (max-height:520px){.stage{grid-template-columns:minmax(0,min(250px,calc((100dvh - 30px)/1.68))) minmax(0,1fr);gap:16px}.device{position:sticky;top:max(8px,env(safe-area-inset-top,0px))}body{padding-block:10px 24px}}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+
+/* Coque */
+.device{container-type:inline-size;position:relative;width:100%;padding:62px 10% 36px;background:
+   radial-gradient(60% 34% at 32% 12%,color-mix(in oklab,#fff 55%,transparent),transparent 70%),
+   radial-gradient(90% 60% at 70% 96%,var(--shell-lo),transparent 75%),
+   var(--shell);
+  border-radius:50% 50% 40% 40%/34% 34% 20% 20%;
+  box-shadow:inset 0 -8px 0 color-mix(in oklab,var(--shell-lo) 70%,transparent),inset 0 4px 0 var(--shell-hi),0 16px 0 -6px color-mix(in oklab,var(--shell-lo) 80%,#10141f),0 26px 30px -14px color-mix(in oklab,var(--shell-lo) 70%,transparent);
+  transition:background-color .5s}
+.ring{position:absolute;top:-14px;left:50%;width:38px;height:30px;margin-left:-19px;border:6px solid var(--shell-lo);border-radius:50%;z-index:-1}
+.brand{margin:0 0 8px;text-align:center;font:700 22px/1 var(--display);letter-spacing:.06em;color:color-mix(in oklab,var(--shell-lo) 72%,#10141f)}
+.bezel{background:var(--bezel);padding:10px 10px 12px;border-radius:14px 14px 22px 22px;box-shadow:inset 0 2px 0 #3a3e50,0 2px 0 var(--shell-hi)}
+.lcd{container:lcd/inline-size;position:relative;aspect-ratio:160/144;width:100%;overflow:hidden;background:#111;border-radius:3px}
+#lcd{display:block;width:100%;height:100%;image-rendering:pixelated;image-rendering:crisp-edges;image-rendering:pixelated;touch-action:none;cursor:pointer}
+.msg{position:absolute;left:4px;right:4px;bottom:4px;background:#f8f8f0;color:#181820;border:3px solid #181820;border-radius:4px;box-shadow:inset 0 0 0 1px #8890a8;
+  font:18px/1 var(--lcd);padding:4px 7px;min-height:30px;display:flex;align-items:center}
+.menu{position:absolute;left:4px;right:4px;bottom:4px;background:#f8f8f0;color:#181820;border:3px solid #181820;border-radius:4px;font:20px/1 var(--lcd);padding:5px;display:grid;gap:3px;grid-template-columns:minmax(0,1fr) minmax(0,1fr);max-height:calc(100% - 8px);overflow:auto}
+@container lcd (max-width:300px){.menu{font-size:16px}.menu button{min-height:28px}.msg{font-size:15px}}
+@container lcd (max-width:210px){.msg{font-size:12px;min-height:18px;padding:2px 4px;border-width:2px}.menu{font-size:13px;padding:3px;gap:2px}.menu button{min-height:20px;padding:1px 4px}}
+.msg{pointer-events:none}
+@container (max-width:240px){.key{font-size:0;gap:0}.keys{padding:8px 4px}}
+.menu h3{grid-column:1/-1;margin:1px 2px 2px;font:inherit;font-size:18px;color:#3a4058}
+.menu button{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-height:34px;padding:3px 6px;background:#fff;border:2px solid #181820;border-radius:3px;text-align:left;font:inherit;line-height:1}
+.menu button:hover,.menu button:focus-visible{background:#ffe08a}
+.menu.fight{font-size:17px;gap:2px;padding:3px}.menu.fight h3{font-size:16px;margin:0 2px}.menu.fight button{min-height:26px;padding:2px 5px;white-space:nowrap;overflow:hidden}
+.menu button.back{grid-column:1/-1;background:#e6e8ef;text-align:center}
+
+/* Touches */
+.keys{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:2px;margin-top:12px;background:var(--bezel);padding:11px 6px 9px;border-radius:14px 14px 24px 24px}
+.key{display:flex;flex-direction:column;align-items:center;gap:5px;background:none;border:0;padding:0;color:#eef0f6;font:500 clamp(8px,3.3cqi,12px)/1 var(--body);min-width:0}
+.key span{display:grid;place-items:center;width:clamp(28px,15cqi,48px);height:clamp(28px,15cqi,48px);border-radius:50%;background:var(--key);box-shadow:0 3px 0 var(--shell),inset 0 -3px 0 color-mix(in oklab,var(--key) 78%,#20232f);transition:transform .06s,box-shadow .06s}
+.key canvas{width:24px;height:24px;image-rendering:pixelated}
+.key #keyBall{width:28px;height:28px}
+.idcard{display:block;width:100%;height:auto;border-radius:12px;box-shadow:0 0 0 2px var(--line);image-rendering:pixelated}
+.swatches{display:flex;flex-wrap:wrap;gap:7px;align-items:center}.swatch{width:34px;height:34px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 2px var(--line);padding:0}.swatch[aria-pressed="true"]{box-shadow:0 0 0 3px var(--ink)}.custom{display:inline-flex;gap:6px;align-items:center;font-size:13px;color:var(--muted)}.custom input{width:36px;height:30px;padding:0;border:0;background:none}
+.crop{margin-top:10px;gap:5px}.crop .btn{min-height:36px;min-width:38px;padding:4px 8px}
+.itemhead{display:flex;gap:7px;align-items:center}.itemhead img{width:28px;height:28px;image-rendering:pixelated}
+.key:active span{transform:translateY(3px);box-shadow:0 1px 0 var(--shell),inset 0 -2px 0 color-mix(in oklab,var(--key) 78%,#20232f)}
+.key[aria-disabled="true"]{opacity:.45;cursor:default}
+.key.alert span{background:#ffe08a}
+@media (prefers-reduced-motion:no-preference){.key.alert span{animation:nudge 1.2s steps(2) infinite}@keyframes nudge{50%{transform:translateY(-3px)}}}
+
+/* Notice */
+.book{background:var(--paper);border-radius:16px;border:3px solid color-mix(in oklab,var(--shell) 30%,#fff);box-shadow:0 2px 0 var(--line),0 18px 30px -22px var(--shell-lo);min-width:0}
+.tabs{display:flex;flex-wrap:wrap;gap:6px;padding:12px 12px 10px;border-bottom:3px dashed color-mix(in oklab,var(--tab,var(--line)) 35%,#fff);background:color-mix(in oklab,var(--tab,var(--shell)) 8%,#fff);border-radius:14px 14px 0 0}
+.tab{flex:0 0 auto;display:inline-flex;align-items:center;gap:6px;background:#fff;border:2px solid color-mix(in oklab,var(--tc,#888) 40%,#fff);border-radius:999px;padding:7px 12px 6px 9px;font:700 15px/1 var(--display);color:color-mix(in oklab,var(--tc,#333) 75%,#000);white-space:nowrap;box-shadow:0 2px 0 color-mix(in oklab,var(--tc,#888) 45%,#fff);transition:transform .08s}
+@media (hover:hover){.tab:hover{transform:translateY(-2px)}}
+@media (max-width:640px){.tabs{flex-wrap:nowrap;overflow-x:auto;scroll-snap-type:x proximity;scrollbar-width:none;padding:10px 10px 9px}.tabs::-webkit-scrollbar{display:none}.tab{scroll-snap-align:start;font-size:14px;padding:7px 11px 6px 8px}}
+button,.lcd{touch-action:manipulation}
+.tabic{width:16px;height:16px;image-rendering:pixelated}
+.tab[aria-selected="true"]{background:var(--tc);border-color:var(--tc);color:#fff;box-shadow:0 3px 0 color-mix(in oklab,var(--tc) 60%,#000)}
+.tab:hover{background:color-mix(in oklab,var(--tc,#888) 10%,#fff)}.tab[aria-selected="true"]:hover{background:var(--tc)}
+.book .pane h2{color:color-mix(in oklab,var(--tab,var(--ink)) 70%,#14182a)}
+.pane{padding:20px}
+h2{font:700 25px/1.1 var(--display);margin:0;text-wrap:balance}
+h3.sub{display:flex;align-items:center;gap:7px;font:700 17px/1.2 var(--display);color:var(--accent);margin:22px 0 8px}
+h3.sub::before{content:"";width:9px;height:9px;background:var(--accent);transform:rotate(45deg);border-radius:2px;flex:none}
+p{line-height:1.5;margin:0;max-width:62ch}
+.small{font-size:13px;color:var(--muted)}
+.btn{display:inline-flex;align-items:center;justify-content:center;min-height:42px;padding:9px 16px;border-radius:12px;border:2px solid var(--ink);background:#fff;font:500 14px/1.1 var(--body);box-shadow:0 2px 0 var(--ink);text-align:center}
+.btn:hover{background:color-mix(in oklab,var(--shell) 16%,#fff)}
+.btn:active{transform:translateY(2px);box-shadow:none}
+.btn.primary{background:var(--accent);color:#fff}
+.btn.primary:hover{background:color-mix(in oklab,var(--accent) 85%,#000)}
+.btn.danger{border-color:var(--bad);color:var(--bad);box-shadow:0 2px 0 var(--bad)}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.stack{display:grid;gap:14px}
+.drop{border:2px dashed var(--line);border-radius:6px;padding:18px}
+.head{display:flex;gap:14px;align-items:center}
+.portrait{flex:0 0 88px;height:88px;display:grid;place-items:center;background:color-mix(in oklab,var(--shell) 14%,#fff);border-radius:6px}
+.portrait img{max-width:80px;max-height:80px;image-rendering:pixelated}
+.nick{width:100%;min-width:0;border:0;border-bottom:2px solid var(--line);background:none;padding:2px 0;font:700 25px/1.15 var(--display)}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:7px}
+.chip{font:500 12px/1 var(--body);padding:4px 8px;border-radius:99px;color:#fff}
+.stats{display:grid;grid-template-columns:auto minmax(0,1fr) 3ch;gap:7px 10px;align-items:center;font-size:14px;font-variant-numeric:tabular-nums}
+.bar{height:10px;background:#e6e9f0;border-radius:2px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--ok)}
+.bar i.mid{background:var(--warn)} .bar i.low{background:var(--bad)}
+.stats b{font-weight:500;text-align:right}
+.chain{display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+.chain img{width:48px;height:48px;object-fit:contain;image-rendering:pixelated}
+.chain img.un{filter:brightness(0);opacity:.35}
+.chain span{color:var(--muted)}
+.facts{display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 14px;font-size:14px;margin:0}
+.facts dt{color:var(--muted)} .facts dd{margin:0}
+.search{width:100%;min-height:42px;padding:8px 11px;border:2px solid var(--line);border-radius:6px;background:#fff}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(76px,1fr));gap:5px;max-height:440px;overflow:auto;padding:2px}
+.cell{display:grid;justify-items:center;gap:2px;padding:4px 2px;background:#f2f4f8;border:2px solid transparent;border-radius:5px;font-size:11px;line-height:1.15;min-width:0;text-align:center;overflow-wrap:anywhere}
+button.cell:hover{border-color:var(--accent)}
+.cell img{width:56px;height:56px;object-fit:contain;image-rendering:pixelated}
+.cell.un img{filter:brightness(0);opacity:.28}
+.cell.un{color:var(--muted)}
+.cell.raised{background:color-mix(in oklab,var(--shell) 20%,#fff)}
+.card{display:flex;gap:10px;align-items:center;padding:9px;background:#f6f7fb;border:2px solid #e6e9f0;border-radius:12px}
+.card img{width:56px;height:56px;object-fit:contain;image-rendering:pixelated;flex:none}
+.card>div{min-width:0;flex:1}
+.card b{display:block;overflow-wrap:anywhere}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg label{display:block;cursor:pointer}
+.seg input{position:absolute;opacity:0}
+.seg span{display:block;padding:8px 12px;border:2px solid var(--line);border-radius:6px;font-size:14px}
+.seg input:checked+span{border-color:var(--accent);background:color-mix(in oklab,var(--shell) 16%,#fff);font-weight:500}
+.seg input:focus-visible+span{outline:3px solid var(--ink);outline-offset:2px}
+.check{display:flex;gap:9px;align-items:center;font-size:14px;min-height:30px}
+.check input{width:20px;height:20px;accent-color:var(--accent)}
+.prog{font-size:13px;color:var(--muted);margin-top:4px}
+.money{font:700 20px/1 var(--display);color:var(--accent)}
+.band.err{background:#fde6e4;color:#8a2a22}
+.item.lock{opacity:.5}.item.got{background:color-mix(in oklab,var(--shell) 16%,#fff)}
+.shop{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}.shop .item{grid-template-columns:1fr auto;align-items:center}.shop .item .btn{justify-self:end}.shop .item .itemhead{min-width:0}.shop .item b{overflow-wrap:anywhere;font-size:14px}.shop .item .small{text-align:right}
+.btn[disabled]{opacity:.45;cursor:default;box-shadow:none}
+.sw{display:inline-block;width:22px;height:22px;border-radius:4px;border:1px solid var(--line)}
+.decor{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px}.decor label{display:grid;gap:4px}
+textarea{width:100%;min-height:70px;padding:8px;border:2px solid var(--line);border-radius:6px;font:12px/1.35 ui-monospace,Menlo,Consolas,monospace;background:#fff;resize:vertical;word-break:break-all}
+.band{position:relative;padding:9px 13px;border-radius:12px;background:#fff;border:2px solid var(--ink);box-shadow:0 3px 0 var(--ink);font-size:14px;line-height:1.45}
+.band b{font-family:var(--display);font-size:15px;color:var(--accent)}
+.cal{display:grid;gap:7px}.calrow{display:grid;grid-template-columns:150px 1fr;gap:2px 12px;padding:9px 11px;border:2px solid #e6e9f0;border-radius:12px;background:#f6f7fb}.calrow .small{grid-column:2}.caldate{font:20px/1 var(--lcd);color:var(--accent);grid-row:span 2}
+@media (max-width:520px){.calrow{grid-template-columns:1fr}.calrow .small{grid-column:1}.caldate{grid-row:auto}}
+.items{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:6px}
+.item{display:grid;gap:4px;padding:9px;background:#f6f7fb;border:2px solid #e6e9f0;border-radius:12px;align-content:start}
+.item .btn{justify-self:start;min-height:34px;padding:5px 10px}
+.badge{flex:none;width:30px;height:30px;transform:rotate(45deg);margin:6px 8px;border-radius:4px}
+.card.locked{opacity:.55}
+.card .row{flex:none}
+.card .btn{min-height:36px;padding:6px 10px}
+.card .small{display:block}
+.logs{display:grid;gap:9px;max-height:520px;overflow:auto}
+.logline{display:grid;gap:1px;border-bottom:1px solid var(--line);padding-bottom:8px}
+select{min-height:42px;padding:7px;border:2px solid var(--line);border-radius:6px;background:#fff;max-width:100%}
+@media (max-width:520px){.card{flex-wrap:wrap}.card .row{flex:1 1 100%}}
+</style>
+
+<main class="stage">
+  <section class="device" aria-label="Appareil PokéNid">
+    <div class="ring"></div>
+    <p class="brand">PokéNid</p>
+    <div class="bezel"><div class="lcd">
+      <canvas id="lcd" width="160" height="144" aria-label="Écran de jeu : touche ton Pokémon pour le câliner"></canvas>
+      <div class="msg" id="msg" role="status"></div>
+      <div class="menu" id="menu" hidden></div>
+    </div></div>
+    <nav class="keys" aria-label="Soins">
+      <button class="key" id="kFeed" type="button"><span><canvas data-ic="berry" width="8" height="8"></canvas></span>Manger</button>
+      <button class="key" id="kPlay" type="button"><span><canvas id="keyBall" width="14" height="14"></canvas></span>Jouer</button>
+      <button class="key" id="kWash" type="button"><span><canvas data-ic="drop" width="8" height="8"></canvas></span>Laver</button>
+      <button class="key" id="kHeal" type="button"><span><canvas data-ic="cross" width="8" height="8"></canvas></span>Soigner</button>
+      <button class="key" id="kSleep" type="button"><span><canvas data-ic="moon" width="8" height="8"></canvas></span>Dormir</button>
+    </nav>
+  </section>
+
+  <section class="book" aria-label="Carnet">
+    <div class="tabs" role="tablist">
+      <button class="tab" role="tab" data-tab="fiche" type="button">Compagnon</button>
+      <button class="tab" role="tab" data-tab="sac" type="button">Sac</button>
+      <button class="tab" role="tab" data-tab="gym" type="button">Combats</button>
+      <button class="tab" role="tab" data-tab="dex" type="button">Pokédex</button>
+      <button class="tab" role="tab" data-tab="pension" type="button">Pension</button>
+      <button class="tab" role="tab" data-tab="amis" type="button">Amis</button>
+      <button class="tab" role="tab" data-tab="succes" type="button">Succès</button>
+      <button class="tab" role="tab" data-tab="journal" type="button">Journal</button>
+      <button class="tab" role="tab" data-tab="options" type="button">Options</button>
+    </div>
+    <div class="pane" id="pane"></div>
+  </section>
+</main>
+<input type="file" id="pkFile" accept=".html,.htm,text/html" hidden>
+
+<script>
+'use strict';
+/* ---------- Données de jeu : évolutions et types (aucun sprite ici) ---------- */
+const DEX=("0,12,4,0,45,65,57,45,1,7,;1,12,4,0,60,80,71,60,1,7,;2,12,4,0,80,100,91,80,1,7,;0,10,0,0,39,60,46,65,1,14,;4,10,0,0,58,80,61,80,1,14,;5,10,3,0,78,109,81,100,1,14,;0,11,0,0,44,50,64,43,1,2,;7,11,0,0,59,65,80,58,1,2,;8,11,0,0,79,85,102,78,1,2,;0,7,0,0,45,30,27,45,3,0,;10,7,0,0,50,25,40,30,3,0,;11,7,3,0,60,90,65,70,3,0,;0,7,4,0,40,35,25,50,3,0,;13,7,4,0,45,25,37,35,3,0,;14,7,4,0,65,90,60,75,3,0,;0,1,3,0,40,45,37,56,4,0,;16,1,3,0,63,60,52,71,4,0,;17,1,3,0,83,80,72,101,4,0,;0,1,0,0,30,56,35,72,5,0,;19,1,0,0,55,81,65,97,5,0,n;0,1,3,0,40,60,30,70,4,0,;21,1,3,0,65,90,63,100,4,0,;0,4,0,0,35,60,49,55,5,14,;23,4,0,0,60,95,74,80,5,14,;172,13,0,0,35,55,45,90,5,6,b;25,13,0,0,60,90,67,110,5,6,T;0,5,0,0,50,75,57,40,5,0,;27,5,0,0,75,100,82,65,5,0,I;0,4,0,0,55,47,46,41,1,5,;29,4,0,0,70,62,61,56,15,0,;30,4,5,0,90,92,86,76,15,0,M;0,4,0,0,46,57,40,50,1,5,;32,4,0,0,61,72,56,65,1,5,;33,4,5,0,81,102,76,85,1,5,M;173,1,0,0,70,60,56,35,6,0,b;35,1,0,0,95,95,81,60,6,0,M;0,10,0,0,38,50,52,65,5,0,;37,10,0,0,73,81,87,100,5,0,F;174,1,0,0,115,45,22,20,6,0,b;39,1,0,0,140,85,47,45,6,0,M;0,4,3,0,40,45,37,55,4,0,;41,4,3,0,75,80,72,90,4,0,;0,12,4,0,45,75,60,30,7,0,;43,12,4,0,60,85,72,40,7,0,;44,12,4,0,75,110,87,50,7,0,L;0,7,12,0,35,70,55,25,3,7,;46,7,12,0,60,95,80,30,3,7,;0,7,4,0,60,55,52,45,3,0,;48,7,4,0,70,90,67,90,3,0,;0,5,0,0,10,55,35,95,5,0,;50,5,0,0,35,100,60,120,5,0,;0,1,0,0,40,45,37,90,5,0,;52,1,0,0,65,70,62,115,5,0,b;0,11,0,0,50,65,49,55,2,5,;54,11,0,0,80,95,79,85,2,5,;0,2,0,0,40,80,40,70,5,0,;56,2,0,0,65,105,65,95,5,0,;0,10,0,0,55,70,47,60,5,0,;58,10,0,0,90,110,80,95,5,0,F;0,11,0,0,40,50,40,90,2,0,;60,11,0,0,65,65,57,90,2,0,;61,11,2,0,90,95,92,70,2,0,W;0,14,0,0,25,105,35,90,8,0,;63,14,0,0,40,120,50,105,8,0,;64,14,0,0,55,135,70,120,8,0,K;0,2,0,0,70,80,42,35,8,0,;66,2,0,0,80,100,65,45,8,0,;67,2,0,0,90,130,82,55,8,0,K;0,12,4,0,50,75,32,40,7,0,;69,12,4,0,65,90,47,55,7,0,;70,12,4,0,80,105,67,70,7,0,L;0,11,4,0,40,50,67,70,9,0,;72,11,4,0,80,80,92,100,9,0,;0,6,5,0,40,80,65,20,10,0,;74,6,5,0,55,95,80,35,10,0,;75,6,5,0,80,120,97,45,10,0,K;0,10,0,0,50,85,60,90,5,0,;77,10,0,0,65,100,75,105,5,0,;0,11,14,0,90,65,52,15,1,2,;79,11,14,0,95,100,95,30,1,2,;0,13,9,0,25,95,62,45,10,0,;81,13,9,0,50,120,82,70,10,0,;0,1,3,0,52,90,58,60,4,5,;0,1,3,0,35,85,40,75,4,0,;84,1,3,0,60,110,65,110,4,0,;0,11,0,0,65,45,62,45,2,5,;86,11,15,0,90,70,87,70,2,5,;0,4,0,0,80,80,50,25,11,0,;88,4,0,0,105,105,87,50,11,0,;0,11,0,0,30,65,62,40,9,0,;90,11,15,0,50,95,112,70,9,0,W;0,8,4,0,30,100,32,80,11,0,;92,8,4,0,45,115,50,95,11,0,;93,8,4,0,60,130,67,110,11,0,K;0,6,5,0,35,45,102,70,10,0,;0,14,0,0,60,48,67,42,8,0,;96,14,0,0,85,73,92,67,8,0,;0,11,0,0,30,105,57,50,9,0,;98,11,0,0,55,130,82,75,9,0,;0,13,0,0,40,55,52,100,10,0,;100,13,0,0,60,80,75,150,10,0,;0,12,14,0,60,60,62,40,7,0,;102,12,14,0,95,125,80,55,7,0,L;0,5,0,0,50,50,72,35,1,0,;104,5,0,0,60,80,95,45,1,0,n;236,2,0,0,50,120,81,87,8,0,;236,2,0,0,50,105,94,76,8,0,;0,1,0,0,90,60,75,30,1,0,;0,4,0,0,40,65,70,35,11,0,;109,4,0,0,65,90,95,60,11,0,;0,5,6,0,80,85,62,25,1,5,;111,5,6,0,105,130,82,40,1,5,;440,1,0,0,250,35,55,50,6,0,j;0,12,0,0,65,100,77,60,7,0,;0,1,0,0,105,95,80,90,1,0,;0,11,0,0,30,70,47,60,2,14,;116,11,0,0,55,95,70,85,2,14,;0,11,0,0,45,67,55,63,12,0,;118,11,0,0,80,92,72,68,12,0,;0,11,0,0,30,70,55,85,9,0,;120,11,14,0,60,100,85,115,9,0,W;439,14,0,0,40,100,92,90,8,0,;0,7,3,0,70,110,80,105,3,0,;238,15,14,0,65,115,65,95,8,0,;239,13,0,0,65,95,71,105,8,0,;240,10,0,0,65,100,71,93,8,0,;0,7,0,0,65,125,85,85,3,0,;0,1,0,0,75,100,82,110,5,0,;0,11,0,0,20,15,37,80,12,14,;129,11,3,0,95,125,89,81,12,14,;0,11,15,0,130,85,87,60,1,2,;0,1,0,0,48,48,48,48,13,0,;0,1,0,0,55,55,57,55,5,0,;133,11,0,0,130,110,77,65,5,0,W;133,13,0,0,65,110,77,130,5,0,T;133,10,0,0,65,130,85,65,5,0,F;0,1,0,0,65,85,72,40,10,0,;0,6,11,0,35,90,77,35,2,9,;138,6,11,0,70,115,97,55,2,9,;0,6,11,0,30,80,67,55,2,9,;140,6,11,0,60,115,87,80,2,9,;0,6,3,0,80,105,70,130,4,0,;446,1,0,0,160,110,87,30,1,0,b;0,15,3,1,90,95,112,85,15,0,;0,13,3,1,90,125,87,100,15,0,;0,10,3,1,90,125,87,90,15,0,;0,16,0,0,41,64,47,50,2,14,;147,16,0,0,61,84,67,70,2,14,;148,16,3,0,91,134,97,80,2,14,;0,14,0,1,106,154,90,130,15,0,;0,14,0,2,100,100,100,100,15,0,;0,12,0,0,45,49,65,45,1,7,;152,12,0,0,60,63,80,60,1,7,;153,12,0,0,80,83,100,80,1,7,;0,10,0,0,39,60,46,65,5,0,;155,10,0,0,58,80,61,80,5,0,;156,10,0,0,78,109,81,100,5,0,;0,11,0,0,50,65,56,43,1,2,;158,11,0,0,65,80,71,58,1,2,;159,11,0,0,85,105,91,78,1,2,;0,1,0,0,35,46,39,20,5,0,;161,1,0,0,85,76,59,90,5,0,;0,1,3,0,60,36,43,50,4,0,;163,1,3,0,100,86,73,70,4,0,;0,7,3,0,40,40,55,55,3,0,;165,7,3,0,55,55,80,85,3,0,;0,7,4,0,40,60,40,30,3,0,;167,7,4,0,70,90,70,40,3,0,;42,4,3,0,85,90,80,130,4,0,b;0,11,13,0,75,56,47,67,12,0,;170,11,13,0,125,76,67,67,12,0,;0,13,0,0,20,40,25,60,15,0,;0,1,0,0,50,45,41,15,15,0,;0,1,0,0,90,40,17,15,15,0,;0,1,0,0,35,40,65,20,15,0,;175,3,0,0,55,80,95,40,4,6,b;0,14,3,0,40,70,45,70,4,0,;177,14,3,0,65,95,70,95,4,0,;0,13,0,0,55,65,42,35,1,5,;179,13,0,0,70,80,57,45,1,5,;180,13,0,0,90,115,87,55,1,5,;44,12,0,0,75,90,97,50,7,0,U;298,11,0,0,70,20,50,40,2,6,b;183,11,0,0,100,60,80,50,2,6,;438,6,0,0,70,100,90,30,10,0,;61,11,0,0,90,90,87,70,2,0,K;0,12,3,0,35,35,47,50,6,7,;187,12,3,0,55,45,57,80,6,7,;188,12,3,0,75,55,82,110,6,7,;0,1,0,0,55,70,55,85,5,0,;0,12,0,0,30,30,30,30,7,0,;191,12,0,0,75,105,70,30,7,0,U;0,7,3,0,65,75,45,95,3,0,;0,11,5,0,55,45,35,15,2,5,;194,11,5,0,95,85,75,35,2,5,;133,14,0,0,65,130,77,110,5,0,bj;133,17,0,0,95,65,120,65,5,0,bn;0,17,3,0,60,85,42,91,4,0,;79,11,14,0,95,100,95,30,1,2,K;0,8,0,0,60,85,72,85,11,0,;0,14,0,0,48,72,48,48,15,0,;360,14,0,0,190,33,58,33,11,0,;0,1,14,0,70,90,65,85,5,0,;0,7,0,0,50,65,62,15,3,0,;204,7,9,0,75,90,100,40,3,0,;0,1,0,0,100,70,67,45,5,0,;0,5,3,0,65,75,85,85,3,0,;95,9,5,0,75,85,132,30,10,0,K;0,1,0,0,60,80,45,30,5,6,;209,1,0,0,90,120,67,45,5,6,;0,11,4,0,65,95,70,85,12,0,;123,7,9,0,70,130,90,65,3,0,K;0,7,6,0,20,10,230,5,3,0,;0,7,2,0,80,125,85,85,3,0,;0,17,15,0,55,95,65,115,5,0,;0,1,0,0,60,80,50,40,5,0,;216,1,0,0,90,130,75,55,5,0,;0,10,0,0,40,70,40,20,11,0,;218,10,6,0,60,90,100,30,11,0,;0,15,5,0,50,50,35,50,5,0,;220,15,5,0,100,100,70,50,5,0,;0,11,6,0,65,65,95,35,2,9,;0,11,0,0,35,65,35,65,2,12,;223,11,0,0,75,105,75,45,2,12,;0,15,3,0,45,65,45,75,2,5,;458,11,3,0,85,80,105,70,2,0,;0,9,3,0,65,80,105,70,4,0,;0,17,10,0,45,80,40,65,5,0,;228,17,10,0,75,110,65,95,5,0,;117,11,16,0,75,95,95,85,2,14,K;0,5,0,0,90,60,50,40,5,0,;231,5,0,0,90,120,90,50,5,0,;137,1,0,0,85,105,92,60,10,0,K;0,1,0,0,73,95,63,85,5,0,;0,1,0,0,55,20,40,75,5,0,;0,2,0,0,35,35,35,35,15,0,;236,2,0,0,50,95,102,70,8,0,;0,15,14,0,45,85,40,65,15,0,;0,13,0,0,45,65,46,95,15,0,;0,10,0,0,45,75,46,83,15,0,;0,1,0,0,95,80,87,100,5,0,;113,1,0,0,255,75,72,55,6,0,b;0,13,0,1,90,115,87,115,15,0,;0,10,0,1,115,115,80,100,15,0,;0,11,0,1,100,90,115,85,15,0,;0,6,5,0,50,64,50,41,1,0,;246,6,5,0,70,84,70,51,1,0,;247,6,17,0,100,134,105,61,1,0,;0,14,3,1,106,90,142,110,15,0,;0,10,3,1,106,130,122,90,15,0,;0,14,12,2,100,100,100,100,15,0,;0,12,0,0,40,65,45,70,1,14,;252,12,0,0,50,85,55,95,1,14,;253,12,0,0,70,105,75,120,1,14,;0,10,0,0,45,70,45,45,5,0,;255,10,2,0,60,85,60,55,5,0,;256,10,2,0,80,120,70,80,5,0,;0,11,0,0,50,70,50,40,1,2,;258,11,5,0,70,85,70,50,1,2,;259,11,5,0,100,110,90,60,1,2,;0,17,0,0,35,55,32,35,5,0,;261,17,0,0,70,90,65,70,5,0,;0,1,0,0,38,30,41,60,5,0,;263,1,0,0,78,70,61,100,5,0,;0,7,0,0,45,45,32,20,3,0,;265,7,0,0,50,35,40,15,3,0,;266,7,3,0,60,100,50,65,3,0,;265,7,0,0,50,35,40,15,3,0,;268,7,4,0,60,50,80,65,3,0,;0,11,12,0,40,40,40,30,2,7,;270,11,12,0,60,60,60,50,2,7,;271,11,12,0,80,90,85,70,2,7,W;0,12,0,0,40,40,40,30,5,7,;273,12,17,0,70,70,40,60,5,7,;274,12,17,0,90,100,60,80,5,7,L;0,1,3,0,40,55,30,85,4,0,;276,1,3,0,60,85,55,125,4,0,;0,11,3,0,40,55,30,85,2,4,;278,11,3,0,60,95,85,65,2,4,;0,14,0,0,28,45,30,40,8,11,;280,14,0,0,38,65,45,50,8,11,;281,14,0,0,68,125,90,80,8,11,;0,7,11,0,40,50,42,65,2,3,;283,7,3,0,70,100,72,80,2,3,;0,12,0,0,60,40,60,35,6,7,;285,12,2,0,60,130,70,70,6,7,;0,1,0,0,60,60,47,30,5,0,;287,1,0,0,80,80,67,90,5,0,;288,1,0,0,150,160,82,100,5,0,;0,7,5,0,31,45,60,40,3,0,;290,7,3,0,61,90,47,160,3,0,;290,7,8,0,1,90,37,40,10,0,;0,1,0,0,64,51,23,28,1,5,;293,1,0,0,84,71,43,48,1,5,;294,1,0,0,104,91,68,68,1,5,;0,2,0,0,72,60,30,25,8,0,;296,2,0,0,144,120,60,50,8,0,;0,1,0,0,50,20,40,20,15,0,;0,6,0,0,30,45,112,30,10,0,;0,1,0,0,50,45,40,50,5,6,;300,1,0,0,70,65,60,90,5,6,M;0,17,8,0,50,75,70,50,8,0,;0,9,0,0,50,85,70,50,5,6,;0,9,6,0,50,70,70,30,1,0,;304,9,6,0,60,90,95,40,1,0,;305,9,6,0,70,110,120,50,1,0,;0,2,14,0,30,40,55,60,8,0,;307,2,14,0,60,60,75,80,8,0,;0,13,0,0,40,65,40,65,5,0,;309,13,0,0,70,105,60,105,5,0,;0,13,0,0,60,85,57,95,6,0,;0,13,0,0,60,75,67,95,6,0,;0,7,0,0,65,73,80,85,3,8,;0,7,0,0,65,73,80,85,3,8,;406,12,4,0,50,100,62,65,6,7,bj;0,4,0,0,70,43,53,40,11,0,;316,4,0,0,100,73,83,55,11,0,;0,11,17,0,45,90,20,65,12,0,;318,11,17,0,70,120,40,95,12,0,;0,11,0,0,130,70,35,60,5,12,;320,11,0,0,170,90,45,60,5,12,;0,10,5,0,60,65,42,35,5,0,;322,10,5,0,70,105,72,40,5,0,;0,10,0,0,70,85,105,20,5,0,;0,14,0,0,60,70,57,60,5,0,;325,14,0,0,80,90,87,80,5,0,;0,1,0,0,60,60,60,60,5,8,;0,5,0,0,45,100,45,10,3,14,;328,5,16,0,50,70,50,70,3,14,;329,5,16,0,80,100,80,100,3,14,;0,12,0,0,50,85,40,35,7,8,;331,12,17,0,70,115,60,55,7,8,;0,1,3,0,45,40,67,50,4,14,;333,16,3,0,75,70,97,80,4,14,;0,1,0,0,73,115,60,90,5,0,;0,4,0,0,73,100,60,65,5,14,;0,6,14,0,90,95,75,70,10,0,;0,6,14,0,90,95,75,70,10,0,;0,11,5,0,50,48,42,60,12,0,;339,11,5,0,110,78,72,60,12,0,;0,11,0,0,43,80,50,35,2,9,;341,11,17,0,63,120,70,55,2,9,;0,5,14,0,40,40,62,55,10,0,;343,5,14,0,60,70,112,75,10,0,;0,6,12,0,66,61,82,23,9,0,;345,6,12,0,86,81,102,43,9,0,;0,6,7,0,45,95,50,75,9,0,;347,6,7,0,75,125,90,45,9,0,;0,11,0,0,20,15,37,80,2,14,;349,11,0,0,95,100,102,81,2,14,K;0,1,0,0,70,70,70,70,6,11,;0,1,0,0,60,90,95,40,5,0,;0,8,0,0,44,75,34,45,11,0,;353,8,0,0,64,115,64,65,11,0,;0,8,0,0,20,40,90,25,11,0,;355,8,0,0,40,70,130,25,11,0,;0,12,3,0,99,72,85,51,1,7,;433,14,0,0,75,95,85,65,11,0,bn;0,17,0,0,65,130,60,75,5,0,;0,14,0,0,95,23,48,23,15,0,;0,15,0,0,50,50,50,50,6,10,;361,15,0,0,80,80,80,80,6,10,;0,15,11,0,70,55,50,25,2,5,;363,15,11,0,90,75,70,45,2,5,;364,15,11,0,110,95,90,65,2,5,;0,11,0,0,35,74,70,32,2,0,;366,11,0,0,55,104,90,52,2,0,K;366,11,0,0,55,114,90,52,2,0,K;0,11,6,0,100,90,97,55,2,12,;0,11,0,0,43,40,60,97,12,0,;0,16,0,0,45,75,45,50,14,0,;371,16,0,0,65,95,75,50,14,0,;372,16,3,0,95,135,80,100,14,0,;0,9,14,0,40,55,70,30,10,0,;374,9,14,0,60,75,90,50,10,0,;375,9,14,0,80,135,110,70,10,0,;0,6,0,1,80,100,150,50,15,0,;0,15,0,1,80,100,150,50,15,0,;0,9,0,1,80,75,150,50,15,0,;0,16,14,1,80,110,110,110,15,0,;0,16,14,1,80,130,95,110,15,0,;0,11,0,1,100,150,115,90,15,0,;0,5,0,1,100,150,115,90,15,0,;0,16,3,1,105,150,90,95,15,0,;0,9,14,2,100,100,100,100,15,0,;0,14,0,2,50,150,50,150,15,0,;0,12,0,0,55,68,59,31,1,7,;387,12,0,0,75,89,75,36,1,7,;388,12,5,0,95,109,95,56,1,7,;0,10,0,0,44,58,44,61,5,8,;390,10,2,0,64,78,52,81,5,8,;391,10,2,0,76,104,71,108,5,8,;0,11,0,0,53,61,54,40,2,5,;393,11,0,0,64,81,72,50,2,5,;394,11,9,0,84,111,94,60,2,5,;0,1,3,0,40,55,30,60,4,0,;396,1,3,0,55,75,45,80,4,0,;397,1,3,0,85,120,65,100,4,0,;0,1,0,0,59,45,40,31,2,5,;399,1,11,0,79,85,60,71,2,5,;0,7,0,0,37,25,41,25,3,0,;401,7,0,0,77,85,51,65,3,0,;0,13,0,0,45,65,34,45,5,0,;403,13,0,0,60,85,49,60,5,0,;404,13,0,0,80,120,79,70,5,0,;0,12,4,0,40,50,52,55,15,0,;315,12,4,0,60,125,85,90,6,7,H;0,6,0,0,67,125,35,58,1,0,;408,6,0,0,97,165,55,58,1,0,;0,6,9,0,30,42,103,30,1,0,;410,6,9,0,60,52,153,30,1,0,;0,7,0,0,40,29,45,36,3,0,;412,7,12,0,60,79,95,36,3,0,;412,7,3,0,70,94,50,66,3,0,;0,7,3,0,30,30,42,70,3,0,;415,7,3,0,70,80,102,40,3,0,;0,13,0,0,60,45,80,95,5,6,;0,11,0,0,55,65,32,85,2,5,;418,11,0,0,85,105,52,115,2,5,;0,12,0,0,45,62,49,35,6,7,;420,12,0,0,70,87,74,85,6,7,;0,11,0,0,76,57,55,34,2,11,;422,11,5,0,111,92,75,39,2,11,;190,1,0,0,75,100,66,115,5,0,;0,8,3,0,90,60,39,70,11,0,;425,8,3,0,150,90,49,80,11,0,;0,1,0,0,55,66,50,85,5,8,;427,1,0,0,65,76,90,105,5,8,b;200,8,0,0,60,105,82,105,11,0,D;198,17,3,0,100,125,52,71,4,0,D;0,1,0,0,49,55,39,85,5,0,;431,1,0,0,71,82,61,112,5,0,;0,14,0,0,45,65,50,45,15,0,;0,4,17,0,63,63,44,74,5,0,;434,4,17,0,103,93,64,84,5,0,;0,9,14,0,57,24,86,23,10,0,;436,9,14,0,67,89,116,33,10,0,;0,6,0,0,50,80,70,10,15,0,;0,14,0,0,20,70,67,60,15,0,;0,1,0,0,100,15,35,30,15,0,;0,1,3,0,76,92,43,91,4,0,;0,8,17,0,50,92,108,35,11,0,;0,16,5,0,58,70,45,42,1,14,;443,16,5,0,68,90,60,82,1,14,;444,16,5,0,108,130,90,102,1,14,;0,1,0,0,135,85,62,5,15,0,;0,2,0,0,40,70,40,60,15,0,;447,2,9,0,70,115,70,90,5,8,bj;0,5,0,0,68,72,60,32,5,0,;449,5,0,0,108,112,95,47,5,0,;0,4,7,0,40,50,72,65,3,9,;451,4,17,0,70,90,92,95,3,9,;0,4,2,0,48,61,40,50,8,0,;453,4,2,0,83,106,65,85,8,0,;0,12,0,0,74,100,72,46,7,0,;0,11,0,0,49,49,58,66,12,0,;456,11,0,0,69,69,81,91,12,0,;0,11,3,0,45,60,85,50,15,0,;0,12,15,0,60,62,55,40,1,7,;459,12,15,0,90,92,80,60,1,7,;215,17,15,0,70,120,75,125,5,0,n;82,13,9,0,70,130,102,60,10,0,T;108,1,0,0,110,85,95,50,1,0,;112,5,6,0,115,140,92,40,1,5,K;114,12,0,0,100,110,87,50,7,0,;125,13,0,0,75,123,76,95,8,0,K;126,10,0,0,75,125,81,83,8,0,K;176,3,0,0,85,120,105,80,4,6,H;193,7,3,0,86,116,71,95,3,0,;133,12,0,0,65,110,97,95,5,0,L;133,15,0,0,65,130,102,65,5,0,I;207,5,3,0,75,95,100,95,3,0,n;221,15,5,0,110,130,70,80,5,0,;233,1,0,0,85,135,72,90,10,0,K;281,14,2,0,68,125,90,80,8,11,A;299,6,9,0,60,75,147,40,10,0,;356,8,0,0,45,100,135,45,11,0,K;361,15,8,0,70,80,70,110,6,10,A;0,13,8,0,50,95,77,91,11,0,;0,14,0,1,75,75,130,95,15,0,;0,14,0,1,80,105,105,80,15,0,;0,14,0,1,75,125,70,115,15,0,;0,9,16,1,100,150,110,90,15,0,;0,11,16,1,90,150,110,100,15,0,;0,10,9,1,91,130,106,77,15,0,;0,1,0,1,110,160,110,100,15,0,;0,8,16,1,150,100,120,90,15,0,;0,14,0,1,120,75,125,85,15,0,;0,11,0,2,80,80,80,80,2,6,;0,11,0,2,100,100,100,100,2,6,;0,17,0,2,70,135,90,125,15,0,;0,12,0,2,100,100,100,100,15,0,;0,1,0,2,120,120,120,120,15,0,").split(';').map(s=>{const r=s.split(','),[p,a,b,f,hp,at,de,sp,e1,e2]=r.map(Number);return{prev:p,t:b?[a,b]:[a],flag:f,hp,at,de,sp,e1,e2,cond:r[10]||''}});
+const CHART="2222212012222222232112310322221323232221321223122222221112102232222222032312332132222213212321322223222111222111232322302222223222223221222223221112123222222213231132231222223322231122212221133121131222122232022222311221223232222122221220223232221113221322222222212222223221222223222223221";
+const NAMES_FR=["Bulbizarre", "Herbizarre", "Florizarre", "Salamèche", "Reptincel", "Dracaufeu", "Carapuce", "Carabaffe", "Tortank", "Chenipan", "Chrysacier", "Papilusion", "Aspicot", "Coconfort", "Dardargnan", "Roucool", "Roucoups", "Roucarnage", "Rattata", "Rattatac", "Piafabec", "Rapasdepic", "Abo", "Arbok", "Pikachu", "Raichu", "Sabelette", "Sablaireau", "Nidoran♀", "Nidorina", "Nidoqueen", "Nidoran♂", "Nidorino", "Nidoking", "Mélofée", "Mélodelfe", "Goupix", "Feunard", "Rondoudou", "Grodoudou", "Nosferapti", "Nosferalto", "Mystherbe", "Ortide", "Rafflesia", "Paras", "Parasect", "Mimitoss", "Aéromite", "Taupiqueur", "Triopikeur", "Miaouss", "Persian", "Psykokwak", "Akwakwak", "Férosinge", "Colossinge", "Caninos", "Arcanin", "Ptitard", "Têtarte", "Tartard", "Abra", "Kadabra", "Alakazam", "Machoc", "Machopeur", "Mackogneur", "Chétiflor", "Boustiflor", "Empiflor", "Tentacool", "Tentacruel", "Racaillou", "Gravalanch", "Grolem", "Ponyta", "Galopa", "Ramoloss", "Flagadoss", "Magnéti", "Magnéton", "Canarticho", "Doduo", "Dodrio", "Otaria", "Lamantine", "Tadmorv", "Grotadmorv", "Kokiyas", "Crustabri", "Fantominus", "Spectrum", "Ectoplasma", "Onix", "Soporifik", "Hypnomade", "Krabby", "Krabboss", "Voltorbe", "Électrode", "Noeunoeuf", "Noadkoko", "Osselait", "Ossatueur", "Kicklee", "Tygnon", "Excelangue", "Smogo", "Smogogo", "Rhinocorne", "Rhinoféros", "Leveinard", "Saquedeneu", "Kangourex", "Hypotrempe", "Hypocéan", "Poissirène", "Poissoroy", "Stari", "Staross", "M. Mime", "Insécateur", "Lippoutou", "Élektek", "Magmar", "Scarabrute", "Tauros", "Magicarpe", "Léviator", "Lokhlass", "Métamorph", "Évoli", "Aquali", "Voltali", "Pyroli", "Porygon", "Amonita", "Amonistar", "Kabuto", "Kabutops", "Ptéra", "Ronflex", "Artikodin", "Électhor", "Sulfura", "Minidraco", "Draco", "Dracolosse", "Mewtwo", "Mew", "Germignon", "Macronium", "Méganium", "Héricendre", "Feurisson", "Typhlosion", "Kaiminus", "Crocrodil", "Aligatueur", "Fouinette", "Fouinar", "Hoothoot", "Noarfang", "Coxy", "Coxyclaque", "Mimigal", "Migalos", "Nostenfer", "Loupio", "Lanturn", "Pichu", "Mélo", "Toudoudou", "Togepi", "Togetic", "Natu", "Xatu", "Wattouat", "Lainergie", "Pharamp", "Joliflor", "Marill", "Azumarill", "Simularbre", "Tarpaud", "Granivol", "Floravol", "Cotovol", "Capumain", "Tournegrin", "Héliatronc", "Yanma", "Axoloto", "Maraiste", "Mentali", "Noctali", "Cornèbre", "Roigada", "Feuforêve", "Zarbi", "Qulbutoké", "Girafarig", "Pomdepik", "Foretress", "Insolourdo", "Scorplane", "Steelix", "Snubbull", "Granbull", "Qwilfish", "Cizayox", "Caratroc", "Scarhino", "Farfuret", "Teddiursa", "Ursaring", "Limagma", "Volcaropod", "Marcacrin", "Cochignon", "Corayon", "Rémoraid", "Octillery", "Cadoizo", "Démanta", "Airmure", "Malosse", "Démolosse", "Hyporoi", "Phanpy", "Donphan", "Porygon2", "Cerfrousse", "Queulorior", "Debugant", "Kapoera", "Lippouti", "Élekid", "Magby", "Écrémeuh", "Leuphorie", "Raikou", "Entei", "Suicune", "Embrylex", "Ymphect", "Tyranocif", "Lugia", "Ho-Oh", "Celebi", "Arcko", "Massko", "Jungko", "Poussifeu", "Galifeu", "Braségali", "Gobou", "Flobio", "Laggron", "Medhyèna", "Grahyèna", "Zigzaton", "Linéon", "Chenipotte", "Armulys", "Charmillon", "Blindalys", "Papinox", "Nénupiot", "Lombre", "Ludicolo", "Grainipiot", "Pifeuil", "Tengalice", "Nirondelle", "Hélédelle", "Goélise", "Bekipan", "Tarsal", "Kirlia", "Gardevoir", "Arakdo", "Maskadra", "Balignon", "Chapignon", "Parecool", "Vigoroth", "Monaflèmit", "Ningale", "Ninjask", "Munja", "Chuchmur", "Ramboum", "Brouhabam", "Makuhita", "Hariyama", "Azurill", "Tarinor", "Skitty", "Delcatty", "Ténéfix", "Mysdibule", "Galekid", "Galegon", "Galeking", "Méditikka", "Charmina", "Dynavolt", "Élecsprint", "Posipi", "Négapi", "Muciole", "Lumivole", "Rosélia", "Gloupti", "Avaltout", "Carvanha", "Sharpedo", "Wailmer", "Wailord", "Chamallot", "Camérupt", "Chartor", "Spoink", "Groret", "Spinda", "Kraknoix", "Vibraninf", "Libégon", "Cacnea", "Cacturne", "Tylton", "Altaria", "Mangriff", "Séviper", "Séléroc", "Solaroc", "Barloche", "Barbicha", "Écrapince", "Colhomard", "Balbuto", "Kaorine", "Lilia", "Vacilys", "Anorith", "Armaldo", "Barpau", "Milobellus", "Morphéo", "Kecleon", "Polichombr", "Branette", "Skelénox", "Téraclope", "Tropius", "Éoko", "Absol", "Okéoké", "Stalgamin", "Oniglali", "Obalie", "Phogleur", "Kaimorse", "Coquiperl", "Serpang", "Rosabyss", "Relicanth", "Lovdisc", "Draby", "Drackhaus", "Drattak", "Terhal", "Métang", "Métalosse", "Regirock", "Regice", "Registeel", "Latias", "Latios", "Kyogre", "Groudon", "Rayquaza", "Jirachi", "Deoxys", "Tortipouss", "Boskara", "Torterra", "Ouisticram", "Chimpenfeu", "Simiabraz", "Tiplouf", "Prinplouf", "Pingoléon", "Étourmi", "Étourvol", "Étouraptor", "Keunotor", "Castorno", "Crikzik", "Mélokrik", "Lixy", "Luxio", "Luxray", "Rozbouton", "Roserade", "Kranidos", "Charkos", "Dinoclier", "Bastiodon", "Cheniti", "Cheniselle", "Papilord", "Apitrini", "Apireine", "Pachirisu", "Mustébouée", "Mustéflott", "Ceribou", "Ceriflor", "Sancoki", "Tritosor", "Capidextre", "Baudrive", "Grodrive", "Laporeille", "Lockpin", "Magirêve", "Corboss", "Chaglam", "Chaffreux", "Korillon", "Moufouette", "Moufflair", "Archéomire", "Archéodong", "Manzaï", "Mime Jr.", "Ptiravi", "Pijako", "Spiritomb", "Griknot", "Carmache", "Carchacrok", "Goinfrex", "Riolu", "Lucario", "Hippopotas", "Hippodocus", "Rapion", "Drascore", "Cradopaud", "Coatox", "Vortente", "Écayon", "Luminéon", "Babimanta", "Blizzi", "Blizzaroi", "Dimoret", "Magnézone", "Coudlangue", "Rhinastoc", "Bouldeneu", "Élekable", "Maganon", "Togekiss", "Yanmega", "Phyllali", "Givrali", "Scorvol", "Mammochon", "Porygon-Z", "Gallame", "Tarinorme", "Noctunoir", "Momartik", "Motisma", "Créhelf", "Créfollet", "Créfadet", "Dialga", "Palkia", "Heatran", "Regigigas", "Giratina", "Cresselia", "Phione", "Manaphy", "Darkrai", "Shaymin", "Arceus"];
+const KIDS={};DEX.forEach((d,i)=>{if(d.prev)(KIDS[d.prev]=KIDS[d.prev]||[]).push(i+1)});
+const dex=id=>DEX[id-1], kids=id=>KIDS[id]||[];
+const depth=id=>{let n=0;while(dex(id).prev){id=dex(id).prev;n++}return n};
+const root=id=>{while(dex(id).prev)id=dex(id).prev;return id};
+const T={1:['Normal','#c49a32','prairie'],2:['Combat','#c8553d','roche'],3:['Vol','#6f98de','ciel'],4:['Poison','#9a5bc4','foret'],5:['Sol','#c08a4e','roche'],6:['Roche','#9c865e','roche'],7:['Insecte','#86a52f','foret'],8:['Spectre','#6a5aa8','nuit'],9:['Acier','#7f97a6','roche'],10:['Feu','#ee6c3a','volcan'],11:['Eau','#3f8fdc','eau'],12:['Plante','#46a85f','prairie'],13:['Électrik','#e5b414','ciel'],14:['Psy','#ec5f93','nuit'],15:['Glace','#4fbccb','neige'],16:['Dragon','#5b5bd6','volcan'],17:['Ténèbres','#4a4458','nuit']};
+const SCENE={prairie:['#8fd0f0','#d3f2f2','#6cbf5a','#559f49','#7fc98f'],foret:['#6fae8d','#bfe0a8','#4d8f4a','#3b7440','#2f6a4a'],eau:['#5cb4ea','#bfeaf5','#e8d9a0','#d3c084','#3f8fdc'],neige:['#a8d8ee','#eaf7fb','#f2f8fb','#d6e6ee','#b5d4e2'],roche:['#e6b98a','#f6e3bd','#b08a60','#94724c','#8b6d4f'],volcan:['#c74b35','#f2a65a','#6c4a42','#573b36','#3f2c2d'],ciel:['#6fb4f2','#e4f3fb','#a7d782','#8cc36a','#ffffff'],nuit:['#2f2a5c','#6a4f9e','#3a3460','#2d284d','#1f1b3f']};
+const FOODS=[{k:'oran',n:'Baie Oran',h:30,j:2,c:'#3f7fdc'},{k:'pecha',n:'Baie Pêcha',h:24,j:6,c:'#f08bb0'},{k:'poffin',n:'Poffin',h:10,j:20,c:'#c98a4a'}];
+const PACE={calme:.5,normal:1,rapide:12}, NEED=[24,48];
+const ICON={
+ heart:'.##..##.|########|########|########|.######.|..####..|...##...|........',
+ berry:'....#...|...#....|.######.|########|########|########|.######.|..####..',
+ bolt:'....##..|...##...|..##....|.#####..|...##...|..##....|.##.....|#.......',
+ drop:'...#....|...#....|..###...|..###...|.#####..|.#####..|.#####..|..###...',
+ note:'..#####.|..#...#.|..#...#.|..#...#.|###.###.|###.###.|........|........',
+ z:'#####...|...#....|..#.....|.#...###|#####..#|......#.|.....#..|.....###',
+ cross:'..####..|..#..#..|###..###|#......#|#......#|###..###|..#..#..|..####..',
+ poop:'...#....|..##....|..###...|.#####..|.#####..|#######.|#######.|........',
+ excl:'...##...|...##...|...##...|...##...|...##...|........|...##...|...##...',
+ moon:'..####..|.###....|###.....|###.....|###.....|###....#|.######.|..####..',
+ star:'...#....|...#....|..###...|#######.|..###...|..#.#...|.#...#..|........',
+ ring:'..####..|.#....#.|#......#|#......#|#......#|#......#|.#....#.|..####..'
+};
+function icon(g,n,x,y,c,s=1){g.fillStyle=c;ICON[n].split('|').forEach((r,j)=>{for(let i=0;i<8;i++)if(r[i]==='#')g.fillRect(x+i*s,y+j*s,s,s)})}
+document.querySelectorAll('canvas[data-ic]').forEach(c=>icon(c.getContext('2d'),c.dataset.ic,0,0,'#2b3044'));
+
+/* ---------- État et sauvegarde ---------- */
+const $=id=>document.getElementById(id), esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const KEY='pokenid.save.v1';
+const fresh=()=>({v:2,savedAt:0,pet:null,pension:[],dex:{},items:{ball:5},hats:[],log:[],badges:[],shinies:{},gifts:{},opt:{pace:'normal',night:true,sound:true,shell:'',keys:'#fbfcfe',weather:true,trainer:''}});
+let S=fresh(), SPR=null, dirty=false, remote=null, picking=false, tab='fiche', mode='none', G=null;
+function readLocal(){try{const r=localStorage.getItem(KEY);return r?JSON.parse(r):null}catch(e){return null}}
+function touch(){dirty=true}
+function save(toCloud){if(!dirty&&!toCloud)return;S.savedAt=Date.now();try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}
+  if(toCloud&&remote&&dirty!==null){remote.set({json:JSON.stringify(S),savedAt:S.savedAt}).catch(()=>{})}dirty=false}
+async function connectCloud(){
+  const use=window.claude&&window.claude.use;if(!use)return;
+  try{const[db,user]=await Promise.all([window.claude.use('db'),window.claude.use('user')]);if(!db||!user)return;
+    const id=await user.id();if(!id)return;
+    remote=db.collection('data/users/'+id).doc('save');
+    const d=await remote.get();
+    if(d.exists){const o=d.data();if(o&&o.savedAt>(S.savedAt||0)){S=JSON.parse(o.json);migrate();if(SPR)useSprites(SPR);else paint()}}
+    else{dirty=true;save(true)}
+    if(tab==='options')renderPane();
+  }catch(e){remote=null}
+}
+const idb=()=>new Promise((ok,ko)=>{const r=indexedDB.open('pokenid',1);r.onupgradeneeded=()=>r.result.createObjectStore('kv');r.onsuccess=()=>ok(r.result);r.onerror=()=>ko(r.error)});
+async function idbPut(v){try{const d=await idb();d.transaction('kv','readwrite').objectStore('kv').put(v,'sprites')}catch(e){}}
+async function idbGet(){try{const d=await idb();return await new Promise(ok=>{const q=d.transaction('kv').objectStore('kv').get('sprites');q.onsuccess=()=>ok(q.result||null);q.onerror=()=>ok(null)})}catch(e){return null}}
+
+/* ---------- Import PokéLabel : le fichier est lu dans le navigateur ---------- */
+function parsePokeLabel(s){
+  const grab=k=>{const m=s.match(new RegExp('const\\s+'+k+'\\s*=\\s*(\\[[\\s\\S]*?\\]);'));if(!m)return null;try{return JSON.parse(m[1])}catch(e){return null}};
+  const names=grab('NAMES');let imgs=grab('_UI');if(!imgs||!imgs.length)imgs=grab('_BW');
+  if(!names||!imgs||!imgs.length)return null;
+  const n=Math.min(names.length,imgs.length,DEX.length);return{names:names.slice(0,n),imgs:imgs.slice(0,n)};
+}
+function useSprites(d){SPR=d;mode='idle';if(S.pet&&S.pet.stage==='egg')mode='egg';else if(!S.pet)mode='empty';catchUp();paint()}
+async function importFile(f){
+  const p=parsePokeLabel(await f.text());
+  if(!p){flash('Ce fichier ne contient pas les sprites de PokéLabel. Choisis pokelabel.html.');return}
+  await idbPut(p);useSprites(p);flash(p.imgs.length+' Pokémon chargés.');
+}
+$('pkFile').onchange=e=>{const f=e.target.files[0];e.target.value='';if(f)importFile(f)};
+addEventListener('dragover',e=>e.preventDefault());
+addEventListener('drop',e=>{e.preventDefault();const f=e.dataTransfer.files[0];if(f)importFile(f)});
+const WEB='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/';
+const webSrc=(id,sh)=>{const x=sh?'shiny/':'';return WEB+(id<=251?`generation-ii/crystal/transparent/${x}${id}.png`:id<=386?`generation-iii/emerald/${x}${id}.png`:`generation-iv/platinum/${x}${id}.png`)};
+const webReachable=()=>new Promise(ok=>{const i=new Image(),t=setTimeout(()=>ok(false),7000);i.crossOrigin='anonymous';i.onload=()=>{clearTimeout(t);ok(true)};i.onerror=()=>{clearTimeout(t);ok(false)};i.src=webSrc(25)});
+let loadTried=false;
+async function autoLoad(){
+  const c=await idbGet();if(c&&c.imgs&&c.imgs.length)return useSprites(c);
+  if(await webReachable())return useSprites({names:NAMES_FR,imgs:NAMES_FR.map((_,i)=>webSrc(i+1))});
+  try{const r=await fetch('pokelabel.html');if(r.ok){const p=parsePokeLabel(await r.text());if(p){await idbPut(p);return useSprites(p)}}}catch(e){}
+}
+
+/* ---------- Sprites ---------- */
+const CACHE={};
+function sprite(id,sh){
+  const key=id+(sh?'s':'');if(CACHE[key])return CACHE[key].ready?CACHE[key]:null;
+  if(!SPR||!SPR.imgs[id-1])return null;
+  const o=CACHE[key]={ready:false},img=new Image(),src=SPR.imgs[id-1],web=src.startsWith('http');
+  if(web)img.crossOrigin='anonymous';
+  img.onerror=()=>setTimeout(()=>{delete CACHE[key]},5000);
+  img.onload=()=>{const W=img.naturalWidth,H=img.naturalHeight,c=document.createElement('canvas');c.width=W;c.height=H;const g=c.getContext('2d',{willReadFrequently:true});g.drawImage(img,0,0);
+    if(sh&&!web){const q=g.getImageData(0,0,W,H),d=q.data;for(let i=0;i<d.length;i+=4){const r=d[i];d[i]=d[i+2];d[i+2]=d[i+1];d[i+1]=r}g.putImageData(q,0,0)}
+    const a=g.getImageData(0,0,W,H).data;let x0=W,y0=H,x1=-1,y1=-1;for(let y=0;y<H;y++)for(let x=0;x<W;x++)if(a[(y*W+x)*4+3]>16){if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y}
+    if(x1<0){x0=y0=0;x1=W-1;y1=H-1}
+    const w=x1-x0+1,h=y1-y0+1,mk=col=>{const k=document.createElement('canvas');k.width=w;k.height=h;const q=k.getContext('2d');q.drawImage(c,x0,y0,w,h,0,0,w,h);if(col){q.globalCompositeOperation='source-in';q.fillStyle=col;q.fillRect(0,0,w,h)}return k};
+    let hs=0,hn=0;for(let y=y0;y<Math.min(y0+6,y1+1);y++)for(let x=x0;x<=x1;x++)if(a[(y*W+x)*4+3]>16){hs+=x-x0;hn++}o.hx=hn?hs/hn:w/2;o.c=mk();o.white=mk('#fff');o.black=mk('#14162a');o.w=w;o.h=h;o.s=Math.max(w,h)<=32?2:1;o.ready=true};
+  img.src=srcOf(id,sh);return null;
+}
+function srcOf(id,sh){const v=SPR.imgs[id-1];return v.startsWith('http')?(sh?webSrc(id,true):v):'data:image/png;base64,'+v}
+const url=srcOf;
+const nameOf=id=>(SPR&&SPR.names[id-1])||('#'+id);
+const petName=p=>p.nick||nameOf(p.id);
+
+/* ---------- Son ---------- */
+let AC=null;addEventListener('pointerdown',()=>{if(!AC){try{AC=new (window.AudioContext||window.webkitAudioContext)()}catch(e){}}},{once:false});
+function beep(seq){if(!AC||!S.opt.sound)return;let t=AC.currentTime;seq.forEach(([f,d])=>{const o=AC.createOscillator(),v=AC.createGain();o.type='square';o.frequency.value=f;v.gain.value=.035;o.connect(v).connect(AC.destination);o.start(t);o.stop(t+d);t+=d})}
+const SND={ok:[[660,.06],[880,.08]],no:[[220,.12]],yum:[[520,.05],[620,.05],[780,.08]],fan:[[523,.09],[659,.09],[784,.09],[1047,.2]],tap:[[440,.03]]};
+
+/* ---------- Temps réel : tout est calculé depuis l'horloge, appli fermée ou non ---------- */
+const isNight=ts=>{const h=new Date(ts).getHours();return h>=21||h<7};
+const clamp=v=>Math.max(0,Math.min(100,v));
+function step(p,ms,ts,sum){
+  const h=ms/36e5*PACE[S.opt.pace];
+  if(p.ko||p.away)return;
+  const night=S.opt.night&&isNight(ts);
+  if(night&&!p.asleep&&ts>(p.awakeUntil||0)){p.asleep=true;p.sleepBy='night'}
+  if(p.asleep&&((p.sleepBy==='night'&&!night)||(p.sleepBy==='user'&&p.energy>=100))){p.asleep=false}
+  const f=p.asleep?.25:1;
+  p.hunger=clamp(p.hunger-(p.nature==='gourmand'?10:8)*h*f);p.joy=clamp(p.joy-(p.sick?9:5)*h*f);
+  p.energy=clamp(p.energy+(p.asleep?16*h:-(p.nature==='flemmard'?7:5)*h));p.clean=clamp(p.clean-(4+p.poops*2)*h*f);
+  p.poopD+=.33*h*f;if(p.poopD>=1){p.poopD-=1;if(p.poops<4){p.poops++;if(sum)sum.poops=(sum.poops||0)+1}}
+  p.sickD=(p.clean<25||p.hunger<15)?p.sickD+h:Math.max(0,p.sickD-h);
+  if(p.sickD>=4&&!p.sick){p.sick=true;p.sickD=0;if(sum)sum.sick=1}
+  p.neg=p.hunger<=0?p.neg+h:Math.max(0,p.neg-h*2);
+  if(p.neg>=24){p.ko=true;p.asleep=false;if(sum)sum.ko=1}
+  if(!p.sick&&p.hunger>=50&&p.joy>=50&&p.energy>=50&&p.clean>=50)p.bond=Math.min(100,p.bond+1.5*h);
+  p.ageH+=h;
+}
+function advance(p,to,sum){
+  if(!p||p.stage==='egg'){if(p)p.lastTick=to;return}
+  let t=Math.max(p.lastTick,to-14*864e5),s=3e5;
+  while(to-t>0){const d=Math.min(s,to-t);t+=d;step(p,d,t,sum)}
+  p.lastTick=to;
+}
+function fmtGap(ms){const m=Math.round(ms/6e4);return m<60?m+' min':m<2880?Math.round(m/60)+' h':Math.round(m/1440)+' jours'}
+function catchUp(){
+  const p=S.pet;if(!p)return;const gap=Date.now()-p.lastTick,sum={};if(gap>12e4&&p.stage!=='egg'&&!p.ko&&!p.away&&!p.asleep){p.asleep=true;p.sleepBy='away'}advance(p,Date.now(),sum);if(p.sleepBy==='away'){p.asleep=false;p.sleepBy='';p.awakeUntil=Date.now()+30*6e4}touch();
+  if(gap>6e5&&p.stage!=='egg'&&SPR){const b=[];if(sum.poops)b.push(sum.poops+' crotte'+(sum.poops>1?'s':''));if(sum.sick)b.push('tombé malade');if(sum.ko)b.push('K.O.');
+    flash(`Absent ${fmtGap(gap)}. ${petName(p)} a dormi en t'attendant`+(b.length?`, mais : ${b.join(', ')}.`:', et se réveille en forme.'),5000)}
+}
+const evoNeed=p=>NEED[Math.min(depth(p.id),1)];
+const evoReady=p=>evoTimeOk(p)&&SPR&&evoOpts(p).length>0;
+
+/* ---------- Actions ---------- */
+function newPet(id){return{uid:Date.now().toString(36)+rnd(1e6).toString(36),level:5+Math.min(15,((typeof S!=='undefined'&&S.legacy)||0)*3),xp:0,nature:pick(Object.keys(NATURES)),hat:'',shiny:rnd(64)===0,away:null,id,nick:'',stage:'egg',heat:0,bornAt:Date.now(),lastTick:Date.now(),hunger:70,joy:70,energy:90,clean:100,bond:10,poops:0,poopD:0,sickD:0,neg:0,sick:false,ko:false,asleep:false,sleepBy:'',ageH:0,stageAge:0,favKnown:false}}
+function startEgg(id){if(S.pet)S.pension.push(S.pet);S.pet=newPet(id);picking=false;mode='egg';closeMenu();touch();save(true);paint();flash('Touche l\'œuf pour le réchauffer !')}
+function mystery(){const l=DEX.map((d,i)=>i+1).filter(i=>!dex(i).prev&&!dex(i).flag&&i<=SPR.imgs.length&&!(S.dex[i]>=2));const a=l.length?l:DEX.map((d,i)=>i+1).filter(i=>!dex(i).prev&&!dex(i).flag);startEgg(a[Math.random()*a.length|0])}
+function raised(id){S.dex[id]=2;if(S.pet&&S.pet.shiny)S.shinies[id]=1;touch()}
+const busy=()=>mode!=='idle';
+function guard(){const p=S.pet;
+  if(!p||busy()){if(mode==='none')flash('Charge d\'abord pokelabel.html.');else if(mode==='egg')flash('Touche l\'œuf pour le réchauffer !');else if(mode==='empty')flash('Choisis un œuf dans le carnet.');return false}
+  if(p.ko){flash(`${petName(p)} est K.O. Emmène-le au Centre Pokémon.`);return false}
+  if(p.away){flash(`${petName(p)} est en expédition.`);return false}
+  if(p.asleep){flash(`${petName(p)} dort. Touche Dormir pour le réveiller.`);return false}
+  return true}
+function feed(fi){const p=S.pet,f=FOODS[fi];closeMenu();
+  if(p.hunger>=96){flash(`${petName(p)} n'a plus faim.`);beep(SND.no);return}
+  const fav=p.id%3===fi;p.hunger=clamp(p.hunger+f.h);p.joy=clamp(p.joy+f.j+(fav?10:0));p.bond=Math.min(100,p.bond+(fav?2:1));
+  if(fav)p.favKnown=true;xp(1);mission('feed');if(p.id===143&&Math.random()<.4)p.hunger=clamp(p.hunger-8);
+  burst('berry',f.c,3);if(fav)burst('heart','#e8486a',4);beep(SND.yum);hop(6);
+  flash(fav?`${petName(p)} adore ça ! (${f.n})`:`${petName(p)} mange : ${f.n}.`);touch();paint()}
+function cuddle(){const p=S.pet;if(!p||mode!=='idle'||p.ko||p.asleep)return;const n=Date.now();if(n<(G_cd||0))return;G_cd=n+2500;p.joy=clamp(p.joy+4);p.bond=Math.min(100,p.bond+.5);mission('hug');burst('heart','#e8486a',3);hop(4);beep(SND.tap);touch()}
+let G_cd=0;
+function wash(){if(!guard())return;const p=S.pet;if(p.nature==='farceur'&&Math.random()<.2){flash(fill('{n} s\'est enfui avec le savon. Réessaie.',p));hop(6);return}p.poops=0;mission('wash');xp(1);p.clean=100;p.sickD=0;p.bond=Math.min(100,p.bond+1);for(let i=0;i<12;i++)burst('ring','#ffffff',1);beep(SND.ok);flash(`${petName(p)} est tout propre.`);touch();paint()}
+function heal(){const p=S.pet;
+  if(p&&p.ko&&mode==='idle'){p.ko=false;p.neg=0;p.sick=false;p.sickD=0;p.hunger=p.joy=p.energy=p.clean=70;p.bond=Math.max(0,p.bond-20);burst('heart','#e8486a',6);beep(SND.fan);flash(`Le Centre Pokémon a soigné ${petName(p)}. Votre lien a baissé.`,5000);touch();paint();return}
+  if(!guard())return;
+  if(!p.sick){flash(`${petName(p)} n'est pas malade.`);beep(SND.no);return}
+  if(p.nature==='farceur'&&Math.random()<.25){flash(fill('{n} a caché la Potion. Réessaie.',p));return}
+  p.sick=false;p.sickD=0;p.joy=clamp(p.joy+5);burst('cross','#3fbf6a',4);beep(SND.ok);flash(`La Potion a guéri ${petName(p)}.`);touch();paint()}
+function sleepKey(){const p=S.pet;if(!p||busy()||p.ko){guard();return}
+  if(p.away){guard();return}
+  if(p.asleep&&p.id===143&&Math.random()<.67){flash('Ronflex se retourne et continue de dormir.');beep(SND.no);hop(2);return}
+  if(p.asleep){p.asleep=false;p.awakeUntil=Date.now()+36e5;flash(`${petName(p)} se réveille.`)}
+  else{p.asleep=true;p.sleepBy='user';flash(`Bonne nuit, ${petName(p)}.`)}beep(SND.tap);touch();paint()}
+
+/* ---------- Menus de l'écran ---------- */
+function openMenu(title,opts,back=true,cols2=true){const m=$('menu');m.hidden=false;$('msg').hidden=true;
+  m.innerHTML=(title?`<h3>${esc(title)}</h3>`:'')+opts.map((o,i)=>`<button type="button" data-i="${i}">${esc(o.l)}</button>`).join('')+(back?'<button type="button" class="back" data-b="1">Retour</button>':'');
+  m.onclick=e=>{const b=e.target.closest('button');if(!b)return;beep(SND.tap);if(b.dataset.b)return closeMenu();opts[+b.dataset.i].f()};
+  const f=m.querySelector('button');if(f&&document.activeElement&&document.activeElement.closest('.keys'))f.focus()}
+function closeMenu(){$('menu').classList.remove('fight');$('menu').hidden=true;$('msg').hidden=false;$('menu').onclick=null}
+$('kFeed').onclick=()=>{if(guard())openMenu('Que veux-tu lui donner ?',FOODS.map((f,i)=>({l:f.n,f:()=>feed(i)})))};
+$('kPlay').onclick=()=>{if(!guard())return;if(S.pet.energy<12){flash(`${petName(S.pet)} est trop fatigué pour jouer.`);return}
+  const o=[{l:'Mini-jeux',f:()=>openMenu('Quel jeu ?',[{l:'Qui est-ce ?',f:startQuiz},{l:'Attrape-baies',f:startCatch},{l:'Mémoire',f:startMemo},{l:'Rythme',f:startRhythm}])},{l:'Sortie',f:sortieMenu},{l:'Pêche',f:startFish},{l:'Expédition',f:expeMenu},{l:'Combat',f:()=>startBattle()}];if(S.wild)o.unshift({l:'Capturer '+nameOf(S.wild.id),f:startCapture});
+  openMenu('Que faire ?',o)};
+function expeMenu(){const P=PACE[S.opt.pace],lb=h=>{const m=Math.round(h*60/P);return m<60?m+' min':(m/60)+' h'};openMenu('Combien de temps ?',[1,3,8].map(h=>({l:lb(h),f:()=>startExpe(h)})))}
+$('kWash').onclick=wash;$('kHeal').onclick=heal;$('kSleep').onclick=sleepKey;
+
+/* ---------- Mini-jeu : Qui est-ce ? ---------- */
+function startQuiz(){closeMenu();mode='quiz';G={round:0,score:0,id:0,reveal:false};quizAsk()}
+function quizAsk(){
+  if(G.round>=5)return gameEnd(G.score,'Qui est-ce ?',5);
+  G.round++;G.reveal=false;const n=SPR.imgs.length,ids=new Set();while(ids.size<4)ids.add(1+(Math.random()*n|0));
+  const l=[...ids];G.id=l[Math.random()*4|0];sprite(G.id);
+  openMenu(`Qui est-ce ? ${G.round}/5`,l.map(i=>({l:nameOf(i),f:()=>{const good=i===G.id;if(good){G.score++;if(!S.dex[G.id])S.dex[G.id]=1;touch();beep(SND.ok)}else beep(SND.no);
+    G.reveal=true;closeMenu();setMsg(good?`Bravo, c'est ${nameOf(G.id)} !`:`C'était ${nameOf(G.id)}.`);setTimeout(()=>{if(mode==='quiz')quizAsk()},1500)}})),false);
+}
+/* ---------- Mini-jeu : Attrape-baies ---------- */
+function startCatch(){closeMenu();mode='catch';G={x:80,items:[],score:0,end:Date.now()+20000,next:0,keys:{}}}
+function catchMove(e){if(mode!=='catch')return;const r=$('lcd').getBoundingClientRect();G.x=Math.max(10,Math.min(150,(e.clientX-r.left)/r.width*160))}
+addEventListener('keydown',e=>{if(mode==='capture'&&(e.key===' '||e.key==='Enter')){e.preventDefault();throwBall()}if(mode==='catch'&&(e.key==='ArrowLeft'||e.key==='ArrowRight')){e.preventDefault();G.keys[e.key]=1}});
+addEventListener('keyup',e=>{if(mode==='catch')delete G.keys[e.key]});
+function gameEnd(score,label,max){const p=S.pet,win=score/max;mode='idle';G=null;
+  xp(3+Math.round(win*5));earn(Math.round(win*200));mission('game');p.joy=clamp(p.joy+10+Math.round(30*win));p.energy=clamp(p.energy-8);p.hunger=clamp(p.hunger-3);p.bond=Math.min(100,p.bond+1+Math.round(3*win));
+  burst('note','#ffffff',4);if(win>.5){burst('heart','#e8486a',4);beep(SND.fan)}
+  closeMenu();flash(`${label} : ${score} / ${max}. ${petName(p)} est content.`,4000);touch();paint()}
+
+/* ---------- Évolution ---------- */
+function askEvolve(){const p=S.pet,o=evoOpts(p);if(o.length===1&&!o[0].item)return startEvo(o[0].id);
+  openMenu(`${nameOf(p.id)} peut évoluer. Choisis.`,o.map(x=>({l:nameOf(x.id)+(x.item?` (${ITEMS[x.item][0]})`:''),f:()=>{closeMenu();if(x.item)S.items[x.item]--;startEvo(x.id)}})),true)}
+function startEvo(to){const p=S.pet;sprite(to,p.shiny);mode='evo';G={from:p.id,to,t0:Date.now(),sh:p.shiny};setMsg(`Quoi ? ${petName(p)} évolue !`);beep([[392,.1],[440,.1],[494,.1],[523,.2]])}
+function endEvo(){const p=S.pet,to=G.to,old=nameOf(G.from);p.id=to;p.stageAge=p.ageH;p.bond=30;mode='idle';G=null;raised(to);log(`${old} a évolué en ${nameOf(to)} !`,to);save(true);beep(SND.fan);burst('star','#ffe08a',8);flash(`${old} a évolué en ${nameOf(to)} !`,6000);paint()}
+
+/* ---------- Écran ---------- */
+const lcd=$('lcd'),g=lcd.getContext('2d');g.imageSmoothingEnabled=false;
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+let parts=[],hopT=0,pos={x:80,to:80,dir:1,wait:0},bgC=null,bgK='',tt=0;
+function hop(n){hopT=n}
+function burst(ic,c,n){for(let i=0;i<n;i++)parts.push({ic,c,x:pos.x-14+Math.random()*28,y:80-Math.random()*26,vy:-.5-Math.random()*.6,vx:(Math.random()-.5)*.6,life:32+Math.random()*16})}
+function buildBg(type){
+  const k=typeof type==='string'?type:(T[type]?T[type][2]:'prairie');if(bgK===k&&bgC)return bgC;bgK=k;const P=SCENE[k],c=document.createElement('canvas');c.width=160;c.height=144;const q=c.getContext('2d');
+  for(let y=0;y<100;y++){const t=y/100;q.fillStyle=(t+((y%2)*.06))>.55?P[1]:P[0];q.fillRect(0,y,160,1)}
+  for(let y=50;y<64;y++)for(let x=(y%2)*2;x<160;x+=4){if((x+y)%4===0){q.fillStyle=P[0];q.fillRect(x,y,2,1)}}
+  q.fillStyle=P[4];
+  if(k==='prairie'||k==='foret'||k==='ciel')for(let x=0;x<160;x++){const h=14+Math.sin(x*.05)*6+Math.sin(x*.13)*3;q.fillRect(x,98-h,1,h+4)}
+  if(k==='roche'||k==='volcan'||k==='neige')for(let x=0;x<160;x++){const m=(x%46),h=4+(m<23?m:46-m)*.9;q.fillRect(x,98-h,1,h+4)}
+  if(k==='eau')for(let x=0;x<160;x++){q.fillRect(x,88+Math.round(Math.sin(x*.4)),1,14)}
+  if(k==='nuit'){q.fillStyle='#fff';for(let i=0;i<30;i++)q.fillRect((i*53)%160,(i*37)%60+12,1,1);q.fillStyle=P[4];for(let x=0;x<160;x++){const h=8+Math.abs(Math.sin(x*.09))*9;q.fillRect(x,98-h,1,h+4)}}
+  q.fillStyle=P[2];q.fillRect(0,98,160,46);q.fillStyle=P[3];for(let y=100;y<144;y+=3)for(let x=(y%2)*5;x<160;x+=9)q.fillRect(x+(y*7)%9,y,2,1);
+  bgC=c;return c}
+function drawS(sp,x,bottom,flip,kind,flipY){if(!sp)return;const w=sp.w*sp.s,h=sp.h*sp.s,c=kind==='white'?sp.white:kind==='black'?sp.black:sp.c;g.save();g.translate(Math.round(x),Math.round(bottom));g.scale(flip?-1:1,flipY?-1:1);g.drawImage(c,-Math.round(w/2),flipY?0:-h,w,h);g.restore()}
+function drawEgg(x,y,tone,crack,wob){g.save();g.translate(x+wob,y);for(let j=-30;j<=26;j++){const t=j<0?Math.sqrt(1-(j/30)**2)*24:Math.sqrt(1-(j/26)**2)*26,w=Math.round(t);g.fillStyle='#14162a';g.fillRect(-w-1,j,2*w+2,1);if(Math.abs(j)<26||j<26){g.fillStyle='#f7f4e8';g.fillRect(-w,j,2*w,1)}}
+  g.fillStyle=tone;[[-12,-14,8],[7,-20,6],[10,-2,9],[-14,8,7],[2,14,6]].forEach(([a,b,s])=>{g.fillRect(a,b,s,s-2);g.fillRect(a+2,b-2,s-4,2);g.fillRect(a+2,b+s-2,s-4,2)});
+  g.fillStyle='#14162a';if(crack>30){[[-6,-8],[-4,-6],[-2,-8],[0,-6],[2,-8]].forEach(([a,b])=>g.fillRect(a,b,2,2))}if(crack>65){[[4,-6],[6,-4],[8,-6],[10,-4],[-8,-6],[-10,-4]].forEach(([a,b])=>g.fillRect(a,b,2,2))}g.restore()}
+function bars(p){const L=[['berry',p.hunger,'#e0483c'],['heart',p.joy,'#e8486a'],['bolt',p.energy,'#e5b414'],['drop',p.clean,'#3f8fdc']];g.fillStyle='#14162a';g.fillRect(0,0,160,11);
+  L.forEach(([ic,v,c],i)=>{const x=2+i*40;icon(g,ic,x,1,v<30&&tt%20<10?'#ffffff':c);g.fillStyle='#454a60';g.fillRect(x+9,3,27,5);g.fillStyle=v<30?'#ff6b5a':'#7fe08a';g.fillRect(x+9,3,Math.ceil(27*v/100),5)})}
+function render(){
+  tt++;const now=Date.now();
+  if(mode==='none'||mode==='empty'){const c=buildBg(12);g.drawImage(c,0,0);drawEgg(80,60,mode==='none'?'#9aa3b5':'#5bc0a8',0,reduce?0:Math.round(Math.sin(tt*.12)*2));return}
+  const p=S.pet,type=p?dex(p.id).t[0]:12,c=buildBg(S.room&&S.room.bg?S.room.bg:type);g.drawImage(c,0,0);
+  if(mode==='egg'){const wob=reduce?0:Math.round(Math.sin(tt*(.1+p.heat*.006))*(1+p.heat*.03));drawEgg(80,66,T[type][1],p.heat,wob);bars({hunger:0,joy:0,energy:0,clean:0});return}
+  if(mode==='quiz'){const sp=sprite(G.id);g.fillStyle='rgba(20,22,42,.45)';g.fillRect(0,0,160,144);if(sp){const s=Math.min(1,62/sp.h);g.drawImage(G.reveal?sp.c:sp.black,80-sp.w*s/2,G.reveal?20:6,sp.w*s,sp.h*s)}return}
+  if(mode==='catch')return renderCatch(now,p);
+  if(mode==='capture')return renderCapture();
+  if(mode==='battle')return renderBattle();
+  if(mode==='evo')return renderEvo(now);
+  if(mode==='fish')return renderFish(now,p);
+  if(mode==='walk')return renderWalk(now,p);
+  if(mode==='memo')return renderMemo();
+  if(mode==='rhythm')return renderRhythm(now);
+  // scène
+  drawRoom();
+  for(let i=0;i<p.poops;i++)icon(g,'poop',[14,138,34,120][i],[100,102,106,106][i],'#7a5230');
+  const se=season();if(se&&se.k==='halloween')icon(g,'h_pump',146,100,'#ee8a2e');
+  if(S.wild){const w=sprite(S.wild.id,S.wild.shiny);if(w){const b=reduce?0:Math.round(Math.abs(Math.sin(tt*.12))*3);drawFit(w,130,110-b,44,false);if(tt%20<14)icon(g,'excl',126,50,'#fff');if(S.wild.shiny&&tt%10<5)icon(g,'star',142,62,'#ffe08a')}}
+  if(p.away){g.fillStyle='#7a5230';g.fillRect(78,88,4,22);g.fillRect(60,72,40,18);g.fillStyle='#d9b27a';g.fillRect(62,74,36,14);g.fillStyle='#7a5230';g.fillRect(66,78,26,2);g.fillRect(66,83,18,2);if(p.away.done&&tt%14<8)icon(g,'excl',76,56,'#fff');parts=[];bars(p);snow(se);return}
+  const sp=sprite(mimic?mimic.id:p.id,mimic?false:p.shiny);
+  if(!p.asleep&&!p.ko&&!reduce&&!busyMenu()){if(pos.wait>0)pos.wait--;else{const d=pos.to-pos.x;if(Math.abs(d)<1){pos.wait=20+Math.random()*50|0;pos.to=30+Math.random()*(S.wild?60:100);pos.dir=pos.to>pos.x?1:-1}else pos.x+=Math.sign(d)*(tt%2?.6:.3)}}
+  const jump=hopT>0?(hopT--,Math.abs(Math.sin(hopT*.8))*7):(!reduce&&!p.asleep&&!p.ko&&pos.wait===0&&tt%6<3?1:0);
+  drawS(sp,pos.x,110-jump,pos.dir>0,null,p.ko);
+  if(sp&&p.hat&&!p.ko){const s=sp.s*sp.w>=44?2:1,hw=sp.w*sp.s,hh=sp.h*sp.s,cx=pos.x-hw/2+(pos.dir>0?hw-sp.hx*sp.s:sp.hx*sp.s),top=110-jump-hh;icon(g,'h_'+p.hat,Math.round(cx-4*s),Math.round(p.hat==='glasses'?top+6:top-5*s),HATS[p.hat][1],s)}
+  if(p.shiny&&tt%40<10)icon(g,'star',pos.x+16,92-(sp?sp.h*sp.s:30)/2,'#ffe08a');
+  if(evoReady(p)&&tt%12<6)for(let i=0;i<3;i++)icon(g,'star',pos.x-20+i*14+(tt%9),60+(i*11)%20,'#fff7b0');
+  const hint=status(p);if(hint&&hint.ic&&tt%30<20)bubble(pos.x+20,sp?110-sp.h*sp.s-8:60,hint.ic,hint.c);
+  if(p.asleep||(isNight(now)&&S.opt.night)){g.fillStyle=p.asleep?'rgba(14,16,50,.62)':'rgba(14,16,50,.32)';g.fillRect(0,11,160,133)}
+  if(p.asleep&&tt%24<16)icon(g,'z',Math.min(140,pos.x+18),50-(tt%24)/4,'#d7dcff');
+  parts=parts.filter(q=>{q.y+=q.vy;q.x+=q.vx;q.life--;if(q.life%6<5||q.life>12)icon(g,q.ic,q.x,q.y,q.c);return q.life>0});
+  eventFx();weatherFx();bars(p);snow(se);
+}
+function snow(se){if(!se||!se.snow||reduce)return;g.fillStyle='#fff';for(let i=0;i<26;i++)g.fillRect((i*37+Math.floor(tt/3))%160,11+(i*23+Math.floor(tt*(1+i%3)/3))%133,1,1)}
+function busyMenu(){return !$('menu').hidden}
+function bubble(x,y,ic,c){x=Math.max(14,Math.min(146,x));y=Math.max(22,y);g.fillStyle='#14162a';g.fillRect(x-7,y-7,14,14);g.fillStyle='#fff';g.fillRect(x-6,y-6,12,12);icon(g,ic,x-4,y-4,c)}
+function renderCatch(now,p){const left=G.end-now;
+  if(G.keys.ArrowLeft)G.x=Math.max(10,G.x-4);if(G.keys.ArrowRight)G.x=Math.min(150,G.x+4);
+  if(now>G.next&&left>0){G.next=now+Math.max(330,720-(20000-left)*.02);const bad=Math.random()<.22;G.items.push({x:8+Math.random()*144,y:12,v:1.5+Math.random()+(20000-left)/9000,bad})}
+  const sp=sprite(p.id),h=sp?Math.min(1,34/Math.max(sp.w,sp.h)):1;
+  if(sp)g.drawImage(sp.c,Math.round(G.x-sp.w*h/2),Math.round(116-sp.h*h),Math.round(sp.w*h),Math.round(sp.h*h));
+  G.items=G.items.filter(b=>{b.y+=b.v;icon(g,'berry',b.x-4,b.y,b.bad?'#5a5a66':'#e0483c');if(b.y>84&&b.y<112&&Math.abs(b.x-G.x)<17){if(b.bad){G.score=Math.max(0,G.score-2);beep(SND.no)}else{G.score++;beep(SND.tap)}return false}return b.y<120});
+  setMsg(`Baies : ${G.score}  ·  ${Math.max(0,Math.ceil(left/1000))} s`);
+  if(left<=-600)gameEnd(Math.min(G.score,15),'Attrape-baies',15)}
+function renderEvo(now){const e=now-G.t0,a=sprite(G.from,G.sh),b=sprite(G.to,G.sh);g.fillStyle='#14162a';g.fillRect(0,0,160,144);
+  const speed=Math.max(70,420-e*.08),phase=Math.floor(e/speed)%2===0;drawS(phase?a:b,80,104,false,e<1200?(phase?null:'white'):'white');
+  if(e>4600){g.fillStyle=`rgba(255,255,255,${Math.min(1,(e-4600)/500)})`;g.fillRect(0,0,160,144)}
+  if(e>5200)endEvo()}
+
+/* ---------- Texte de l'écran ---------- */
+let msgUntil=0;
+function setMsg(t){$('msg').textContent=t}
+function flash(t,ms=3200){if(!$('menu').hidden)closeMenu();setMsg(t);msgUntil=Date.now()+ms}
+function status(p){
+  if(S.wild&&mode==='idle')return{t:`${S.wild.shiny?'Chromatique ! ':''}${nameOf(S.wild.id)} sauvage ! Touche-le.`,ic:null};
+  if(p.away)return p.away.done?{t:`${petName(p)} est de retour ! Touche l'écran.`}:{t:`${petName(p)} est en expédition. Retour dans ${fmtGap(p.away.until-Date.now())}.`};
+  if(p.ko)return{t:`${petName(p)} est K.O. Touche Soigner.`,ic:'star',c:'#e0a000',k:'kHeal'};
+  if(p.asleep)return{t:`${petName(p)} dort.`};
+  if(p.sick)return{t:`${petName(p)} est malade. Donne-lui une Potion.`,ic:'cross',c:'#3fbf6a',k:'kHeal'};
+  if(evoReady(p))return{t:`${petName(p)} brille ! Touche-le.`,ic:'star',c:'#e0a000'};
+  if(p.nature==='drama'&&p.hunger<55)return{t:`${petName(p)} jure qu'il n'a pas mangé depuis 1 000 ans.`,ic:'berry',c:'#e0483c',k:'kFeed'};
+  if(p.hunger<30)return{t:`${petName(p)} a faim.`,ic:'berry',c:'#e0483c',k:'kFeed'};
+  if(p.poops>0&&p.clean<60)return{t:`Il faut nettoyer.`,ic:'poop',c:'#7a5230',k:'kWash'};
+  if(p.clean<30)return{t:`${petName(p)} a besoin d'un bain.`,ic:'drop',c:'#3f8fdc',k:'kWash'};
+  if(p.energy<25)return{t:`${petName(p)} tombe de sommeil.`,ic:'z',c:'#5b5bd6',k:'kSleep'};
+  if(p.joy<30)return{t:`${petName(p)} s'ennuie.`,ic:'note',c:'#9a5bc4',k:'kPlay'};
+  if(p.joy>=75&&p.hunger>=60)return{t:`${petName(p)} est de bonne humeur.`};
+  return{t:`${petName(p)} se promène.`};
+}
+function refreshMsg(){
+  const hint=S.pet&&mode==='idle'?status(S.pet).k:null;
+  ['kFeed','kPlay','kWash','kHeal','kSleep'].forEach(id=>{$(id).classList.toggle('alert',id===hint);$(id).setAttribute('aria-disabled',mode==='idle'?'false':'true')});
+  document.title=(hint?'(!) ':'')+'PokéNid';
+  if(['quiz','catch','evo','capture','battle','fish','memo','rhythm','walk'].includes(mode)||Date.now()<msgUntil||!$('menu').hidden)return;
+  let t='';if(mode==='none')t=loadTried?'Charge pokelabel.html pour commencer.':'Chargement des Pokémon…';else if(mode==='empty')t='Choisis un œuf dans le carnet.';else if(mode==='egg')t='Touche l\'œuf pour le réchauffer !';else if(S.pet)t=status(S.pet).t;
+  setMsg(t);
+}
+lcd.addEventListener('pointerdown',e=>{catchMove(e);
+  if(mode==='egg'){const p=S.pet;p.heat+=9;hop(0);beep(SND.tap);touch();
+    if(p.heat>=100){S.st.hatch=st('hatch')+1;p.stage='born';p.lastTick=Date.now();p.bornAt=Date.now();mode='idle';raised(p.id);log(`${p.shiny?'Chromatique ! ':''}${nameOf(p.id)} est né. ${NATURES[p.nature][0]}, dit-on.`,p.id);burst('star','#ffe08a',10);beep(SND.fan);flash(p.shiny?`Incroyable, ${nameOf(p.id)} est chromatique !`:`${nameOf(p.id)} est né !`,4000);save(true);paint()}return}
+  if(mode==='capture')return throwBall();
+  if(mode==='idle'&&S.pet){const r=lcd.getBoundingClientRect(),lx=(e.clientX-r.left)/r.width*160;
+    if(S.wild&&lx>100&&$('menu').hidden)return startCapture();
+    if(S.pet.away){if(S.pet.away.done)expeBack();return}
+    if(evoReady(S.pet))return askEvolve();cuddle()}
+});
+lcd.addEventListener('pointermove',catchMove);
+
+/* ---------- Carnet ---------- */
+function bar(v,neutral){const c=neutral?'':v<30?'low':v<60?'mid':'';return `<div class="bar"><i class="${c}" style="width:${Math.round(v)}%"></i></div>`}
+function chips(id){return dex(id).t.map(t=>`<span class="chip" style="background:${T[t][1]}">${T[t][0]}</span>`).join('')}
+function chainOf(id){const r=root(id),seen=[];(function w(i){seen.push(i);kids(i).forEach(w)})(r);return seen.filter(i=>i<=SPR.imgs.length)}
+function renderFiche(){
+  if(!SPR&&!loadTried)return `<div class="stack"><h2>Chargement des Pokémon…</h2><p class="small">Connexion à la base de sprites.</p></div>`;
+  if(!SPR)return `<div class="stack"><h2>Réveille ton premier Pokémon</h2>
+    <p>Cette page ne peut pas joindre la base de sprites en ligne. Choisis pokelabel.html sur ton Mac : le navigateur lit les 493 sprites et les garde pour la prochaine fois. Rien n'est envoyé ailleurs.</p>
+    <div class="drop stack"><div class="row"><button class="btn primary" type="button" data-do="pick">Charger pokelabel.html</button></div><p class="small">Tu peux aussi le glisser sur cette page.</p></div>
+    <p class="small">Ensuite : un œuf éclot, tu t'occupes du Pokémon en temps réel, et il évolue si tu en prends soin.</p></div>`;
+  if(picking||!S.pet)return renderPicker();
+  const p=S.pet,id=p.id;
+  if(p.stage==='egg')return `<div class="stack"><h2>Un œuf t'attend</h2><p>Touche l'œuf sur l'écran pour le réchauffer. Il éclot quand il a assez chaud.</p></div>`;
+  const k=kids(id),need=k.length?evoNeed(p):0,ag=k.length?Math.min(100,(p.ageH-p.stageAge)/need*100):0;
+  const left=Math.max(0,need-(p.ageH-p.stageAge))/PACE[S.opt.pace];
+  const fav=FOODS[id%3].n;
+  return `<div class="stack"><div class="head"><div class="portrait"><img alt="" src="${url(id,p.shiny)}"></div><div style="min-width:0;flex:1">
+    <label class="small" for="nick">Surnom</label><input class="nick" id="nick" maxlength="14" value="${esc(p.nick)}" placeholder="${esc(nameOf(id))}"><div class="chips">${chips(id)}${p.shiny?'<span class="chip" style="background:#b8860b">Chromatique</span>':''}</div></div></div>${seasonBand()}
+    <div class="stats" id="stats">${statRows(p)}</div>
+    <dl class="facts"><dt>Espèce</dt><dd>${esc(nameOf(id))}, n° ${String(id).padStart(3,'0')}</dd><dt>Niveau</dt><dd>${p.level}</dd><dt>Caractère</dt><dd>${NATURES[p.nature][0]}. ${NATURES[p.nature][1]}</dd><dt>Âge</dt><dd>${fmtAge(p.ageH)}</dd><dt>État</dt><dd>${p.away?'En expédition':p.ko?'K.O.':p.sick?'Malade':p.asleep?'Endormi':'En forme'}</dd><dt>Plat préféré</dt><dd>${p.favKnown?esc(fav):'À découvrir'}</dd></dl>
+    <div><h3 class="sub" style="margin-top:4px">Évolution</h3><div class="chain">${chainOf(id).map((i,n,a)=>`${n?`<span>${a[n-1]!==dex(i).prev?'ou':'›'}</span>`:''}<img alt="${esc(nameOf(i))}" title="${esc(nameOf(i))}" class="${S.dex[i]>=2?'':'un'}" src="${url(i)}">`).join('')}</div>
+    <p class="prog">${!k.length?'Forme finale. Tu peux le laisser à la pension et faire éclore un autre œuf.':evoReady(p)?`Prêt à évoluer. Touche ${esc(petName(p))} sur l'écran.`:`Temps : ${Math.round(ag)} %${left>0?` (encore ${fmtGap(left*36e5)})`:''}. Lien : ${Math.round(p.bond)} sur 40 requis.`}${k.some(i=>dex(i).cond)?`<br>Conditions : ${k.map(i=>esc(nameOf(i))+(dex(i).cond?' ('+condText(dex(i).cond)+')':'')).join(', ')}.`:''}</p></div>
+    ${p.level>=100?`<div class="band"><b>${esc(petName(p))} est au sommet.</b> Il peut entrer au Panthéon : il y reste exposé et laisse +10 % d'expérience à tous tes Pokémon.<div class="row" style="margin-top:8px"><button class="btn primary" type="button" data-x="retire">Entrer au Panthéon</button></div></div>`:''}
+    ${eggLeft()>0?`<div><p class="small">Prochain œuf mystère dans ${fmtGap(eggLeft())}.</p>${eggButtons()}</div>`:`<div class="row"><button class="btn" type="button" data-do="egg">Nouvel œuf</button><span class="small">${esc(petName(p))} ira à la pension.</span></div>`}
+    <div><h3 class="sub" style="margin-top:4px">Carte d'identité</h3><canvas id="idCard" class="idcard" width="1011" height="638" aria-label="Carte d'identité de ${esc(petName(p))}"></canvas>
+      <div class="row crop"><span class="small">Cadrage</span><button class="btn" type="button" data-crop="l" aria-label="Vers la gauche">◀</button><button class="btn" type="button" data-crop="r" aria-label="Vers la droite">▶</button><button class="btn" type="button" data-crop="u" aria-label="Vers le haut">▲</button><button class="btn" type="button" data-crop="d" aria-label="Vers le bas">▼</button><button class="btn" type="button" data-crop="in" aria-label="Zoomer">+</button><button class="btn" type="button" data-crop="out" aria-label="Dézoomer">−</button><button class="btn" type="button" data-crop="auto">Recentrer</button></div>
+      <div class="row" style="margin-top:8px"><button class="btn primary" type="button" data-x="cardpng">Enregistrer l'image</button></div></div></div></div>`;
+}
+const fmtAge=h=>h<48?Math.floor(h)+' h de vie':Math.floor(h/24)+' jours de vie';
+function statRows(p){return [['Faim',p.hunger],['Joie',p.joy],['Énergie',p.energy],['Propreté',p.clean],['Lien',p.bond]].map(([n,v])=>`<span>${n}</span>${bar(v,n==='Lien')}<b>${Math.round(v)}</b>`).join('')}
+function renderPicker(){const l=eggLeft(),pen=S.pension.some(q=>q.stage!=='egg');return `<div class="stack"><h2>Un œuf mystère t'attend</h2><p>Personne ne sait ce qu'il contient. Il éclora en un Pokémon de base tiré au hasard, de préférence un que tu n'as jamais élevé.</p>${l>0?`<p class="band"><b>Pas encore !</b> Un œuf mystère par ${S.opt.pace==='rapide'?'2 heures':S.opt.pace==='calme'?'2 jours':'jour'}. Le prochain arrive dans ${fmtGap(l)}.${pen&&!S.pet?' En attendant, reprends un Pokémon à la pension.':''}</p>${eggButtons()}`:`<div class="row"><button class="btn primary" type="button" data-do="mystery">Prendre l'œuf</button></div>`}${S.pet?'<div class="row"><button class="btn" type="button" data-do="unpick">Annuler</button></div>':''}</div>`}
+function pickerCells_unused(q){q=norm(q);return DEX.map((d,i)=>i+1).filter(i=>!dex(i).prev&&i<=SPR.imgs.length&&(!q||norm(nameOf(i)).includes(q)||String(i)===q)).map(i=>`<button class="cell" type="button" data-egg="${i}"><img loading="lazy" alt="" src="${url(i)}">${esc(nameOf(i))}</button>`).join('')||'<p class="small">Aucun Pokémon de base ne correspond.</p>'}
+const norm=s=>s.normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().trim();
+function renderDex(){if(!SPR)return noSpr();const v=Object.values(S.dex),r=v.filter(x=>x>=2).length,s=v.filter(x=>x===1).length,sh=Object.keys(S.shinies).length;
+  return `<div class="stack"><div><h2>${r} obtenus sur ${SPR.imgs.length}</h2><p class="small">${s} autres seulement vus. ${sh} chromatique${sh>1?'s':''}. Les Pokémon en couleur sont ceux que tu as rencontrés.</p></div>
+  <div class="grid">${SPR.imgs.map((_,i)=>{const id=i+1,st=S.dex[id];return `<div class="cell ${st?'':'un'} ${st>=2?'raised':''}"><img loading="lazy" alt="" src="${url(id,!!S.shinies[id])}">${st?(S.shinies[id]?'★ ':'')+esc(nameOf(id)):'n° '+id}</div>`}).join('')}</div></div>`}
+function noSpr(){return `<p>Charge d'abord pokelabel.html dans l'onglet Compagnon.</p>`}
+let relArm=-1;
+function renderPension(){if(!SPR)return noSpr();
+  return `<div class="stack"><div><h2>Pension</h2><p class="small">Ici, le temps s'arrête : pas de faim ni de maladie. Pratique avant de partir en vacances.</p></div>
+  ${S.care?`<div class="card"><div><b>Couple : ${esc((S.pension.find(p=>p.uid===S.care.a)||{id:1}).nick||nameOf((S.pension.find(p=>p.uid===S.care.a)||{id:1}).id))} et ${esc((S.pension.find(p=>p.uid===S.care.b)||{id:1}).nick||nameOf((S.pension.find(p=>p.uid===S.care.b)||{id:1}).id))}</b><span class="small">${careReady()?'Un œuf est arrivé !':'Un œuf dans '+fmtGap(eggNeed()-(Date.now()-S.care.at))}</span></div>${careReady()?'<button class="btn primary" type="button" data-x="careegg">Prendre l\'œuf</button>':''}<button class="btn" type="button" data-x="careoff">Séparer</button></div>`:S.pension.length>1?`<p class="small">${G_pair?'Choisis le second Pokémon.':'Mets deux Pokémon compatibles en couple : ils trouvent un œuf en un jour.'}</p>`:''}
+  ${S.pension.length?S.pension.map((p,i)=>`<div class="card"><img alt="" src="${url(p.id,p.shiny)}"><div><b>${p.shiny?'★ ':''}${esc(petName(p))}</b><span class="small">${p.stage==='egg'?'Œuf':esc(nameOf(p.id))+', niveau '+p.level}</span></div><div class="row">${!S.care&&p.stage!=='egg'?`<button class="btn" type="button" data-pair="${p.uid}">${G_pair===p.uid?'Choisi':'Couple'}</button>`:''}<button class="btn" type="button" data-take="${i}">Reprendre</button><button class="btn" type="button" data-rel="${i}">${relArm===i?'Confirmer':'Relâcher'}</button></div></div>`).join(''):'<p class="small">Personne pour le moment. Quand tu fais éclore un nouvel œuf, ton compagnon vient ici.</p>'}
+  ${S.pet&&S.pet.stage!=='egg'?`<div class="row"><button class="btn" type="button" data-do="park">Mettre ${esc(petName(S.pet))} à la pension</button></div>`:''}</div>`}
+function renderOptions(){const o=S.opt,r=(v,l)=>`<label><input type="radio" name="pace" value="${v}" ${o.pace===v?'checked':''}><span>${l}</span></label>`;
+  const sw=(k,v,l)=>`<button class="swatch" type="button" data-color="${k}" data-v="${v}" aria-label="${l}" aria-pressed="${(k==='shell'?o.shell:o.keys)===v}" style="background:${v||'conic-gradient(#ee6c3a,#e5b414,#46a85f,#3f8fdc,#9a5bc4,#ee6c3a)'}"></button>`;
+  const SH=[['#ee3b4a','Rouge'],['#f58a2e','Orange'],['#f4c82e','Jaune'],['#46b45f','Vert'],['#2fb3a6','Turquoise'],['#3f8fdc','Bleu'],['#7a55d6','Violet'],['#ec5f93','Rose'],['#e9edf3','Blanc'],['#3a3f52','Anthracite']],KY=[['#fbfcfe','Blanc'],['#ffd23f','Jaune'],['#ff6b5a','Corail'],['#7fe08a','Vert'],['#6fb4f2','Bleu'],['#c79bff','Mauve'],['#ff8cc0','Rose'],['#20232f','Noir']];
+  return `<div class="stack"><div><h3 class="sub" style="margin-top:0">Couleur du PokéNid</h3><div class="swatches">${sw('shell','','Selon le type du Pokémon')}${SH.map(c=>sw('shell',c[0],c[1])).join('')}<label class="custom">Autre <input type="color" id="pickShell" value="${o.shell||'#2fb3a6'}"></label></div><p class="small" style="margin-top:6px">${o.shell?'Couleur choisie, gardée même si ton compagnon change.':'La coque suit le type de ton compagnon.'}</p></div>
+  <div><h3 class="sub" style="margin-top:0">Couleur des boutons</h3><div class="swatches">${KY.map(c=>sw('keys',c[0],c[1])).join('')}<label class="custom">Autre <input type="color" id="pickKeys" value="${o.keys||'#fbfcfe'}"></label></div></div>
+  <div><h3 class="sub" style="margin-top:0">Rythme</h3><div class="seg">${r('calme','Tranquille')}${r('normal','Normal')}${r('rapide','Rapide')}</div>
+  <p class="small" style="margin-top:6px">${o.pace==='calme'?'Deux fois plus lent : une première évolution en 2 jours.':o.pace==='normal'?'Il a faim toutes les quelques heures. Première évolution en 1 jour.':'12 fois plus vite, pour une partie d\'une heure ou deux. À éviter si tu fermes la page longtemps.'}</p></div>
+  <div><label class="check"><input type="checkbox" id="optNight" ${o.night?'checked':''}>Il dort la nuit, de 21 h à 7 h</label><label class="check"><input type="checkbox" id="optWeather" ${o.weather?'checked':''}>Météo réelle de Bettembourg (version fichier seulement)</label><label class="check"><input type="checkbox" id="optSound" ${o.sound?'checked':''}>Son</label></div>
+  <div><h3 class="sub">Sauvegarde</h3><p class="small">${remote?'Liée à ton compte Claude : ton Pokémon te suit sur tes appareils. Les sprites restent à charger une fois sur chaque appareil.':'Gardée dans ce navigateur.'}</p></div>
+  <div class="row"><button class="btn" type="button" data-do="pick">Charger pokelabel.html</button><button class="btn danger" type="button" data-do="reset" id="resetBtn">Tout effacer</button></div></div>`}
+function renderPane(){
+  document.querySelectorAll('.tab').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===tab));
+  $('pane').innerHTML={fiche:renderFiche,sac:renderSac,gym:renderGym,dex:renderDex,pension:renderPension,journal:renderLog,amis:renderAmis,succes:renderSucces,options:renderOptions}[tab]();
+  if($('idCard'))drawCard();
+  if($('friendCard'))drawFriend();
+}
+function applyColors(){const p=S.pet,t=p?dex(p.id).t[0]:0,r=document.documentElement.style,k=S.opt.keys||'#fbfcfe';r.setProperty('--shell',S.opt.shell||(t?T[t][1]:'#2fb3a6'));r.setProperty('--key',k);
+  const n=parseInt(k.slice(1),16),L=(.299*(n>>16)+.587*((n>>8)&255)+.114*(n&255)),ink=L<120?'#ffffff':'#2b3044';document.querySelectorAll('canvas[data-ic]').forEach(c=>{const q=c.getContext('2d');q.clearRect(0,0,8,8);icon(q,c.dataset.ic,0,0,ink)})}
+function paint(){renderPane();applyColors();refreshMsg()}
+document.querySelector('.tabs').onclick=e=>{const b=e.target.closest('.tab');if(b){tab=b.dataset.tab;picking=false;renderPane()}};
+let resetArm=false;
+$('pane').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+  if(b.dataset.egg)return startEgg(+b.dataset.egg);
+  if(b.dataset.take){const i=+b.dataset.take,p=S.pension.splice(i,1)[0];careClear(p.uid);if(S.pet)S.pension.push(S.pet);p.lastTick=Date.now();S.pet=p;mode=p.stage==='egg'?'egg':'idle';tab='fiche';closeMenu();touch();save(true);paint();return}
+  const d=b.dataset.do;if(!d)return;
+  if(d==='pick')$('pkFile').click();
+  if(d==='mystery')mystery();
+  if(d==='egg'){picking=true;renderPane()}
+  if(d==='unpick'){picking=false;renderPane()}
+  if(d==='park'){S.pension.push(S.pet);S.pet=null;mode='empty';picking=true;tab='fiche';closeMenu();touch();save(true);paint()}
+  if(d==='reset'){if(!resetArm){resetArm=true;b.textContent='Confirmer : tout effacer';setTimeout(()=>{resetArm=false;if(tab==='options')renderPane()},4000);return}
+    resetArm=false;const o=S.opt;S=fresh();S.opt=o;mode=SPR?'empty':'none';tab='fiche';closeMenu();dirty=true;save(true);paint()}
+});
+$('pane').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const D=b.dataset;
+  if(D.hat!==undefined&&S.pet&&S.pet.stage!=='egg'){S.pet.hat=D.hat;touch();renderPane()}
+  if(D.gym!==undefined)startBattle(+D.gym);
+  if(D.pair)coupleTap(D.pair);
+  if(D.rel!==undefined){const i=+D.rel;if(relArm!==i){relArm=i;renderPane();setTimeout(()=>{relArm=-1;if(tab==='pension')renderPane()},4000);return}relArm=-1;const p=S.pension.splice(i,1)[0];careClear(p.uid);give('ball');log(`${petName(p)} retourne à la nature. Il laisse une Poké Ball.`,p.id);renderPane()}
+  if(D.color){S.opt[D.color]=D.v;touch();paint()}
+  if(D.crop)cropMove(D.crop);
+  const x=D.x;if(!x)return;
+  if(x==='candy'&&S.items.candy>0){const p=S.pet;S.items.candy--;p.bond=Math.min(100,p.bond+12);xp(p.level*3);beep(SND.yum);renderPane()}
+  if(x==='train')startBattle();
+  if(x==='careegg'){careCollect()}
+  if(x==='careoff'){S.care=null;touch();renderPane()}
+  if(x==='cardpng')cardSave();
+});
+$('pane').addEventListener('input',e=>{
+  if(e.target.id==='nick'){S.pet.nick=e.target.value.trim();touch()}
+  if(e.target.id==='pSearch')$('pGrid').innerHTML=pickerCells(e.target.value);
+});
+$('pane').addEventListener('change',e=>{const t=e.target;
+  if(t.name==='pace'){if(S.pet)advance(S.pet,Date.now());S.opt.pace=t.value;touch();renderPane()}
+  if(t.id==='optNight'){S.opt.night=t.checked;touch()}
+  if(t.id==='optSound'){S.opt.sound=t.checked;touch()}
+  if(t.id==='pickShell'){S.opt.shell=t.value;touch();paint()}
+  if(t.id==='pickKeys'){S.opt.keys=t.value;touch();paint()}
+});
+
+/* ========== Extensions : objets, rencontres, expéditions, combats, personnalité, collection ========== */
+const ITEMS={ball:['Poké Ball','Pour les Pokémon faciles.'],super:['Super Ball','Zone de capture 1,6 fois plus large.'],hyper:['Hyper Ball','Zone de capture 2,4 fois plus large.'],master:['Master Ball','Capture à coup sûr.'],candy:['Super Bonbon','+12 de lien et un niveau.'],F:['Pierre Feu','Évolution.'],W:['Pierre Eau','Évolution.'],T:['Pierre Foudre','Évolution.'],L:['Pierre Plante','Évolution.'],M:['Pierre Lune','Évolution.'],U:['Pierre Soleil','Évolution.'],I:['Pierre Glace','Évolution.'],H:['Pierre Éclat','Évolution.'],D:['Pierre Nuit','Évolution.'],A:['Pierre Aube','Évolution.'],K:['Câble Link','Remplace un échange.']};
+const STONES='FWTLMUIHDA'.split('');
+const HATS={cap:['Casquette','#d8402f','........|..####..|.######.|.######.|########|.....###|........|........'],bow:['Nœud','#ee5f9a','........|##....##|###..###|########|###..###|##....##|........|........'],melon:['Melon','#2b3044','........|..####..|.######.|.######.|.######.|########|........|........'],glasses:['Lunettes','#2b3044','........|........|###..###|#.####.#|###..###|........|........|........'],star:['Étoile','#f2b92e',ICON.star],witch:['Sorcière','#5a3a9c','...##...|...##...|..####..|..####..|.######.|.######.|########|........'],pump:['Citrouille','#ee8a2e','...##...|.######.|########|#.#..#.#|########|#.#..#.#|.######.|........'],bonnet:['Bonnet de Noël','#d8402f','....##..|..####..|.######.|.######.|########|########|........|........'],crown:['Couronne','#f2b92e','........|#..##..#|#..##..#|########|########|########|........|........'],grad:['Toque de champion','#2b3044','........|...##...|.######.|########|.######.|...###..|.....#..|........']};
+Object.keys(HATS).forEach(k=>{ICON['h_'+k]=HATS[k][2]});
+const NATURES={gourmand:['Gourmand','Il a faim plus vite et adore ça.'],flemmard:['Flemmard','Il se fatigue très vite.'],farceur:['Farceur','Il cache parfois tes affaires.'],drama:['Drama queen','Le moindre souci est une tragédie.'],curieux:['Curieux','Il rapporte plus de trésors d\'expédition.']};
+const MOVE={1:['Vive-Attaque','Plaquage'],2:['Mawashi Geri','Close Combat'],3:['Cru-Aile','Piqué'],4:['Dard-Venin','Bomb-Beurk'],5:['Tir de Boue','Séisme'],6:['Jet-Pierres','Éboulement'],7:['Piqûre','Plaie-Croix'],8:['Léchouille','Ball\'Ombre'],9:['Griffe Acier','Tête de Fer'],10:['Flammèche','Lance-Flammes'],11:['Pistolet à O','Surf'],12:['Fouet Lianes','Tranch\'Herbe'],13:['Éclair','Tonnerre'],14:['Choc Mental','Psyko'],15:['Poudreuse','Laser Glace'],16:['Draco-Rage','Dracogriffe'],17:['Morsure','Mâchouille']};
+const GYMS=[{n:'Pierre',b:'Roche',t:6,l:10,team:[74,95],prize:'T'},{n:'Ondine',b:'Cascade',t:11,l:16,team:[120,121],prize:'W'},{n:'Major Bob',b:'Foudre',t:13,l:22,team:[100,25,26],prize:'K'},{n:'Erika',b:'Prisme',t:12,l:28,team:[71,114,45],prize:'L'},{n:'Koga',b:'Âme',t:4,l:34,team:[109,89,110],prize:'M'},{n:'Morgane',b:'Marais',t:14,l:40,team:[64,122,65],prize:'U'},{n:'Auguste',b:'Volcan',t:10,l:46,team:[58,77,59],prize:'F'},{n:'Giovanni',b:'Terre',t:5,l:52,team:[111,51,112],prize:'D'}];
+const eff=(a,d)=>[0,.5,1,2][+CHART[(a-1)*17+d-1]];
+const GAGS={143:['Ronflex ronfle si fort que l\'écran vibre.','Ronflex a mangé la Baie. Et le plateau.'],129:['Magicarpe utilise Trempette. Rien ne se passe.','Magicarpe regarde le mur. Le mur gagne.','Magicarpe saute. Il retombe. Fin de l\'épisode.'],54:['Psykokwak a mal à la tête. Encore.','Psykokwak a oublié pourquoi il est là.'],132:['Métamorph essaie d\'imiter ton écran.'],133:['Évoli hésite entre sept carrières.','Évoli boude : tu as regardé un autre Pokémon.'],25:['Pikachu refuse de rentrer dans sa Poké Ball.','Pikachu a grillé un pixel. Pardon.'],39:['Rondoudou chante. Tout le monde s\'endort. Il est vexé.'],79:['Ramoloss a compris ta blague de mardi dernier.'],94:['Ectoplasma te fixe depuis l\'intérieur de l\'écran.'],52:['Miaouss a trouvé une pièce. Il ne te la donnera pas.'],16:['Roucool tape à la vitre. Il n\'y a pas de vitre.'],10:['Chenipan a mangé une feuille. C\'était le mode d\'emploi.'],202:['Qulbutoké dit : « Qulbutoké ! » C\'est tout.'],185:['Simularbre fait semblant d\'être un arbre. Il n\'a jamais été aussi crédible.'],113:['Leveinard tente de te vendre un œuf. Refuse.'],151:['Mew est passé. Personne ne l\'a vu.'],393:['Tiplouf glisse. Il prétend que c\'était voulu.'],175:['Togepi casse tout. Il est mignon, alors ça passe.'],137:['Porygon fait une mise à jour. Redémarrage dans 3 ans.']};
+const NATLINE={gourmand:['{n} regarde la Baie comme un coucher de soleil.','{n} demande si le menu a changé.'],flemmard:['{n} a marché 3 pas. Il veut un congé.','{n} dort les yeux ouverts.'],farceur:['{n} a caché une chaussette dans le menu.','{n} a inversé deux pixels pour voir.','{n} fait semblant de s\'évanouir. Il rigole.'],drama:['{n} soupire. Personne ne le comprend.','{n} rédige ses mémoires.'],curieux:['{n} a démonté un coin de l\'écran.','{n} veut savoir ce qu\'il y a derrière la coque.']};
+const STORIES=['{n} s\'est perdu, a demandé son chemin à un Roucool, et s\'est perdu encore mieux.','{n} a gagné un concours de sieste. Il était seul inscrit.','{n} a trouvé un trésor en creusant là où il ne fallait pas.','{n} revient avec une feuille sur la tête et aucune explication.','{n} a fait la queue 2 heures pour un Poffin. Il a adoré la queue.','{n} a discuté avec un rocher. Le rocher était Racaillou.','{n} a traversé une rivière, ou peut-être une flaque.','{n} a battu un Rattata en le regardant fixement.','{n} a suivi un papillon jusqu\'au bout du monde, soit 40 mètres.','{n} a vu un Pokémon légendaire. C\'était un Pidgey avec un chapeau.','{n} rapporte une carte au trésor dessinée par lui-même.','{n} a été élu maire d\'un buisson.'];
+const DAYLINE={gourmand:['Journal : j\'ai pensé à manger. Puis j\'ai mangé. Puis j\'y ai repensé.'],flemmard:['Journal : grosse journée. J\'ai changé de côté.'],farceur:['Journal : personne n\'a encore trouvé ce que j\'ai caché.'],drama:['Journal : mon humain m\'a laissé seul. Je m\'en souviendrai.'],curieux:['Journal : aujourd\'hui j\'ai découvert que je peux regarder en haut.']};
+const MISSIONS=[{k:'feed',n:3,t:'Donne à manger 3 fois'},{k:'game',n:2,t:'Joue à 2 mini-jeux'},{k:'wash',n:1,t:'Fais un bain'},{k:'hug',n:5,t:'Fais 5 câlins'},{k:'catch',n:1,t:'Capture un Pokémon sauvage'},{k:'expe',n:1,t:'Envoie ton compagnon en expédition'},{k:'win',n:1,t:'Gagne un combat'}];
+const today=(t=Date.now())=>{const d=new Date(t);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
+const rnd=n=>Math.random()*n|0, pick=a=>a[rnd(a.length)], fill=(s,p)=>s.replace(/\{n\}/g,petName(p));
+
+function migrate(){S=Object.assign(fresh(),S);S.items=Object.assign({ball:5},S.items||{});S.hats=S.hats||[];S.log=S.log||[];S.badges=S.badges||[];S.shinies=S.shinies||{};S.gifts=S.gifts||{};S.opt=Object.assign(fresh().opt,S.opt);delete S.opt.ulanzi;delete S.opt.label;
+  if(!S.nextWild)S.nextWild=Date.now()+12e4;[S.pet,...S.pension].forEach(fixPet)}
+function fixPet(p){if(!p)return;if(!p.uid)p.uid=Date.now().toString(36)+rnd(1e6).toString(36);if(!p.level)p.level=Math.min(30,5+Math.floor((p.ageH||0)/12));if(p.xp===undefined)p.xp=0;if(!p.nature)p.nature=pick(Object.keys(NATURES));if(p.hat===undefined)p.hat='';if(p.shiny===undefined)p.shiny=false}
+function log(t,id){S.log.unshift({at:Date.now(),t,id:id||(S.pet&&S.pet.id)||0});if(S.log.length>150)S.log.length=150;touch()}
+function give(k,n=1){S.items[k]=(S.items[k]||0)+n;touch()}
+function giveHat(k){if(!S.hats.includes(k)){S.hats.push(k);touch();return true}return false}
+function xp(n){const p=S.pet;if(!p||p.level>=100)return;p.xp+=Math.round(n*(1+.1*(S.legacy||0)));let up=false;while(p.xp>=p.level*3&&p.level<100){p.xp-=p.level*3;p.level++;up=true}if(up){flash(`${petName(p)} passe au niveau ${p.level} !`);burst('star','#ffe08a',4)}touch()}
+function mission(k){const m=S.mission;if(!m)return;const d=MISSIONS[m.i];if(m.done||d.k!==k)return;m.c++;if(m.c>=d.n){m.done=true;earn(500);give('ball',2);give('super');const it=Math.random()<.5?'candy':pick(STONES);give(it);setTimeout(()=>flash(`Mission réussie : 2 Poké Balls, 1 Super Ball, ${ITEMS[it][0]}.`,4500),1800);log(`Mission du jour réussie : ${d.t}.`);beep(SND.fan)}touch()}
+function newDay(){const d=today();if(S.lastDay===d)return;S.lastDay=d;S.days=(S.days||0)+1;let h=0;for(const c of d)h=(h*31+c.charCodeAt(0))%9973;S.mission={i:h%MISSIONS.length,c:0,done:false};
+  if(S.days%7===0){const left=['cap','bow','melon','glasses','star'].filter(x=>!S.hats.includes(x));if(left.length)giveHat(pick(left));else give('candy',2);flash(`${S.days} jours de présence : un cadeau t'attend dans le sac.`,5000)}
+  const se=season(),key=se&&se.hat?se.k+d.slice(0,4):0;if(key&&!S.gifts[key]){S.gifts[key]=1;giveHat(se.hat);log(`${se.n} : tu reçois ${HATS[se.hat][0]}.`)}
+  if(S.pet&&S.pet.stage!=='egg'){const l=DAYLINE[S.pet.nature];if(l)log(fill(pick(l),S.pet))}touch()}
+/* Évolution réelle */
+function condMet(c,p){if(!c)return true;if(STONES.includes(c)||c==='K')return (S.items[c]||0)>0;const n=isNight(Date.now());if(c.includes('b')&&p.bond<70)return false;if(c.includes('j')&&n)return false;if(c.includes('n')&&!n)return false;return true}
+function condText(c){if(!c)return'';if(ITEMS[c])return ITEMS[c][0];const t=[];if(c.includes('b'))t.push('lien de 70');if(c.includes('j'))t.push('de jour');if(c.includes('n'))t.push('de nuit');return t.join(', ')}
+const evoTimeOk=p=>p&&p.stage!=='egg'&&kids(p.id).length&&(p.ageH-p.stageAge)>=evoNeed(p)&&p.bond>=40&&!p.sick&&!p.ko&&!p.away;
+const evoOpts=p=>kids(p.id).filter(i=>i<=SPR.imgs.length&&condMet(dex(i).cond,p)).map(id=>({id,item:(ITEMS[dex(id).cond]?dex(id).cond:'')}));
+/* Rencontres */
+function wildPick(){const se=season(),n=isNight(Date.now()),wb=weatherBoost();let tot=0;const w=[];for(let i=1;i<=SPR.imgs.length;i++){const d=dex(i);let x=d.flag?.012:[1,.2,.05][depth(i)]||.05;if(se&&se.boost&&d.t.some(t=>se.boost.includes(t)))x*=7;if(wb.length&&d.t.some(t=>wb.includes(t)))x*=5;if(n&&d.t.some(t=>t===8||t===17))x*=3;if(!S.dex[i]||S.dex[i]===1)x*=2;tot+=x;w.push(x)}let r=Math.random()*tot;for(let i=0;i<w.length;i++){r-=w[i];if(r<=0)return i+1}return 19}
+function spawnWild(){const id=wildPick();S.wild={id,until:Date.now()+12*6e4,shiny:rnd(64)===0};if(!S.dex[id])S.dex[id]=1;sprite(id,S.wild.shiny);S.nextWild=Date.now()+(1.5+Math.random()*2)*36e5/PACE[S.opt.pace];beep(SND.ok);closeMenuIfIdle();touch()}
+function closeMenuIfIdle(){msgUntil=0}
+const tierOf=id=>{const d=dex(id);if(d.flag)return 3;const t=d.hp+d.at+d.de+d.sp;return Math.max(Math.min(2,depth(id)),t>=360?2:t>=300?1:0)};
+const anyBall=()=>BALLS.some(b=>(S.items[b.k]||0)>0);
+function startCapture(){if(mode!=='idle'||!S.wild)return;if(!anyBall()){flash('Plus aucune Ball. Les expéditions et les missions en donnent.');beep(SND.no);return}chooseBall()}
+function chooseBall(){const id=S.wild.id,t=tierOf(id);openMenu(`${nameOf(id)} ${'★'.repeat(t+1)} Conseillée : ${BALLS[t].n}`,BALLS.filter(b=>(S.items[b.k]||0)>0).map(b=>({l:`${b.n} × ${S.items[b.k]}`,f:()=>launchBall(b.k)})),mode==='idle')}
+function launchBall(k){closeMenu();const id=S.wild.id,t=tierOf(id),b=ballOf(k),w=Math.min(140,[30,18,11,7][t]*b.m),a=10+rnd(Math.max(1,140-w));
+  if(mode!=='capture'){mode='capture';G={id,shiny:S.wild.shiny,c:10,dir:1,sp:[2,2.6,3,3.4][t],tries:3,done:0}}G.ball=k;G.a=a;G.b=a+w;G.fly=null;setMsg('Touche l\'écran quand le curseur est dans la zone.')}
+function throwBall(){if(mode!=='capture'||G.done||!$('menu').hidden||(G.fly&&Date.now()-G.fly.t0<650))return;give(G.ball,-1);const hit=G.c>=G.a&&G.c<=G.b;G.fly={t0:Date.now(),hit};
+  if(hit){G.done=Date.now();beep(SND.fan);setMsg(`${nameOf(G.id)} est capturé !`);const p=newPet(G.id);p.stage='born';p.lastTick=Date.now();p.level=Math.max(3,(S.pet?S.pet.level:5)-2+rnd(4));p.shiny=G.shiny;S.pension.push(p);S.dex[G.id]=Math.max(3,S.dex[G.id]===2?2:3);if(G.shiny)S.shinies[G.id]=1;wildGone(1);log(`${G.shiny?'Chromatique ! ':''}${nameOf(G.id)} capturé. Il attend à la pension.`,G.id);mission('catch');setTimeout(()=>{if(mode==='capture'){mode='idle';G=null;paint()}},2300);return}
+  G.tries--;beep(SND.no);if(G.tries>0&&(S.items[G.ball]||0)<1&&anyBall()){setMsg('Raté !');setTimeout(()=>{if(mode==='capture')chooseBall()},900);return}if(G.tries<=0||!anyBall()){G.done=Date.now();setMsg(`${nameOf(G.id)} s'enfuit !`);wildGone();touch();setTimeout(()=>{if(mode==='capture'){mode='idle';G=null;paint()}},1500)}else setMsg(`Raté ! Encore ${G.tries} essai${G.tries>1?'s':''}.`)}
+function renderCapture(){const sp=sprite(G.id,G.shiny);g.fillStyle='rgba(20,22,42,.5)';g.fillRect(0,0,160,144);
+  if(sp&&!(G.fly&&G.fly.hit&&Date.now()-G.fly.t0>380))drawFit(sp,80,78,62,false);
+  if(!G.done){G.c+=G.dir*G.sp;if(G.c>150||G.c<10)G.dir*=-1}
+  g.fillStyle='#14162a';g.fillRect(8,88,144,12);g.fillStyle='#454a60';g.fillRect(10,90,140,8);g.fillStyle='#7fe08a';g.fillRect(G.a,90,G.b-G.a,8);g.fillStyle='#fff';g.fillRect(Math.round(G.c)-1,86,3,16);
+  drawBall(g,3,3,1,G.ball);g.fillStyle='#fff';for(let i=0;i<Math.min(10,S.items[G.ball]||0);i++)g.fillRect(20+i*4,8,3,3);
+  if(G.fly){const e=(Date.now()-G.fly.t0)/380,k=Math.min(1,e),bx=20+k*53,by=120-k*62-Math.sin(k*Math.PI)*34;if(!G.fly.hit&&k>=1){if(e<1.6)drawBall(g,bx+(e-1)*40,by+(e-1)*(e-1)*80,1,G.ball)}else if(k<1)drawBall(g,bx,by,1,G.ball);else{const sh=Math.sin((e-1)*7)*2.4,n=e>3.2?0:sh;drawBall(g,73+n,60,1,G.ball);if(e>3.2&&tt%10<6)icon(g,'star',92,50,'#ffe08a')}}}
+function drawFit(sp,cx,bottom,maxH,flip,kind){const s=Math.min(sp.s,maxH/Math.max(sp.h,sp.w*.9)),w=Math.round(sp.w*s),h=Math.round(sp.h*s),c=kind==='white'?sp.white:kind==='black'?sp.black:sp.c;g.save();g.translate(Math.round(cx),Math.round(bottom));g.scale(flip?-1:1,1);g.drawImage(c,-Math.round(w/2),-h,w,h);g.restore()}
+/* Expéditions */
+function startExpe(h){const p=S.pet;closeMenu();if(p.energy<30){flash(`${petName(p)} est trop fatigué pour partir.`);return}p.away={h,until:Date.now()+h*36e5/PACE[S.opt.pace]};p.energy=clamp(p.energy-20);mission('expe');log(fill(`{n} part en expédition pour ${h} h.`,p));beep(SND.ok);touch();paint()}
+function expeBack(){const p=S.pet,h=p.away.h;p.away=null;p.lastTick=Date.now();const n=({1:1,3:2,8:4}[h]||1)+(p.nature==='curieux'?1:0),got=[];
+  for(let i=0;i<n;i++){const r=Math.random();if(r<.45){const z=Math.random();if(z<.02){give('master');got.push('une Master Ball !')}else if(z<.14){give('hyper');got.push('1 Hyper Ball')}else if(z<.42){give('super');got.push('1 Super Ball')}else{const c=1+rnd(2);give('ball',c);got.push(c+' Poké Ball'+(c>1?'s':''))}}else if(r<.7){const k=pick(STONES);give(k);got.push(ITEMS[k][0])}else if(r<.85){give('candy');got.push('Super Bonbon')}else if(r<.91){give('K');got.push('Câble Link')}else if(r<.97){const k=pick(['cap','bow','melon','glasses','star']);if(giveHat(k))got.push(HATS[k][0]);else{give('ball');got.push('1 Poké Ball')}}else{const l=DEX.map((d,i)=>i+1).filter(i=>!dex(i).prev&&!dex(i).flag&&i<=SPR.imgs.length),e=newPet(pick(l));S.pension.push(e);got.push('un œuf')}}
+  earn(h*120);got.push((h*120)+' ₽');const st=fill(pick(STORIES),p);xp(h*4);p.bond=Math.min(100,p.bond+h);log(`${st} Butin : ${got.join(', ')}.`);flash(`${st} Butin : ${got.join(', ')}.`,7000);burst('star','#ffe08a',6);beep(SND.fan);touch();paint()}
+/* Combats */
+const stat=(id,l)=>{const d=dex(id);return{hp:Math.floor(d.hp*l/50)+l+10,at:Math.floor(d.at*l/50)+5,de:Math.floor(d.de*l/50)+5,sp:Math.floor(d.sp*l/50)+5}};
+function fighter(id,l,shiny){const s=stat(id,l);return{id,l,shiny:!!shiny,hp:s.hp,max:s.hp,at:s.at,de:s.de,sp:s.sp,t:dex(id).t}}
+function movesOf(id,l){const t=dex(id).t,m=[{n:'Charge',t:1,pw:40}];m.push({n:MOVE[t[0]][0],t:t[0],pw:60});if(t[1])m.push({n:MOVE[t[1]][l>=18?1:0],t:t[1],pw:l>=18?85:60});else m.push(l>=18?{n:MOVE[t[0]][1],t:t[0],pw:90}:{n:'Griffe',t:1,pw:50});return m}
+function hitCalc(a,d,m){const e=d.t.reduce((v,t)=>v*eff(m.t,t),1),st=a.t.includes(m.t)?1.5:1;return{dmg:e===0?0:Math.max(1,Math.round(((2*a.l/5+2)*m.pw*a.at/d.de/50+2)*st*e*(.85+Math.random()*.15))),e}}
+const effTxt=e=>e===0?' Aucun effet.':e>1?' Super efficace !':e<1?' Peu efficace.':'';
+function foeMove(){const{foe,me}=G,ms=movesOf(foe.id,foe.l);return ms.reduce((b,m)=>{const v=m.pw*me.t.reduce((x,t)=>x*eff(m.t,t),1)*(Math.random()*.5+.75);return v>b.v?{m,v}:b},{m:ms[0],v:-1}).m}
+function act(a,d,m,lbl,side,then){if(mode!=='battle')return;if(m.heal){const h=Math.round(a.max*.4);a.hp=Math.min(a.max,a.hp+h);G.heals--;setMsg(`${lbl} se repose.`);beep(SND.ok)}else{const r=hitCalc(a,d,m);d.hp=Math.max(0,d.hp-r.dmg);G.hit=side;G.t=Date.now();setMsg(`${lbl} : ${m.n}.${effTxt(r.e)}`);beep(r.e>1?SND.yum:SND.tap)}setTimeout(then,1050)}
+/* Œufs de pension */
+function compatible(a,b){const x=dex(a.id),y=dex(b.id);if(x.flag||y.flag||x.e1===15||y.e1===15)return false;if(a.id===132||b.id===132)return true;return [x.e1,x.e2].some(e=>e&&(e===y.e1||e===y.e2))}
+function coupleTap(uid){if(S.care){return}if(!G_pair)G_pair=uid;else if(G_pair===uid)G_pair=null;else{const a=S.pension.find(p=>p.uid===G_pair),b=S.pension.find(p=>p.uid===uid);if(a&&b&&a.stage!=='egg'&&b.stage!=='egg'&&compatible(a,b)){S.care={a:a.uid,b:b.uid,at:Date.now()};flash(`${petName(a)} et ${petName(b)} s'entendent bien.`);touch()}else flash('Ces deux-là ne sont pas compatibles.');G_pair=null}renderPane()}
+let G_pair=null;
+const eggNeed=()=>24*36e5/PACE[S.opt.pace]/(season()&&season().eggFast?2:1);
+const careReady=()=>S.care&&Date.now()-S.care.at>=eggNeed();
+function careCollect(){const a=S.pension.find(p=>p.uid===S.care.a),b=S.pension.find(p=>p.uid===S.care.b),m=a&&a.id!==132?a:b,e=newPet(root(m.id));S.pension.push(e);S.care.at=Date.now();log(`La pension a trouvé un œuf de ${nameOf(root(m.id))} !`,root(m.id));beep(SND.fan);touch();renderPane()}
+function careClear(uid){if(S.care&&(S.care.a===uid||S.care.b===uid))S.care=null}
+/* Poké Ball pixel */
+const BALL=['....kkkkkk....','..kkrrrrrrkk..','.krhhrrrrrrdk.','.krhrrrrrrrdk.','krrrrrrrrrrrdk','krrrrkkkkrrddk','kkkkkwwwwkkkkk','kkkkkwwggkkkkk','kwwwwkkkkwwwgk','kwwwwwwwwwwggk','.kwwwwwwwwggk.','.kwwwwwwwgggk.','..kkggggggkk..','....kkkkkk....'];
+const BALLC={k:'#181820',w:'#ffffff',g:'#b4b8c6'};
+const BALLS=[{k:'ball',n:'Poké Ball',m:1,c:{r:'#e8222e',d:'#a81824',h:'#ffd9dc'},o:[]},
+ {k:'super',n:'Super Ball',m:1.6,c:{r:'#2a6fd8',d:'#17479c',h:'#d3e6ff'},o:[[2,4,'#e8222e'],[3,3,'#e8222e'],[3,4,'#e8222e'],[10,3,'#e8222e'],[10,4,'#e8222e'],[11,4,'#e8222e']]},
+ {k:'hyper',n:'Hyper Ball',m:2.4,c:{r:'#f2c81e',d:'#b98f0c',h:'#fff6c2'},o:[[6,1,'#181820'],[7,1,'#181820'],[6,2,'#181820'],[7,2,'#181820'],[6,3,'#181820'],[7,3,'#181820'],[6,4,'#181820'],[7,4,'#181820'],[5,4,'#181820'],[8,4,'#181820']]},
+ {k:'master',n:'Master Ball',m:99,c:{r:'#7a3fb0',d:'#4f2480',h:'#e8d3ff'},o:[[3,3,'#f07ab8'],[10,3,'#f07ab8'],[6,2,'#ffffff'],[7,2,'#ffffff'],[6,3,'#ffffff'],[7,3,'#ffffff']]}];
+const ballOf=k=>BALLS.find(b=>b.k===k)||BALLS[0];
+function drawBall(q,x,y,s=1,k='ball'){const b=ballOf(k),C=Object.assign({},BALLC,b.c);x=Math.round(x);y=Math.round(y);BALL.forEach((r,j)=>{for(let i=0;i<14;i++){const c=C[r[i]];if(c){q.fillStyle=c;q.fillRect(x+i*s,y+j*s,s,s)}}});b.o.forEach(([i,j,c])=>{q.fillStyle=c;q.fillRect(x+i*s,y+j*s,s,s)})}
+const BALL_URLS={};BALLS.forEach(b=>{const c=document.createElement('canvas');c.width=c.height=14;drawBall(c.getContext('2d'),0,0,1,b.k);BALL_URLS[b.k]=c.toDataURL()});
+drawBall($('keyBall').getContext('2d'),0,0);
+/* Position de la tête de chaque espèce, relevée sprite par sprite : centre x, centre y, largeur */
+const HEADS="10,16,20;24,30,24;24,32,26;8,9,17;12,18,22;10,12,20;9,8,15;18,14,22;14,20,24;9,9,15;15,14,16;21,20,14;10,12,18;11,10,20;27,18,14;15,16,16;14,18,20;16,26,20;14,24,16;18,18,30;9,10,15;16,9,18;11,8,18;26,22,36;12,12,20;16,18,30;8,8,16;16,22,22;12,15,18;14,20,24;25,12,24;10,20,18;20,28,24;25,12,24;14,16,24;22,16,30;12,20,22;12,14,20;19,17,28;22,18,30;15,14,16;26,32,24;14,18,18;22,24,34;20,30,30;15,12,26;24,32,28;19,15,27;20,24,16;16,10,20;30,12,24;14,14,22;30,20,26;18,14,27;22,12,22;20,16,27;25,25,40;12,16,22;38,18,24;12,22,21;28,22,36;30,12,26;20,10,21;28,12,24;26,14,22;20,10,18;26,10,22;32,12,22;12,10,22;28,24,40;26,14,30;15,9,22;24,16,44;22,22,21;24,28,24;22,20,24;12,16,20;14,24,22;10,26,20;16,22,28;12,9,14;26,26,46;26,12,14;20,10,32;28,14,30;20,26,28;38,18,20;21,14,27;22,22,34;18,15,26;24,26,26;20,22,26;20,22,30;28,22,42;12,16,20;26,16,28;30,15,26;18,21,22;24,28,30;12,9,22;18,16,33;26,26,50;24,18,34;26,10,21;20,16,26;22,13,30;32,10,22;24,14,30;16,15,27;20,20,34;12,20,22;16,12,22;24,20,40;24,18,30;26,10,24;10,14,20;14,16,18;14,18,24;22,38,30;18,20,20;24,24,26;26,12,26;32,18,18;26,14,22;24,14,28;14,16,24;28,26,24;32,16,20;22,16,30;18,20,26;22,10,22;18,16,30;21,21,21;26,24,22;16,22,20;20,20,24;24,10,26;10,28,16;20,30,22;18,16,30;24,10,24;14,12,22;34,14,28;30,14,18;16,28,18;13,33,18;18,9,16;28,14,20;30,10,22;28,10,22;15,10,20;10,14,20;12,14,22;34,16,22;12,30,20;28,16,20;28,16,20;15,10,28;20,18,28;18,20,30;14,18,22;28,10,20;22,14,33;24,14,28;24,18,26;20,16,22;20,10,26;30,22,24;28,26,20;24,32,34;14,24,28;15,12,22;14,15,22;15,20,30;12,10,20;12,9,18;10,10,20;20,10,20;10,22,18;18,16,24;35,9,18;18,14,26;16,9,27;26,14,32;24,14,26;26,16,28;14,22,21;30,18,34;26,34,26;18,14,26;15,22,18;22,14,22;17,19,24;18,10,28;20,12,26;16,14,22;36,17,20;14,18,24;24,14,26;30,30,22;9,14,18;18,14,34;9,11,14;18,16,30;28,24,34;14,34,24;22,22,28;22,46,34;20,14,30;22,14,28;15,14,21;26,14,18;16,6,14;22,20,22;18,18,22;14,10,22;26,10,26;15,12,28;14,22,22;9,15,16;18,34,26;24,30,26;12,15,20;28,16,30;18,14,22;36,20,28;13,13,14;9,10,16;12,16,20;30,16,22;16,12,22;12,20,22;24,10,30;18,26,20;32,18,26;22,10,16;28,36,20;16,16,22;26,12,22;16,10,22;24,10,26;20,16,36;12,22,18;14,16,26;15,28,20;18,20,21;20,20,30;14,10,18;46,8,16;22,16,20;16,16,20;20,12,20;18,12,20;20,8,20;20,22,28;38,12,20;26,8,24;18,16,22;22,18,30;32,22,30;10,14,16;14,14,22;12,24,22;12,50,22;21,15,16;24,22,30;18,22,16;22,20,30;25,22,14;21,20,20;20,20,28;32,18,34;16,21,26;20,18,24;34,22,26;12,10,20;18,10,20;26,6,14;28,18,28;10,10,18;15,11,20;43,9,16;22,14,22;22,36,14;20,14,26;34,14,20;14,14,24;18,20,22;32,16,30;20,18,22;26,22,22;22,22,26;20,20,22;26,24,34;34,30,34;20,14,26;32,26,26;18,12,22;22,15,26;22,18,22;18,16,22;26,18,22;38,22,16;10,10,18;12,24,22;18,18,24;18,12,20;24,8,16;14,16,22;28,28,18;14,18,20;14,18,20;26,22,24;20,14,24;28,12,18;18,20,28;24,10,32;18,28,30;16,28,30;18,14,34;18,22,34;14,20,26;16,24,26;15,28,18;12,20,22;16,22,28;18,20,28;15,12,27;16,38,20;44,9,16;24,20,30;28,14,18;26,24,20;26,12,16;26,14,22;12,14,20;26,22,38;30,30,24;10,15,14;26,30,30;22,18,24;22,26,22;20,10,16;24,20,44;24,18,22;18,22,26;22,22,22;26,10,20;15,26,20;33,16,14;10,12,18;16,22,28;12,15,20;14,14,21;12,24,22;22,16,20;40,14,18;12,22,22;26,20,18;14,16,21;15,18,18;24,26,44;15,15,27;24,18,26;18,18,26;18,21,16;16,38,28;14,30,22;14,26,26;10,12,18;12,12,18;20,26,30;16,18,20;12,16,18;26,14,26;30,16,28;22,14,26;26,16,22;26,14,20;34,12,18;10,14,18;24,20,26;20,12,24;16,22,20;20,16,30;36,12,18;14,21,24;26,30,22;12,56,22;18,18,26;24,20,22;26,22,26;12,12,22;24,12,18;42,12,18;15,18,27;16,22,26;18,20,22;12,28,26;14,14,26;20,22,34;24,18,22;14,14,24;18,30,22;24,28,20;12,22,22;28,16,18;16,16,28;22,16,22;10,22,20;18,20,30;14,26,20;20,24,22;24,30,16;18,20,26;26,12,20;14,30,26;28,14,24;30,16,22;12,22,20;16,28,22;10,16,20;14,16,22;26,36,24;14,20,26;28,24,30;16,26,22;24,16,20;24,24,26;32,13,20;18,20,22;22,24,26;14,22,20;14,34,22;12,34,22;18,18,30;28,40,36;14,32,20;16,26,24;20,22,24;12,12,16;28,26,36;22,26,34;20,12,20;18,24,20;20,16,32;24,14,24;20,14,22;26,10,18;34,20,34;14,12,22;38,16,22;16,14,28;30,14,24;24,14,30;12,28,22;24,42,22;24,30,34;32,30,26;34,16,30;30,14,26;32,28,40;20,22,30;32,18,28;32,38,32;34,16,30;36,18,24;20,30,18;28,33,24;16,18,26;16,18,24;26,22,24;28,22,32;22,14,28;24,12,18;30,24,30;34,20,22;26,14,30;30,24,16;28,14,26;18,14,30;14,12,26;14,12,18;16,30,22;32,24,26;40,34,30;38,12,22;24,14,22;12,18,26;24,20,32;38,38,18;9,15,14;28,12,20".split(';').map(r=>r.split(',').map(Number));
+function cropOf(p,sp){const[cx,cy,hw]=HEADS[p.id-1],c=p.face||{},side=Math.max(9,hw*1.3*(c.z||1));return{cx:cx+(c.x||0),cy:cy+hw*.05+(c.y||0),side}}
+const FIELD=(q,lab,val,x,y,w)=>{q.fillStyle='#5b6276';q.font='500 15px Lexend,Arial,sans-serif';q.fillText(lab,x,y);let z=31;do{q.font=`${z}px VT323,"Courier New",monospace`;z--}while(q.measureText(val).width>w&&z>16);q.fillStyle='#14182a';q.fillText(val,x,y+29)};
+const FN='VT323';let cardTok=0;
+async function drawCard(cid='idCard',P,B){const c=$(cid);if(!c)return;const p=P||S.pet,BD=B||S.badges,sp=sprite(p.id,p.shiny),tok=++cardTok;if(!sp){setTimeout(()=>{if(tok===cardTok)drawCard(cid,P,B)},300);return}
+  try{await Promise.all(['700 34px "Pixelify Sans"','30px VT323','500 15px Lexend'].map(f=>document.fonts.load(f)))}catch(e){}if(tok!==cardTok||!$(cid))return;
+  const q=$(cid).getContext('2d'),W=1011,H=638,t=dex(p.id).t[0],col=T[t][1],tint=mix(col,'#ffffff',.88),band=col;q.imageSmoothingEnabled=false;
+  q.fillStyle=tint;q.fillRect(0,0,W,H);q.fillStyle=mix(col,'#ffffff',.76);for(let y=0;y<H;y+=12)for(let x=(y%24)?6:0;x<W;x+=12)q.fillRect(x,y,2,2);
+  q.fillStyle=band;q.fillRect(0,0,W,84);q.fillStyle='#fff';q.font='700 36px "Pixelify Sans",monospace';q.fillText("CARTE D'IDENTITÉ",28,54);q.font='500 15px Lexend,Arial,sans-serif';q.textAlign='right';q.fillText('Ligue PokéNid',W-74,50);q.textAlign='left';drawBall(q,W-62,27,3-1);
+  const px=34,py=112,pw=270,ph=338,cr=cropOf(p,sp),cw=cr.side,chh=cw*ph/pw,sc=pw/cw;q.fillStyle='#14182a';q.fillRect(px-5,py-5,pw+10,ph+10);q.fillStyle=mix(col,'#dfe9f4',.8);q.fillRect(px,py,pw,ph);
+  q.save();q.beginPath();q.rect(px,py,pw,ph);q.clip();const ix=Math.max(1,Math.round(sc));q.drawImage(sp.c,Math.round(px+pw/2-cr.cx*ix),Math.round(py+ph*.48-cr.cy*ix),sp.w*ix,sp.h*ix);q.restore();
+  const x=340,w1=300,x2=660,w2=320;FIELD(q,'NOM',(p.nick||nameOf(p.id)).toUpperCase(),x,120,w1);FIELD(q,'ESPÈCE',nameOf(p.id),x2,120,w2);
+  FIELD(q,'N° DE POKÉDEX',String(p.id).padStart(3,'0'),x,190,w1);FIELD(q,'TYPE',dex(p.id).t.map(i=>T[i][0]).join(' / '),x2,190,w2);
+  FIELD(q,'NÉ LE',new Date(p.bornAt).toLocaleDateString('fr-FR'),x,260,w1);FIELD(q,'NIVEAU',String(p.level),x2,260,w2);
+  FIELD(q,'CARACTÈRE',NATURES[p.nature][0],x,330,w1);FIELD(q,'SIGNE PARTICULIER',p.shiny?'Chromatique':(GAGS[p.id]?'Célébrité locale':'Aucun'),x2,330,w2);
+  q.fillStyle='#5b6276';q.font='500 15px Lexend,Arial,sans-serif';q.fillText('BADGES',x,402);for(let i=0;i<8;i++){const bx=x+i*40,by=416;q.fillStyle=BD.includes(i)?T[GYMS[i].t][1]:'#ffffff';q.fillRect(bx,by,28,28);q.strokeStyle='#14182a';q.lineWidth=2;q.strokeRect(bx,by,28,28)}
+  q.fillStyle='#ffffffd9';q.fillRect(0,486,W,152);q.fillStyle='#14182a';q.font='37px VT323,"Courier New",monospace';const nm=norm(p.nick||nameOf(p.id)).toUpperCase().replace(/[^A-Z0-9]+/g,'<'),a=('IDPOK<'+nm+'<<'+norm(nameOf(p.id)).toUpperCase().replace(/[^A-Z0-9]+/g,'<')+'<'.repeat(36)).slice(0,36),dt=new Date(p.bornAt),ds=String(dt.getFullYear()).slice(2)+String(dt.getMonth()+1).padStart(2,'0')+String(dt.getDate()).padStart(2,'0'),b=(String(p.id).padStart(3,'0')+'<L'+String(p.level).padStart(3,'0')+'<'+ds+'<B'+BD.length+'<'.repeat(36)).slice(0,36);q.fillText(a,28,540);q.fillText(b,28,590)}
+function mix(a,b,t){const h=s=>[1,3,5].map(i=>parseInt(s.slice(i,i+2),16)),A=h(a),B=h(b);return '#'+A.map((v,i)=>Math.round(v+(B[i]-v)*t).toString(16).padStart(2,'0')).join('')}
+async function cardSave(){await drawCard();const c=$('idCard');if(!c)return;const n=norm(petName(S.pet)).replace(/[^a-z0-9]+/g,'-');c.toBlob(b=>saveFile(`carte-identite-${n}.png`,b),'image/png')}
+function cropMove(k){const p=S.pet,c=p.face=p.face||{x:0,y:0,z:1};if(k==='l')c.x+=1;if(k==='r')c.x-=1;if(k==='u')c.y+=1;if(k==='d')c.y-=1;if(k==='in')c.z=Math.max(.5,c.z*.88);if(k==='out')c.z=Math.min(2,c.z/.88);if(k==='auto')delete p.face;touch();drawCard()}
+/* Enregistrement */
+let dlCap;async function saveFile(name,blob){if(dlCap===undefined){dlCap=window.claude&&window.claude.use?await window.claude.use('downloads'):null}
+  if(dlCap){try{await dlCap.save({filename:name,data:blob});return true}catch(e){if(e&&e.code!=='unavailable'){flash(e.code==='declined'?'Enregistrement annulé.':'Ce format ne peut pas être enregistré ici.');return false}}}
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1000);return true}
+/* Battement de la vie */
+let gagAt=0,mimic=null;
+function lifeTick(){const now=Date.now();newDay();const p=S.pet;
+  if(S.wild&&now>S.wild.until&&mode!=='capture'){flash(`${nameOf(S.wild.id)} est parti.`);wildGone();touch()}
+  const lw=legWeek();if(lw&&now>=lw.from&&now<lw.to&&S.legDone!==lw.key&&!S.wild&&mode==='idle'&&p&&p.stage!=='egg'&&!p.away){S.wild={id:lw.id,until:lw.to,shiny:false,leg:lw.key};if(!S.dex[lw.id])S.dex[lw.id]=1;sprite(lw.id);flash(`${nameOf(lw.id)} est apparu ! Il reste jusqu'à 22 h.`,6000);beep(SND.fan);touch()}
+  if(SPR&&!S.wild&&(mode==='idle')&&p&&p.stage!=='egg'&&now>=S.nextWild)spawnWild();
+  if(mode==='idle'&&$('menu').hidden&&now>msgUntil)checkProgress();
+  if(p&&p.away&&!p.away.done&&now>=p.away.until){p.away.done=true;touch()}
+  if(mimic&&now>mimic.until)mimic=null;
+  if(mode==='idle'&&p&&!p.asleep&&!p.ko&&!p.away&&$('menu').hidden&&now>gagAt&&now>msgUntil){if(gagAt){const l=GAGS[p.id];if(p.id===132&&SPR){let id=1+rnd(SPR.imgs.length);sprite(id);mimic={id,until:now+3e4};flash(`Métamorph imite ${nameOf(id)}. Ressemblance : moyenne.`,5000)}else if(l&&Math.random()<.6)flash(pick(l),5000);else flash(fill(pick(NATLINE[p.nature]),p),5000);if(Math.random()<.2)log(document.getElementById('msg').textContent);if(p.nature==='farceur'&&Math.random()<.12&&p.poops<4){p.poops++;flash(fill('{n} a posé une fausse crotte. Elle est vraie.',p),5000)}hop(5)}gagAt=now+(3+Math.random()*4)*6e4}}
+/* Pages du carnet */
+function renderLog(){const f=new Intl.DateTimeFormat('fr-FR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});return `<div class="stack"><h2>Journal</h2>${S.log.length?`<div class="logs">${S.log.slice(0,60).map(l=>`<div class="logline"><span class="small">${f.format(l.at)}</span><p>${esc(l.t)}</p></div>`).join('')}</div>`:'<p class="small">Rien encore. Il se remplit au fil des jours.</p>'}</div>`}
+
+/* ========== Économie, décor, combats d'équipe, amis, météo, succès, Panthéon, mini-jeux ========== */
+ITEMS.rod=['Canne','Pour pêcher. Elle ne s\'use pas.'];
+const st=k=>(S.st&&S.st[k])||0;
+function earn(n){if(!n)return;S.money=(S.money||0)+n;S.st.money=st('money')+n;touch()}
+const owned=()=>Object.values(S.dex).filter(v=>v>=2).length;
+function extDefaults(){S.money=S.money||0;S.st=S.st||{};S.ach=S.ach||{};S.room=S.room||{bg:'',s:['','','']};S.furn=S.furn||[];S.bgs=S.bgs||[];S.team=S.team||[];S.league=S.league||{wins:0};S.tower=S.tower||{best:0};S.friends=S.friends||[];S.pending=S.pending||{};S.tradeSeen=S.tradeSeen||[];S.replies=S.replies||[];S.hof=S.hof||[];S.legacy=S.legacy||0;S.dexMil=S.dexMil||0;S.dipl=S.dipl||{};if(S.opt.weather===undefined)S.opt.weather=true;if(S.opt.trainer===undefined)S.opt.trainer=''}
+{const _m=migrate;migrate=function(){_m();extDefaults()}}
+{const _ms=mission;mission=function(k){S.st[k]=st(k)+1;_ms(k)}}
+{const _ee=endEvo;endEvo=function(){S.st.evo=st('evo')+1;_ee()}}
+
+/* Boutique et décor */
+const SHOP=[['ball',200],['super',600],['hyper',1200],['candy',1500],['K',3000],['F',2100],['W',2100],['T',2100],['L',2100],['M',2100],['U',2100],['I',2100],['H',2100],['D',2100],['A',2100]];
+const FPAL={G:'#46a85f',g:'#2f7a43',b:'#7a5230',P:'#c8553d',p:'#e07a5f',R:'#e8222e',r:'#ff9aa8',y:'#fff3a0',Y:'#f4c82e',k:'#181820',K:'#2b3044',W:'#8a5a32',w:'#d9b27a',B:'#3f8fdc',S:'#ffffff'};
+const FURN={
+ plante:{n:'Plante',c:400,pat:['....GG.G....','...GGGGGG...','..GGgGGgGG..','.GGgGGGGgGG.','..GGGGgGGG..','...GGGGGG...','.....bb.....','....PPPP....','....PppP....','....PppP....','....PppP....','.....PP.....']},
+ coussin:{n:'Coussin',c:500,pat:['..RRRRRRRR..','.RrrrrrrrrR.','RrrrryyrrrrR','RrrrrrrrrrrR','.RRRRRRRRRR.']},
+ lampe:{n:'Lampe',c:700,pat:['...YYYYYY...','..YyyyyyyY..','.YyyyyyyyyY.','.YYYYYYYYYY.','.....kk.....','.....kk.....','.....kk.....','.....kk.....','.....kk.....','.....kk.....','...kkkkkk...','..kkkkkkkk..']},
+ tapis:{n:'Tapis',c:600,low:1,pat:['..RRRRRRRR..','.RyRyRyRyRR.','.RRyRyRyRyR.','..RRRRRRRR..']},
+ tele:{n:'Télé',c:1500,pat:['...k....k...','....k..k....','.kkkkkkkkkk.','.kBBBBBBBBk.','.kBSBBBBBBk.','.kBBBBBBBBk.','.kBBBBBBBBk.','.kkkkkkkkkk.','.WWWWWWWWWW.','.W........W.','.W........W.']},
+ lit:{n:'Lit',c:1200,pat:['W...........','W...........','WSSS........','WSSSRRRRRRR.','WRRRRRRRRRRW','WRRRRRRRRRRW','WWWWWWWWWWWW','W..........W','W..........W']},
+ sapin:{n:'Sapin',c:900,pat:['.....Y......','....GGG.....','...GGRGG....','....GGG.....','...GGGGG....','..GGYGGGG...','...GGGGG....','..GGGGRGG...','.GGGGGGGGG..','....bb......','....bb......','...PPPP.....']},
+ arcade:{n:'Borne d\'arcade',c:2500,pat:['.KKKKKKKKKK.','.KRRRRRRRRK.','.KKKKKKKKKK.','.KBBBBBBBBK.','.KBgBBBBYBK.','.KBBBBBBBBK.','.KKKKKKKKKK.','.KkRkkkkYkK.','.KkkkkkkkkK.','.KKKKKKKKKK.','.KKKKKKKKKK.','.KKKKKKKKKK.']},
+ gateau:{n:'Gâteau',c:350,pat:['.....Y......','.....S......','..SSSSSSS...','..PPPPPPP...','..SSSSSSS...','..PPPPPPP...','..PPPPPPP...','.BBBBBBBBB..']},
+ ballon:{n:'Ballons',c:300,pat:['.RR....BB...','RRRR..BBBB..','RRRR..BBBB..','.RR....BB...','..k.....k...','...k...k....','....k.k.....','.....k......','.....k......','.....k......','....kkk.....','...kkkkk....']},
+ panneau:{n:'Panneau',c:450,pat:['.WWWWWWWWWW.','.WwwwwwwwwW.','.WwkkwkkwwW.','.WwwwwwwwwW.','.WwkkkwkkwW.','.WWWWWWWWWW.','.....WW.....','.....WW.....','.....WW.....','.....WW.....','....WWWW....']}};
+const BGN={prairie:'Prairie',foret:'Forêt',eau:'Plage',neige:'Neige',roche:'Canyon',volcan:'Volcan',ciel:'Ciel',nuit:'Nuit'};
+function drawFurn(q,k,x,bottom,sc){const P=FURN[k].pat;P.forEach((r,j)=>{for(let i=0;i<r.length;i++){const c=FPAL[r[i]];if(c){q.fillStyle=c;q.fillRect(x+i*sc,bottom-(P.length-j)*sc,sc,sc)}}})}
+const FURL={};Object.keys(FURN).forEach(k=>{const c=document.createElement('canvas');c.width=c.height=12;drawFurn(c.getContext('2d'),k,0,12,1);FURL[k]=c.toDataURL()});
+function drawRoom(){const s=S.room&&S.room.s;if(!s)return;[[4,0],[66,1],[132,2]].forEach(([x,i])=>{const k=s[i];if(k&&FURN[k])drawFurn(g,k,x,FURN[k].low?118:100,2)})}
+function buy(kind,k){const price=kind==='item'?(SHOP.find(s=>s[0]===k)||[0,0])[1]:kind==='rod'?800:kind==='furn'?FURN[k].c:1000;if((S.money||0)<price){flash('Pas assez de Poké Dollars.');beep(SND.no);return}
+  S.money-=price;if(kind==='item')give(k);if(kind==='rod')S.items.rod=1;if(kind==='furn'){if(!S.furn.includes(k))S.furn.push(k);const s=S.room.s,i=s.indexOf('');if(i>=0)s[i]=k}if(kind==='bg'){if(!S.bgs.includes(k))S.bgs.push(k);S.room.bg=k;bgK=''}
+  beep(SND.ok);touch();renderPane()}
+
+/* Météo réelle (Bettembourg) */
+let WX=null;
+async function fetchWeather(){if(!S.opt.weather){WX=null;return}try{const r=await fetch('https://api.open-meteo.com/v1/forecast?latitude=49.5186&longitude=6.1028&current=temperature_2m,weather_code&timezone=auto');if(!r.ok)throw 0;const j=await r.json();WX={code:+j.current.weather_code,temp:+j.current.temperature_2m,at:Date.now()};if(tab==='fiche')renderPane()}catch(e){WX=null}}
+function wxKind(){if(!WX||!S.opt.weather)return null;const c=WX.code;if(c>=95)return'orage';if((c>=71&&c<=77)||c===85||c===86)return'neige';if((c>=51&&c<=67)||(c>=80&&c<=82))return'pluie';if(c===45||c===48)return'brouillard';if(c<=1)return'soleil';return'nuages'}
+const WXT={orage:['Orage',[13]],neige:['Neige',[15]],pluie:['Pluie',[11]],brouillard:['Brouillard',[8,14]],soleil:['Soleil',[10,12]],nuages:['Nuageux',[1,3]]};
+function weatherBoost(){const k=wxKind();if(!k)return[];const b=WXT[k][1].slice();if(WX.temp<=0&&!b.includes(15))b.push(15);return b}
+function weatherFx(){const k=wxKind();if(!k||reduce)return;if(k==='pluie'||k==='orage'){g.fillStyle='rgba(190,215,255,.75)';for(let i=0;i<40;i++)g.fillRect((i*41+tt*2)%160,11+(i*29+tt*5)%133,1,3);if(k==='orage'&&tt%180<3){g.fillStyle='rgba(255,255,255,.6)';g.fillRect(0,11,160,133)}}
+  if(k==='neige'&&!(season()&&season().snow)){g.fillStyle='#fff';for(let i=0;i<26;i++)g.fillRect((i*37+Math.floor(tt/3))%160,11+(i*23+Math.floor(tt*(1+i%3)/3))%133,1,1)}
+  if(k==='brouillard'){g.fillStyle='rgba(235,240,245,.35)';g.fillRect(0,40,160,70)}}
+
+/* Légendaire de la semaine */
+const DAYS=['lundi','mardi','mercredi','jeudi','vendredi','samedi','dimanche'];
+function legWeek(t=Date.now()){if(!SPR)return null;const d=new Date(t),day=(d.getDay()+6)%7,mon=new Date(d.getFullYear(),d.getMonth(),d.getDate()-day),key=mon.getFullYear()+'-'+(mon.getMonth()+1)+'-'+mon.getDate();let h=0;for(const c of key)h=(h*131+c.charCodeAt(0))%1000003;
+  const L=DEX.map((x,i)=>i+1).filter(i=>dex(i).flag===1&&i<=SPR.imgs.length);if(!L.length)return null;const dd=(h>>3)%7,from=new Date(mon.getFullYear(),mon.getMonth(),mon.getDate()+dd,18);return{id:L[h%L.length],key,dd,from:+from,to:+from+4*36e5}}
+function wildGone(caught){if(S.wild&&S.wild.leg){S.legDone=S.wild.leg;if(caught)S.st.leg=st('leg')+1}S.wild=null}
+function seasonBand(){const s=season(),k=wxKind(),lw=legWeek(),now=Date.now(),out=[];if(s)out.push(`<b>${esc(s.n)}</b> ${esc(s.txt)}`);
+  if(k){const b=weatherBoost();out.push(`<b>Météo : ${WXT[k][0].toLowerCase()}, ${Math.round(WX.temp)} °C.</b> ${b.length?'Plus de Pokémon '+b.map(t=>T[t][0]).join(', ')+'.':''}`)}
+  if(lw&&S.legDone!==lw.key){if(now>=lw.from&&now<lw.to)out.push(`<b>${esc(nameOf(lw.id))} rôde en ce moment !</b> Jusqu'à 22 h.`);else if(now<lw.from)out.push(`<b>Rendez-vous :</b> ${esc(nameOf(lw.id))} passera ${DAYS[lw.dd]} de 18 h à 22 h.`)}
+  return out.map(t=>`<p class="band">${t}</p>`).join('')}
+
+/* Combats d'équipe */
+const JOHTO=[{n:'Albert',b:'Zéphyr',t:3,l:66,team:[22,227,18],prize:'hyper'},{n:'Hector',b:'Essaim',t:7,l:69,team:[123,214,212],prize:'H'},{n:'Blanche',b:'Plaine',t:1,l:72,team:[36,203,241],prize:'A'},{n:'Mortimer',b:'Brume',t:8,l:75,team:[93,200,94],prize:'D'},{n:'Chuck',b:'Choc',t:2,l:78,team:[57,62,237],prize:'candy'},{n:'Jasmine',b:'Minéral',t:9,l:81,team:[82,227,208],prize:'K'},{n:'Frédo',b:'Glacier',t:15,l:84,team:[86,221,87],prize:'I'},{n:'Sandra',b:'Lever',t:16,l:87,team:[148,230,149],prize:'master'}];
+GYMS.push(...JOHTO);
+const LEAGUE=[{n:'Olga',t:15,l:56,team:[87,91,124,131]},{n:'Aldo',t:2,l:58,team:[95,107,106,68]},{n:'Agatha',t:8,l:60,team:[42,93,24,94]},{n:'Peter',t:16,l:62,team:[130,148,142,149]},{n:'Régis',t:1,l:65,team:[18,65,112,59,9]}];
+const KANTO=[0,1,2,3,4,5,6,7],JOH=[8,9,10,11,12,13,14,15],hasAll=a=>a.every(i=>S.badges.includes(i));
+const leagueSpec=(i,keep)=>({kind:'league',stage:i,who:LEAGUE[i].n,foes:LEAGUE[i].team.map((id,k,a)=>[id,LEAGUE[i].l-a.length+1+k]),keep});
+function towerSpec(f,keep){const l=Math.min(100,8+f*3),foes=[];for(let i=0;i<3;i++){let w=wildPick(),n=0;while((dex(w).flag||(f>8&&!depth(w)&&kids(w).length))&&n++<40)w=wildPick();foes.push([w,l])}return{kind:'tower',floor:f,who:`Étage ${f}`,foes,keep}}
+function myTeam(){const t=[S.pet];S.team=(S.team||[]).filter(u=>S.pension.some(x=>x.uid===u&&x.stage!=='egg'));S.team.forEach(u=>{const q=S.pension.find(x=>x.uid===u);if(q&&t.length<3)t.push(q)});return t}
+const fname=f=>f.p?petName(f.p):nameOf(f.id);
+function xpTo(p,n){if(!p||p.level>=100)return;p.xp=(p.xp||0)+Math.round(n*(1+.1*(S.legacy||0)));while(p.xp>=p.level*3&&p.level<100){p.xp-=p.level*3;p.level++}touch()}
+function startBattle(spec,chained){if(mode!=='idle'||!S.pet||S.pet.stage==='egg')return;const p=S.pet;if(!chained){if(!guard())return;if(p.energy<25){flash(`${petName(p)} est trop fatigué pour combattre.`);return}}else if(p.away||p.ko)return;closeMenu();
+  let queue,who,kind='train',gi;
+  if(spec===undefined){const l=Math.max(3,p.level-1+rnd(2));let w=wildPick();if(dex(w).flag)w=19;queue=[fighter(w,l)];who='Un '+nameOf(w)+' sauvage'}
+  else if(typeof spec==='number'){gi=spec;kind='gym';const y=GYMS[gi],l=S.badges.includes(gi)?Math.max(y.l,p.level):y.l;queue=y.team.map((id,i)=>fighter(id,l-y.team.length+1+i));who=y.n}
+  else{kind=spec.kind;who=spec.who;queue=spec.foes.map(([id,l,sh])=>fighter(id,Math.max(1,Math.min(100,l)),sh))}
+  const mine=myTeam().map((q,i)=>{const f=fighter(q.id,q.level,q.shiny);f.p=q;if(spec&&spec.keep&&spec.keep[i]!==undefined)f.hp=Math.max(0,Math.min(f.max,spec.keep[i]));return f});
+  let me=mine.find(f=>f.hp>0);if(!me){mine.forEach(f=>f.hp=Math.round(f.max*.2));me=mine[0]}
+  queue.forEach(f=>{sprite(f.id,f.shiny);if(!S.dex[f.id])S.dex[f.id]=1});mine.forEach(f=>sprite(f.id,f.shiny));
+  mode='battle';G={mine,me,queue,foe:queue[0],who,gi,kind,spec:typeof spec==='object'?spec:null,heals:2,hit:'',t:0};setMsg(`${who} veut se battre !`);if(tab==='gym')renderPane();setTimeout(battleMenu,1300)}
+function battleMenu(){if(mode!=='battle')return;const{me,foe}=G,o=movesOf(me.id,me.l).map(m=>({l:m.n,f:()=>round(m)}));o.push({l:`Repos (${G.heals})`,f:()=>{if(G.heals<1)return;round({heal:1})}});
+  const others=G.mine.filter(f=>f!==me&&f.hp>0);if(others.length)o.push({l:'Changer',f:()=>{openMenu('Qui envoyer ?',others.map(f=>({l:`${fname(f)} ${f.hp}/${f.max}`,f:()=>swapTo(f)})).concat([{l:'Retour',f:battleMenu}]),false);$('menu').classList.add('fight')}});
+  o.push({l:G.kind==='train'?'Fuir':'Abandonner',f:()=>endBattle(false,true)});openMenu(`${nameOf(foe.id)} n.${foe.l}`,o,false);$('menu').classList.add('fight')}
+function afterTurn(){if(mode!=='battle')return;if(G.foe.hp<=0)return nextFoe();if(G.me.hp<=0){const nx=G.mine.find(f=>f.hp>0);if(!nx)return endBattle(false);G.me=nx;setMsg(`${fname(nx)}, à toi !`);beep(SND.ok);return setTimeout(battleMenu,1200)}battleMenu()}
+function swapTo(f){closeMenu();G.me=f;setMsg(`${fname(f)}, à toi !`);setTimeout(()=>act(G.foe,G.me,foeMove(),nameOf(G.foe.id),'me',afterTurn),1000)}
+function round(m){closeMenu();const{me,foe}=G,boost=1+((me.p&&me.p.bond)||0)/500,mine=m.heal?m:Object.assign({},m,{pw:m.pw*boost}),his=foeMove(),nm=fname(me),fn=nameOf(foe.id);
+  const A=()=>act(me,foe,mine,nm,'foe',()=>foe.hp<=0||me.hp<=0?afterTurn():first?B2():afterTurn()),B2=()=>act(foe,me,his,fn,'me',afterTurn),B=()=>act(foe,me,his,fn,'me',()=>me.hp<=0?afterTurn():A2()),A2=()=>act(me,foe,mine,nm,'foe',afterTurn);
+  const first=m.heal||me.sp>=foe.sp;first?A():B()}
+function nextFoe(){const q=G.queue,i=q.indexOf(G.foe),gain=G.foe.l*2+6;G.mine.forEach(f=>{if(f.hp>0){if(f.p===S.pet)xp(gain);else xpTo(f.p,Math.round(gain*.7))}});earn(G.foe.l*8);
+  if(i+1<q.length){G.foe=q[i+1];G.me.hp=Math.min(G.me.max,G.me.hp+Math.round(G.me.max*.15));setMsg(`${G.who} envoie ${nameOf(G.foe.id)} !`);beep(SND.ok);setTimeout(battleMenu,1200)}else endBattle(true)}
+function endBattle(win,fled){const p=S.pet,sp=G.spec||{},kind=G.kind,gi=G.gi,who=G.who,mine=G.mine;mode='idle';G=null;closeMenu();p.energy=clamp(p.energy-(fled?4:12));p.hunger=clamp(p.hunger-5);
+  if(!win){p.joy=clamp(p.joy-(fled?0:6));flash(fled?'Tu as quitté le combat.':kind==='tower'?`Fin de la Tour à l'étage ${sp.floor}. Record : ${S.tower.best}.`:kind==='league'?`${who} t'a battu. La Ligue reprendra depuis le début.`:`${petName(p)} a perdu. Il s'entraînera.`,4500);touch();paint();return}
+  p.joy=clamp(p.joy+12);p.bond=Math.min(100,p.bond+2);mission('win');beep(SND.fan);burst('star','#ffe08a',6);
+  const heal=k=>mine.map(f=>f.hp<=0?Math.round(f.max*.2):Math.min(f.max,f.hp+Math.round(f.max*k)));
+  if(kind==='gym'){const y=GYMS[gi];earn(gi<8?600+gi*200:2500);
+    if(!S.badges.includes(gi)){S.badges.push(gi);give(y.prize);give(gi>=4?'hyper':'super',3);log(`Badge ${y.b} gagné contre ${y.n} !`);flash(`Badge ${y.b} gagné ! ${ITEMS[y.prize][0]} et 3 ${gi>=4?'Hyper':'Super'} Balls.`,6000);
+      if(gi<8&&hasAll(KANTO)){give('master');giveHat('crown');giveHat('grad');log(fill('{n} a les 8 badges de Kanto. Le Conseil 4 l\'attend.',p));flash('Les 8 badges ! Couronne, Toque et Master Ball. Le Conseil 4 est ouvert.',7000)}
+      if(gi>=8&&hasAll(JOH)){give('master');earn(10000);log('Les 8 badges de Johto !');flash('Les 8 badges de Johto ! Master Ball et 10 000 ₽.',7000)}}
+    else flash(`Tu as battu ${who} de nouveau.`,3500)}
+  else if(kind==='league'){if(sp.stage<LEAGUE.length-1){const nx=sp.stage+1,ks=heal(.3);flash(`${who} est vaincu ! ${LEAGUE[nx].n} t'attend.`,2500);touch();paint();setTimeout(()=>startBattle(leagueSpec(nx,ks),true),2700);return}
+    S.league.wins++;earn(8000);give('master');log(`${petName(p)} et son équipe battent le Maître Régis. Champions de la Ligue !`);flash(S.league.wins===1?'Champion de la Ligue ! 8 000 ₽ et une Master Ball. Johto est ouvert.':'Champion de la Ligue, encore ! 8 000 ₽ et une Master Ball.',7000)}
+  else if(kind==='tower'){const f=sp.floor,ks=heal(.25);earn(f*60);S.tower.best=Math.max(S.tower.best||0,f);touch();paint();openMenu(`Étage ${f} réussi ! +${f*60} ₽`,[{l:'Étage suivant',f:()=>{closeMenu();startBattle(towerSpec(f+1,ks),true)}},{l:'Arrêter',f:()=>{closeMenu();flash(`Tu t'arrêtes à l'étage ${f}. Record : ${S.tower.best}.`)}}],false);return}
+  else if(kind==='friend'){earn(500);S.st.fwin=st('fwin')+1;flash(`Tu as battu l'équipe de ${who} ! +500 ₽`,4000)}
+  else flash(`${petName(p)} gagne le combat !`,3500);
+  touch();paint()}
+function renderBattle(){const{me,foe,hit,t}=G,bg=buildBg(foe.t[0]);g.drawImage(bg,0,0);g.fillStyle='rgba(20,22,42,.25)';g.fillRect(0,0,160,144);
+  const fl=Date.now()-t<350&&tt%4<2,a=sprite(foe.id,foe.shiny),b=sprite(me.id,me.shiny);
+  if(a&&foe.hp>0&&!(fl&&hit==='foe'))drawFit(a,118,48,38);if(b&&me.hp>0&&!(fl&&hit==='me'))drawFit(b,42,70,40,true);
+  const hp=(x,y,f)=>{g.fillStyle='#14162a';g.fillRect(x,y,62,6);g.fillStyle='#454a60';g.fillRect(x+1,y+1,60,4);const r=f.hp/f.max;g.fillStyle=r<.25?'#ff6b5a':r<.5?'#f2b92e':'#7fe08a';g.fillRect(x+1,y+1,Math.ceil(60*r),4)};hp(6,8,foe);hp(92,58,me);
+  G.queue.forEach((f,i)=>{g.fillStyle=f.hp>0?'#ff6b5a':'#6b6f80';g.fillRect(6+i*6,16,4,4)});G.mine.forEach((f,i)=>{g.fillStyle=f.hp>0?'#7fe08a':'#6b6f80';g.fillRect(92+i*6,66,4,4)})}
+
+/* Mini-jeux : pêche, mémoire, rythme */
+function fishPick(){let tot=0;const w=[];for(let i=1;i<=SPR.imgs.length;i++){const d=dex(i);const x=!d.flag&&d.t.includes(11)?[1,.2,.05][depth(i)]||.05:0;tot+=x;w.push(x)}let r=Math.random()*tot;for(let i=0;i<w.length;i++){r-=w[i];if(r<=0)return i+1}return 129}
+function startFish(){if(!S.items.rod){flash('Il te faut une Canne. Elle est à la boutique, dans le Sac.');beep(SND.no);return}closeMenu();mode='fish';G={casts:3,score:0,state:'wait',bite:Date.now()+1500+rnd(3500),poke:0};setMsg('Attends que le bouchon plonge, puis touche l\'écran.')}
+function fishNext(m){G.casts--;if(G.casts<=0){const sc=G.score,id=G.poke;S.st.fish=st('fish')+sc;gameEnd(sc,'Pêche',3);if(id&&!S.wild){S.wild={id,until:Date.now()+10*6e4,shiny:rnd(64)===0};if(!S.dex[id])S.dex[id]=1;sprite(id,S.wild.shiny);setTimeout(()=>flash(`${nameOf(id)} a mordu ! Touche-le pour le capturer.`,5000),4100)}return}G.state='wait';G.bite=Date.now()+1500+rnd(3500);setMsg(`${m} Encore ${G.casts} lancer${G.casts>1?'s':''}.`)}
+function fishTap(){if(G.state==='wait'){beep(SND.no);return fishNext('Trop tôt, le poisson a fui.')}if(G.state==='bite'){G.score++;beep(SND.yum);if(!G.poke&&!S.wild&&Math.random()<.55){G.poke=fishPick();sprite(G.poke);return fishNext(`Un ${nameOf(G.poke)} au bout de la ligne !`)}const n=80+rnd(150);earn(n);fishNext(`Tu remontes un trésor : ${n} ₽.`)}}
+function renderFish(now,p){g.drawImage(buildBg('eau'),0,0);if(G.state==='wait'&&now>=G.bite){G.state='bite';beep(SND.tap)}if(G.state==='bite'&&now>G.bite+650){G.state='x';beep(SND.no);fishNext('Raté, il a filé.')}
+  const sp=sprite(p.id,p.shiny);if(sp)drawFit(sp,26,108,34,true);const dip=G.state==='bite'?3:Math.round(Math.sin(tt*.15));g.fillStyle='#e8eef8';g.beginPath();g.moveTo(40,74);g.lineTo(112,92+dip);g.lineWidth=1;g.strokeStyle='#e8eef8';g.stroke();
+  g.fillStyle='#e8222e';g.fillRect(110,89+dip,5,3);g.fillStyle='#fff';g.fillRect(110,92+dip,5,2);if(G.state==='bite'&&tt%6<4)icon(g,'excl',108,74,'#fff');bars(p)}
+function startMemo(){closeMenu();const own=Object.keys(S.dex).map(Number).filter(i=>i<=SPR.imgs.length),pool=[];while(pool.length<6){const i=own.length>=6&&Math.random()<.7?pick(own):1+rnd(SPR.imgs.length);if(!pool.includes(i))pool.push(i)}
+  const cards=pool.concat(pool).map(id=>({id,up:false,ok:false}));for(let i=cards.length-1;i>0;i--){const j=rnd(i+1);[cards[i],cards[j]]=[cards[j],cards[i]]}pool.forEach(i=>sprite(i));mode='memo';G={cards,open:[],moves:0,lock:0};setMsg('Retrouve les 6 paires.')}
+function memoTap(x,y){if(Date.now()<G.lock||G.done)return;const c=Math.floor((x-4)/38),r=Math.floor((y-14)/43);if(c<0||c>3||r<0||r>2)return;const k=G.cards[r*4+c];if(!k||k.up||k.ok)return;k.up=true;beep(SND.tap);G.open.push(k);
+  if(G.open.length===2){G.moves++;const[a,b]=G.open;G.open=[];if(a.id===b.id){a.ok=b.ok=true;beep(SND.ok);if(G.cards.every(q=>q.ok)){G.done=1;S.st.memo=st('memo')+1;const sc=Math.max(1,Math.min(12,18-G.moves));setTimeout(()=>{if(mode==='memo')gameEnd(sc,'Mémoire',12)},800)}}else{G.lock=Date.now()+800;setTimeout(()=>{a.up=b.up=false},800)}}setMsg(`Coups : ${G.moves}`)}
+function renderMemo(){g.fillStyle='#1f2236';g.fillRect(0,0,160,144);G.cards.forEach((k,n)=>{const x=4+(n%4)*38,y=14+Math.floor(n/4)*43;if(k.up||k.ok){g.fillStyle=k.ok?'#e2f6e6':'#f8f8f0';g.fillRect(x,y,36,41);const sp=sprite(k.id);if(sp)drawFit(sp,x+18,y+38,32,false)}else{g.fillStyle='#c8553d';g.fillRect(x,y,36,41);g.fillStyle='#a8402c';g.fillRect(x+2,y+2,32,37);drawBall(g,x+11,y+13,1)}})}
+const LANE=[30,80,130],FALL=1400,HITY=116;
+function startRhythm(){closeMenu();mode='rhythm';const t0=Date.now()+1500,notes=[];let t=t0;for(let i=0;i<44;i++){notes.push({t,l:rnd(3),s:0});t+=Math.max(330,520-i*5)}G={notes,score:0,end:t+900,fb:null};setMsg('Touche la colonne quand la note arrive sur la ligne.')}
+function rhythmTap(x){const l=x<55?0:x<105?1:2,now=Date.now();let best=null;G.notes.forEach(n=>{if(n.s||n.l!==l)return;const d=Math.abs(n.t-now);if(d<170&&(!best||d<Math.abs(best.t-now)))best=n});if(best){best.s=1;G.score++;beep([[[523,659,784][l],.06]]);G.fb={l,ok:1,at:now}}else{G.fb={l,ok:0,at:now};beep(SND.no)}}
+function renderRhythm(now){g.fillStyle='#1b1d33';g.fillRect(0,0,160,144);LANE.forEach(x=>{g.fillStyle='#2a2d4a';g.fillRect(x-18,11,36,133);g.fillStyle='#8890c0';g.fillRect(x-16,HITY-1,32,3)});
+  G.notes.forEach(n=>{if(n.s)return;const y=HITY-(n.t-now)/FALL*(HITY-14);if(y<8||y>146)return;icon(g,'note',LANE[n.l]-4,Math.round(y)-4,['#ff6b5a','#ffd23f','#7fe08a'][n.l])});
+  if(G.fb&&now-G.fb.at<200){g.fillStyle=G.fb.ok?'rgba(127,224,138,.5)':'rgba(255,107,90,.4)';g.fillRect(LANE[G.fb.l]-18,HITY-10,36,20)}
+  setMsg(`Notes : ${G.score} / ${G.notes.length}`);if(now>G.end){S.st.rhythmBest=Math.max(st('rhythmBest'),G.score);{const se=season();if(se&&se.rhythm)earn(G.score*20)}gameEnd(G.score,'Rythme',G.notes.length)}}
+lcd.addEventListener('pointerdown',e=>{const r=lcd.getBoundingClientRect(),x=(e.clientX-r.left)/r.width*160,y=(e.clientY-r.top)/r.height*144;if(mode==='fish')fishTap();else if(mode==='memo')memoTap(x,y);else if(mode==='rhythm')rhythmTap(x)});
+addEventListener('keydown',e=>{if(mode==='rhythm'&&['ArrowLeft','ArrowDown','ArrowRight'].includes(e.key)){e.preventDefault();rhythmTap({ArrowLeft:30,ArrowDown:80,ArrowRight:130}[e.key])}if(mode==='fish'&&(e.key===' '||e.key==='Enter')){e.preventDefault();fishTap()}});
+
+/* Amis et échanges par code */
+const b64e=s=>{const b=new TextEncoder().encode(s);let t='';b.forEach(c=>t+=String.fromCharCode(c));return btoa(t).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')};
+const b64d=s=>{s=s.replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';const t=atob(s),b=new Uint8Array(t.length);for(let i=0;i<t.length;i++)b[i]=t.charCodeAt(i);return new TextDecoder().decode(b)};
+const sum4=s=>{let h=7;for(const c of s)h=(h*31+c.charCodeAt(0))%1679615;return h.toString(36).padStart(4,'0').slice(-4)};
+function enc(o){const j=b64e(JSON.stringify(o));return 'PKN-'+j+'-'+sum4(j)}
+function dec(s){const m=String(s||'').replace(/\s+/g,'').match(/^PKN-([A-Za-z0-9_-]+)-([a-z0-9]{4})$/);if(!m||sum4(m[1])!==m[2])return null;try{return JSON.parse(b64d(m[1]))}catch(e){return null}}
+const trainer=()=>(S.opt.trainer||'').trim()||'Dresseur';
+const packPet=p=>({i:p.id,l:p.level,s:p.shiny?1:0,n:p.nick||'',a:p.nature,h:p.hat||'',b:p.bornAt||Date.now()});
+function unpackPet(o){const max=SPR?SPR.imgs.length:493,p=newPet(Math.max(1,Math.min(max,o.i|0||1)));p.stage='born';p.lastTick=Date.now();p.level=Math.max(1,Math.min(100,o.l|0||5));p.shiny=!!o.s;p.nick=String(o.n||'').slice(0,14);if(NATURES[o.a])p.nature=o.a;p.hat=HATS[o.h]?o.h:'';p.bornAt=+o.b||Date.now();p.bond=30;p.ageH=48;p.stageAge=48;return p}
+function receivePet(o){const p=unpackPet(o),ch=kids(p.id).find(i=>dex(i).cond==='K'&&i<=SPR.imgs.length);S.dex[p.id]=Math.max(2,S.dex[p.id]||0);if(ch){p.evolvedFrom=p.id;p.id=ch;S.st.evo=st('evo')+1}S.dex[p.id]=2;if(p.shiny)S.shinies[p.id]=1;S.pension.push(p);touch();return p}
+const myCode=()=>enc({k:'d',f:trainer(),b:S.badges.length,t:myTeam().filter(p=>p&&p.stage!=='egg').map(packPet)});
+let CV=null,inCodeVal='',viewFriend=-1,friendPet=null;
+function readCode(){const o=dec(inCodeVal);const done=m=>{CV=m;renderPane()};if(!o)return done({err:'Ce code est incomplet ou mal copié. Recopie-le en entier, de PKN- jusqu\'à la fin.'});
+  if(o.k==='d'){const f={name:String(o.f||'Ami').slice(0,16),b:Math.max(0,Math.min(16,o.b|0)),team:(o.t||[]).slice(0,3),at:Date.now()};if(!f.team.length)return done({err:'Ce code ne contient pas d\'équipe.'});S.friends=S.friends.filter(x=>x.name!==f.name);S.friends.unshift(f);S.friends.length=Math.min(S.friends.length,12);inCodeVal='';touch();return done({ok:`${f.name} est dans tes amis. Tu peux voir sa carte et affronter son équipe.`})}
+  if(o.k==='o'){if(S.pending[o.x])return done({err:'C\'est ta propre offre : envoie-la à ton ami.'});if(S.tradeSeen.includes(o.x))return done({err:'Tu as déjà accepté cet échange.'});sprite(o.p.i,!!o.p.s);return done({offer:o})}
+  if(o.k==='r'){const pd=S.pending[o.x];if(!pd)return done({err:'Cet échange n\'existe pas sur ce PokéNid, ou il est déjà terminé.'});delete S.pending[o.x];const p=receivePet(o.p);S.st.trade=st('trade')+1;inCodeVal='';log(`Échange avec ${o.f||'un ami'} : ${petName(pd.p)} contre ${petName(p)}.`,p.id);beep(SND.fan);return done({ok:`Échange terminé : tu reçois ${p.nick||nameOf(p.evolvedFrom||p.id)}${p.evolvedFrom?`, qui a évolué en ${nameOf(p.id)} pendant l'échange`:''}. Il est à la pension.`})}
+  done({err:'Ce code n\'est pas un code PokéNid connu.'})}
+async function copyText(id){const el=$(id);if(!el)return;if(id==='myCode')el.value=myCode();try{await navigator.clipboard.writeText(el.value);flash('Code copié.')}catch(e){el.focus();el.select();flash('Code sélectionné : copie-le avec Cmd+C.')}}
+function drawFriend(){const f=S.friends[viewFriend];if(!f||!$('friendCard'))return;if(!friendPet||friendPet.of!==f)friendPet={of:f,p:unpackPet(f.team[0])};sprite(friendPet.p.id,friendPet.p.shiny);drawCard('friendCard',friendPet.p,KANTO.slice(0,Math.min(8,f.b)))}
+const pensionOpts=()=>S.pension.filter(p=>p.stage!=='egg').map(p=>`<option value="${p.uid}">${esc(petName(p))} (${esc(nameOf(p.id))}, n.${p.level})</option>`).join('');
+function renderAmis(){if(!SPR)return noSpr();const o=CV&&CV.offer,codeBox=(id,v)=>`<textarea id="${id}" readonly>${esc(v)}</textarea><div class="row" style="margin-top:6px"><button class="btn" type="button" data-copy="${id}">Copier</button></div>`;
+  return `<div class="stack"><div><h2>Amis</h2><p class="small">Les duels et les échanges passent par des codes à copier, à envoyer par message par exemple. Pas besoin de compte.</p></div>
+  <div><label class="small" for="trainer">Ton nom de dresseur</label><input class="search" id="trainer" maxlength="16" value="${esc(S.opt.trainer||'')}" placeholder="Dresseur"></div>
+  <div><h3 class="sub" style="margin-top:0">Ton code de dresseur</h3>${codeBox('myCode',myCode())}<p class="small" style="margin-top:6px">Il contient ton équipe : ton ami verra la carte de ton compagnon et pourra l'affronter.</p></div>
+  <div><h3 class="sub" style="margin-top:0">Coller un code reçu</h3><textarea id="inCode" placeholder="PKN-…">${esc(inCodeVal)}</textarea><div class="row" style="margin-top:6px"><button class="btn primary" type="button" data-x="readcode">Lire le code</button></div>
+  ${CV&&CV.err?`<p class="band err">${esc(CV.err)}</p>`:''}${CV&&CV.ok?`<p class="band">${esc(CV.ok)}</p>`:''}
+  ${o?`<div class="card"><img alt="" src="${url(Math.min(SPR.imgs.length,o.p.i),!!o.p.s)}"><div><b>${esc(o.f||'Un ami')} te propose ${esc(o.p.n||nameOf(o.p.i))}</b><span class="small">${esc(nameOf(o.p.i))}, niveau ${o.p.l}${o.p.s?', chromatique':''}</span></div></div>${pensionOpts()?`<div class="row"><select id="tradeGive" aria-label="Pokémon à donner">${pensionOpts()}</select><button class="btn primary" type="button" data-x="accept">Échanger</button></div><p class="small">Tu recevras un code de réponse à renvoyer à ${esc(o.f||'ton ami')}.</p>`:'<p class="small">Mets d\'abord à la pension le Pokémon que tu veux donner.</p>'}`:''}</div>
+  ${S.replies.length?`<div><h3 class="sub" style="margin-top:0">Codes de réponse à renvoyer</h3>${S.replies.slice(0,3).map((r,i)=>`<p class="small">Pour ${esc(r.to||'ton ami')} (tu as donné ${esc(r.n)})</p>${codeBox('rep'+i,r.code)}`).join('')}</div>`:''}
+  <div><h3 class="sub" style="margin-top:0">Proposer un échange</h3>${pensionOpts()?`<div class="row"><select id="tradeMine" aria-label="Pokémon à proposer">${pensionOpts()}</select><button class="btn" type="button" data-x="offer">Créer l'offre</button></div><p class="small" style="margin-top:6px">Ton Pokémon est mis de côté jusqu'à ce que ton ami te renvoie sa réponse. Les Pokémon qui évoluent par échange évoluent à l'arrivée.</p>`:'<p class="small">Seuls les Pokémon de la pension peuvent être échangés.</p>'}
+  ${Object.entries(S.pending).map(([x,v])=>`<div class="card" style="margin-top:8px"><img alt="" src="${url(v.p.id,v.p.shiny)}"><div><b>Offre : ${esc(petName(v.p))}</b><span class="small">En attente de réponse</span></div><button class="btn" type="button" data-cancel="${x}">Annuler</button></div>${codeBox('off_'+x,v.code)}`).join('')}</div>
+  <div><h3 class="sub" style="margin-top:0">Tes amis</h3>${S.friends.length?S.friends.map((f,i)=>`<div class="card"><img alt="" src="${url(Math.min(SPR.imgs.length,f.team[0].i),!!f.team[0].s)}"><div><b>${esc(f.name)}</b><span class="small">${f.team.map(t=>esc(nameOf(Math.min(SPR.imgs.length,t.i)))+' n.'+t.l).join(', ')} · ${f.b} badge${f.b>1?'s':''}</span></div><div class="row"><button class="btn" type="button" data-fview="${i}">Carte</button><button class="btn" type="button" data-ffight="${i}">Combattre</button><button class="btn" type="button" data-fdel="${i}">Retirer</button></div></div>`).join(''):'<p class="small">Ajoute un ami en collant son code de dresseur.</p>'}
+  ${viewFriend>=0&&S.friends[viewFriend]?`<canvas id="friendCard" class="idcard" width="1011" height="638" style="margin-top:10px" aria-label="Carte du compagnon de ${esc(S.friends[viewFriend].name)}"></canvas>`:''}</div></div>`}
+
+/* Succès, Pokédex, Panthéon */
+const ACH=[['repas','Premier repas','Nourrir 1 fois',()=>st('feed')>=1,100],['gourmet','Gourmet','Nourrir 100 fois',()=>st('feed')>=100,1000],['propre','Propre comme un sou','30 bains',()=>st('wash')>=30,800],['calin','Câlineur','200 câlins',()=>st('hug')>=200,800],['joueur','Joueur','25 mini-jeux',()=>st('game')>=25,800],
+ ['filet','Premier filet','1 capture',()=>st('catch')>=1,200],['chasseur','Chasseur','25 captures',()=>st('catch')>=25,1500],['collec','Collectionneur','100 captures',()=>st('catch')>=100,5000],['explo','Explorateur','10 expéditions',()=>st('expe')>=10,800],['globe','Globe-trotteur','50 expéditions',()=>st('expe')>=50,3000],
+ ['v1','Première victoire','Gagner 1 combat',()=>st('win')>=1,200],['v50','Combattant','Gagner 50 combats',()=>st('win')>=50,2000],['v250','Vétéran','Gagner 250 combats',()=>st('win')>=250,6000],['evo1','Métamorphose','1 évolution',()=>st('evo')>=1,300],['evo20','Évolutionniste','20 évolutions',()=>st('evo')>=20,3000],
+ ['nid5','Nounou','Faire éclore 5 œufs',()=>st('hatch')>=5,800],['nid20','Éleveur','Faire éclore 20 œufs',()=>st('hatch')>=20,3000],['shiny1','Ça brille','1 chromatique',()=>Object.keys(S.shinies).length>=1,1500],['shiny10','Chasseur d\'étoiles','10 chromatiques',()=>Object.keys(S.shinies).length>=10,8000],
+ ['peche','Pêcheur','10 prises à la pêche',()=>st('fish')>=10,800],['memo','Mémoire d\'éléphant','Finir 10 parties de Mémoire',()=>st('memo')>=10,800],['rythme','Dans le rythme','40 notes en une partie de Rythme',()=>st('rhythmBest')>=40,1500],
+ ['kanto','Champion de Kanto','Les 8 badges de Kanto',()=>hasAll(KANTO),3000],['ligue','Maître de la Ligue','Battre le Conseil 4 et le Maître',()=>S.league.wins>=1,8000],['johto','Champion de Johto','Les 8 badges de Johto',()=>hasAll(JOH),8000],['tour10','Grimpeur','Étage 10 de la Tour',()=>S.tower.best>=10,2000],['tour30','Sommet','Étage 30 de la Tour',()=>S.tower.best>=30,8000],
+ ['echange','Échangiste','Réussir 1 échange',()=>st('trade')>=1,1000],['rival','Rival','Battre l\'équipe d\'un ami',()=>st('fwin')>=1,1000],['riche','Économe','Gagner 10 000 ₽ au total',()=>st('money')>=10000,1000],['fidele','Fidèle','30 jours de présence',()=>(S.days||0)>=30,3000],
+ ['legende','Légendaire','Capturer le légendaire de la semaine',()=>st('leg')>=1,5000],['carpe','Persévérance','Un Magicarpe niveau 50',()=>[S.pet,...S.pension].some(p=>p&&p.id===129&&p.level>=50),3000],['deco','Décorateur','5 meubles',()=>S.furn.length>=5,800],['pantheon','Légende vivante','Un Pokémon au Panthéon',()=>S.hof.length>=1,10000]];
+const DIPL=[151,251,386,493];
+function checkProgress(){if(!SPR)return;for(const[k,n,,t,r]of ACH){if(!S.ach[k]&&t()){S.ach[k]=Date.now();earn(r);log(`Succès débloqué : ${n}. +${r} ₽`);flash(`Succès : ${n} ! +${r} ₽`,4500);beep(SND.fan);return}}
+  const c=owned();if(c>=S.dexMil+25){S.dexMil+=25;earn(1000);give('super',2);log(`Pokédex : ${S.dexMil} Pokémon obtenus. 1 000 ₽ et 2 Super Balls.`);flash(`${S.dexMil} Pokémon obtenus ! 1 000 ₽ et 2 Super Balls.`,4500);return}
+  for(const d of DIPL)if(c>=d&&!S.dipl[d]&&d<=SPR.imgs.length){S.dipl[d]=Date.now();earn(5000);log(`Diplôme des ${d} Pokémon !`);flash(`Diplôme des ${d} Pokémon ! 5 000 ₽. Il est dans Succès.`,6000);beep(SND.fan);return}}
+async function diploma(n){const ids=Object.keys(S.dex).map(Number).filter(i=>S.dex[i]>=2&&i<=SPR.imgs.length),sel=[];for(let i=0;i<5&&ids.length;i++)sel.push(ids[(i*97+n)%ids.length]);sel.forEach(i=>sprite(i));await new Promise(r=>setTimeout(r,700));
+  try{await Promise.all(['700 34px "Pixelify Sans"','30px VT323','500 15px Lexend'].map(f=>document.fonts.load(f)))}catch(e){}
+  const c=document.createElement('canvas');c.width=1011;c.height=715;const q=c.getContext('2d');q.imageSmoothingEnabled=false;q.fillStyle='#fffaf0';q.fillRect(0,0,1011,715);q.strokeStyle='#b8860b';q.lineWidth=14;q.strokeRect(20,20,971,675);q.lineWidth=3;q.strokeRect(42,42,927,631);
+  q.fillStyle='#14182a';q.textAlign='center';q.font='700 64px "Pixelify Sans",monospace';q.fillText('DIPLÔME',505,150);q.font='500 22px Lexend,Arial,sans-serif';q.fillText('La Ligue PokéNid certifie que',505,212);q.font='700 52px "Pixelify Sans",monospace';q.fillText(trainer(),505,285);
+  q.font='500 24px Lexend,Arial,sans-serif';q.fillText(`a obtenu ${n} Pokémon différents dans son Pokédex.`,505,345);q.font='30px VT323,monospace';q.fillText('Délivré le '+new Date(S.dipl[n]).toLocaleDateString('fr-FR'),505,392);
+  sel.forEach((id,i)=>{const sp=sprite(id);if(sp){const s=Math.max(1,Math.floor(110/Math.max(sp.w,sp.h)));q.drawImage(sp.c,Math.round(505+(i-2)*160-sp.w*s/2),Math.round(610-sp.h*s),sp.w*s,sp.h*s)}});drawBall(q,70,70,4);drawBall(q,885,70,4);
+  c.toBlob(b=>saveFile(`diplome-${n}-pokemon.png`,b),'image/png')}
+function renderSucces(){if(!SPR)return noSpr();const c=owned(),tot=SPR.imgs.length,nx=Math.min(tot,S.dexMil+25),lw=legWeek(),now=Date.now(),n=Object.keys(S.ach).length,f=new Intl.DateTimeFormat('fr-FR',{day:'numeric',month:'short',year:'numeric'});
+  const lst=lw?(S.legDone===lw.key?(st('leg')&&S.legCaughtKey!==undefined?'':'')+'Cette semaine, c\'est fait.':now<lw.from?`${DAYS[lw.dd]} de 18 h à 22 h`:now<lw.to?'En ce moment, jusqu\'à 22 h !':'Manqué cette semaine.'):'';
+  return `<div class="stack"><div><h2>${n} succès sur ${ACH.length}</h2><p class="small">Chaque succès rapporte des Poké Dollars.</p></div>
+  ${lw?`<div class="card"><img alt="" src="${url(lw.id)}"><div><b>Légendaire de la semaine : ${esc(nameOf(lw.id))}</b><span class="small">${lst}</span></div></div>`:''}
+  <div><h3 class="sub" style="margin-top:0">Pokédex</h3><p>${c} obtenus sur ${tot}.</p><div class="bar" style="margin:6px 0"><i style="width:${c/tot*100}%"></i></div><p class="small">Prochaine récompense à ${nx}. Diplômes à ${DIPL.filter(d=>d<=tot).join(', ')}.</p>
+  ${DIPL.filter(d=>S.dipl[d]).length?`<div class="row" style="margin-top:8px">${DIPL.filter(d=>S.dipl[d]).map(d=>`<button class="btn" type="button" data-dipl="${d}">Diplôme ${d}</button>`).join('')}</div>`:''}</div>
+  <div><h3 class="sub" style="margin-top:0">Trophées</h3><div class="items">${ACH.map(([k,nm,d,,r])=>`<div class="item ${S.ach[k]?'got':'lock'}"><b>${S.ach[k]?'★ ':''}${esc(nm)}</b><span class="small">${esc(d)} · ${r} ₽</span></div>`).join('')}</div></div>
+  <div><h3 class="sub" style="margin-top:0">Panthéon</h3><p class="small">Un compagnon niveau 100 peut entrer au Panthéon depuis sa fiche. Chacun donne +10 % d'expérience à tous tes Pokémon et un meilleur départ aux suivants.${S.legacy?` Héritage actuel : +${S.legacy*10} %.`:''}</p>
+  ${S.hof.map(h=>`<div class="card" style="margin-top:8px"><img alt="" src="${url(h.id,h.shiny)}"><div><b>${h.shiny?'★ ':''}${esc(h.nick||nameOf(h.id))}</b><span class="small">${esc(nameOf(h.id))}, niveau ${h.level}, entré le ${f.format(h.at)}</span></div></div>`).join('')}</div></div>`}
+
+/* Sac : objets, boutique, décor */
+function renderSac(){if(!SPR)return noSpr();const m=S.mission,d=m&&MISSIONS[m.i],it=Object.keys(ITEMS).filter(k=>(S.items[k]||0)>0),h=S.pet,mo=S.money||0,bt=(kind,k,price)=>`<button class="btn" type="button" data-buy="${kind}:${k}" ${mo<price?'disabled':''}>${price} ₽</button>`;
+  const sel=(id,cur,opts,lab)=>`<label class="small">${lab}<select id="${id}">${opts.map(([v,l])=>`<option value="${v}" ${cur===v?'selected':''}>${esc(l)}</option>`).join('')}</select></label>`;
+  return `<div class="stack"><div class="row" style="justify-content:space-between"><h2>Sac</h2><span class="money">${mo.toLocaleString('fr-FR')} ₽</span></div><p class="small">${S.days||1} jour${(S.days||1)>1?'s':''} de présence. Un cadeau tous les 7 jours, et rien n'est perdu si tu en rates un.</p>
+  ${d?`<div class="card"><div><b>Mission du jour</b><span class="small">${esc(d.t)} : ${m.done?'réussie':Math.min(m.c,d.n)+' / '+d.n}. Récompense : 500 ₽ et des objets.</span></div></div>`:''}
+  <div><h3 class="sub" style="margin-top:0">Objets</h3>${it.length?`<div class="items">${it.map(k=>`<div class="item"><span class="itemhead">${BALL_URLS[k]?`<img alt="" src="${BALL_URLS[k]}">`:''}<b>${S.items[k]} × ${esc(ITEMS[k][0])}</b></span><span class="small">${esc(ITEMS[k][1])}</span>${k==='candy'&&h&&h.stage!=='egg'?`<button class="btn" type="button" data-x="candy">Donner</button>`:''}</div>`).join('')}</div>`:'<p class="small">Ton sac est vide.</p>'}</div>
+  <div><h3 class="sub" style="margin-top:0">Chapeaux</h3>${S.hats.length?`<div class="row">${h&&h.stage!=='egg'&&h.hat?'<button class="btn" type="button" data-hat="">Retirer</button>':''}${S.hats.map(k=>`<button class="btn" type="button" data-hat="${k}">${h&&h.hat===k?'✓ ':''}${esc(HATS[k][0])}</button>`).join('')}</div>`:'<p class="small">Aucun pour le moment. Les expéditions en rapportent.</p>'}</div>
+  <div><h3 class="sub" style="margin-top:0">Décor</h3><div class="decor">${sel('roomBg',S.room.bg,[['','Selon le type'],...S.bgs.map(k=>[k,BGN[k]])],'Fond')}${['Gauche','Centre','Droite'].map((l,i)=>sel('roomS'+i,S.room.s[i],[['','Vide'],...S.furn.map(k=>[k,FURN[k].n])],l)).join('')}</div></div>
+  <div><h3 class="sub" style="margin-top:0">Boutique</h3><p class="small">Les Poké Dollars se gagnent en combat, en expédition, aux mini-jeux, avec les missions et les succès.</p>
+  <div class="items shop">${SHOP.map(([k,p])=>`<div class="item"><span class="itemhead">${BALL_URLS[k]?`<img alt="" src="${BALL_URLS[k]}">`:''}<b>${esc(ITEMS[k][0])}</b></span>${bt('item',k,p)}</div>`).join('')}${S.items.rod?'':`<div class="item"><b>Canne</b><span class="small">Pour pêcher.</span>${bt('rod','rod',800)}</div>`}</div>
+  <h3 class="sub">Meubles</h3><div class="items shop">${Object.keys(FURN).map(k=>`<div class="item"><span class="itemhead"><img alt="" src="${FURL[k]}"><b>${esc(FURN[k].n)}</b></span>${S.furn.includes(k)?'<span class="small">Acheté</span>':bt('furn',k,FURN[k].c)}</div>`).join('')}</div>
+  <h3 class="sub">Fonds</h3><div class="items shop">${Object.keys(BGN).map(k=>`<div class="item"><span class="itemhead"><span class="sw" style="background:linear-gradient(${SCENE[k][0]},${SCENE[k][1]} 55%,${SCENE[k][2]} 56%)"></span><b>${BGN[k]}</b></span>${S.bgs.includes(k)?'<span class="small">Acheté</span>':bt('bg',k,1000)}</div>`).join('')}</div></div></div>`}
+
+/* Combats */
+function renderGym(){if(!SPR)return noSpr();const p=S.pet,ok=p&&p.stage!=='egg',team=ok?myTeam():[],nK=KANTO.find(i=>!S.badges.includes(i)),nJ=JOH.find(i=>!S.badges.includes(i)),kan=hasAll(KANTO),lg=S.league.wins>0,cands=S.pension.filter(q=>q.stage!=='egg');
+  const gym=(i)=>{const y=GYMS[i],w=S.badges.includes(i),op=w||i===(i<8?nK:nJ);return `<div class="card ${op?'':'locked'}"><span class="badge" style="background:${w?T[y.t][1]:'#d5d9e3'}"></span><div><b>${esc(y.n)}</b><span class="small">Badge ${esc(y.b)}, type ${T[y.t][0]}, niveau ${y.l}</span></div>${ok&&op?`<button class="btn" type="button" data-gym="${i}">${w?'Revanche':'Défier'}</button>`:''}</div>`};
+  return `<div class="stack"><div><h2>Combats</h2><p class="small">${ok?`${KANTO.filter(i=>S.badges.includes(i)).length} badges de Kanto, ${JOH.filter(i=>S.badges.includes(i)).length} de Johto. Chaque combat coûte de l'énergie à ${esc(petName(p))}.`:'Il te faut un compagnon pour combattre.'}</p></div>
+  ${ok?`<div><h3 class="sub" style="margin-top:0">Équipe (${team.length}/3)</h3><p class="small">Ton compagnon mène l'équipe. Ajoute jusqu'à 2 Pokémon de la pension : ils gagnent aussi de l'expérience.</p>
+  ${cands.length?`<div class="row" style="margin-top:8px">${cands.map(q=>{const on=S.team.includes(q.uid);return `<button class="btn ${on?'primary':''}" type="button" data-team="${q.uid}" ${!on&&team.length>=3?'disabled':''}>${on?'✓ ':''}${esc(petName(q))} n.${q.level}</button>`}).join('')}</div>`:'<p class="small">Ta pension est vide : capture des Pokémon pour former une équipe.</p>'}</div>
+  <div class="row"><button class="btn" type="button" data-x="train">Entraînement</button><span class="small">Un duel contre un Pokémon sauvage.</span></div>`:''}
+  <div><h3 class="sub" style="margin-top:0">Arènes de Kanto</h3><div class="stack" style="gap:6px">${KANTO.map(gym).join('')}</div></div>
+  <div><h3 class="sub" style="margin-top:0">Ligue Pokémon</h3><div class="card ${kan?'':'locked'}"><span class="badge" style="background:${lg?'#b8860b':'#d5d9e3'}"></span><div><b>Conseil 4 et Maître</b><span class="small">${kan?`Olga, Aldo, Agatha, Peter puis Régis, niveaux 53 à 65. Cinq combats d'affilée, l'équipe récupère un peu entre chacun.${lg?` Victoires : ${S.league.wins}.`:''}`:'Gagne les 8 badges de Kanto pour entrer.'}</span></div>${ok&&kan?'<button class="btn" type="button" data-x="league">Entrer</button>':''}</div></div>
+  <div><h3 class="sub" style="margin-top:0">Arènes de Johto</h3>${lg?`<div class="stack" style="gap:6px">${JOH.map(gym).join('')}</div>`:'<p class="small">Bats la Ligue pour ouvrir Johto. Les champions y sont niveau 66 à 87.</p>'}</div>
+  <div><h3 class="sub" style="margin-top:0">Tour de combat</h3><div class="card"><div><b>Record : étage ${S.tower.best||0}</b><span class="small">Trois adversaires par étage, de plus en plus forts. Chaque étage rapporte des Poké Dollars. Tu t'arrêtes quand tu veux.</span></div>${ok?'<button class="btn" type="button" data-x="tower">Monter</button>':''}</div></div></div>`}
+
+/* Panthéon */
+let retireArm=false;
+function retire(){const p=S.pet;S.hof.unshift({id:p.id,nick:p.nick,shiny:p.shiny,level:p.level,at:Date.now(),bornAt:p.bornAt});S.legacy=(S.legacy||0)+1;earn(5000);log(`${petName(p)} entre au Panthéon. Son héritage : +10 % d'expérience pour tous.`,p.id);S.retireFree=true;S.pet=null;mode='empty';picking=true;tab='fiche';closeMenu();touch();save(true);paint();flash(`${petName(p)} entre au Panthéon ! 5 000 ₽. Choisis un nouvel œuf.`,6000);beep(SND.fan)}
+
+/* Actions du carnet */
+$('pane').addEventListener('click',e=>{const b=e.target.closest('button');if(!b||b.disabled)return;const D=b.dataset;
+  if(D.buy){const[k,v]=D.buy.split(':');buy(k,v)}
+  if(D.team){const u=D.team,i=S.team.indexOf(u);if(i>=0)S.team.splice(i,1);else if(myTeam().length<3)S.team.push(u);touch();renderPane()}
+  if(D.copy)copyText(D.copy);
+  if(D.cancel){const v=S.pending[D.cancel];if(v){S.pension.push(v.p);delete S.pending[D.cancel];touch();renderPane()}}
+  if(D.fview!==undefined){viewFriend=+D.fview;friendPet=null;renderPane()}
+  if(D.ffight!==undefined){const f=S.friends[+D.ffight];if(f)startBattle({kind:'friend',who:f.name,foes:f.team.map(t=>[Math.min(SPR.imgs.length,t.i),t.l,t.s])})}
+  if(D.fdel!==undefined){S.friends.splice(+D.fdel,1);viewFriend=-1;touch();renderPane()}
+  if(D.dipl)diploma(+D.dipl);
+  const x=D.x;if(!x)return;
+  if(x==='league')startBattle(leagueSpec(0));
+  if(x==='tower')startBattle(towerSpec(1));
+  if(x==='readcode'){inCodeVal=($('inCode')||{}).value||inCodeVal;readCode()}
+  if(x==='accept'&&CV&&CV.offer){const o=CV.offer,u=($('tradeGive')||{}).value,i=S.pension.findIndex(q=>q.uid===u);if(i<0)return;const gv=S.pension.splice(i,1)[0];careClear(gv.uid);const p=receivePet(o.p);S.tradeSeen.push(o.x);S.replies.unshift({x:o.x,to:o.f,n:petName(gv),code:enc({k:'r',x:o.x,f:trainer(),p:packPet(gv)}),at:Date.now()});S.replies.length=Math.min(S.replies.length,5);S.st.trade=st('trade')+1;inCodeVal='';log(`Échange avec ${o.f||'un ami'} : ${petName(gv)} contre ${petName(p)}.`,p.id);beep(SND.fan);CV={ok:`Tu reçois ${p.nick||nameOf(p.evolvedFrom||p.id)}${p.evolvedFrom?`, qui a évolué en ${nameOf(p.id)} pendant l'échange`:''} ! Renvoie maintenant le code de réponse à ${o.f||'ton ami'}.`};touch();renderPane()}
+  if(x==='offer'){const u=($('tradeMine')||{}).value,i=S.pension.findIndex(q=>q.uid===u);if(i<0)return;const p=S.pension.splice(i,1)[0];careClear(p.uid);const id=Date.now().toString(36)+rnd(1e6).toString(36);S.pending[id]={p,code:enc({k:'o',x:id,f:trainer(),p:packPet(p)}),at:Date.now()};touch();renderPane()}
+  if(x==='retire'){if(!retireArm){retireArm=true;b.textContent='Confirmer : entrer au Panthéon';setTimeout(()=>{retireArm=false},4000);return}retireArm=false;retire()}
+});
+$('pane').addEventListener('input',e=>{const t=e.target;if(t.id==='inCode')inCodeVal=t.value;if(t.id==='trainer'){S.opt.trainer=t.value.slice(0,16);touch()}});
+$('pane').addEventListener('change',e=>{const t=e.target;if(t.id==='roomBg'){S.room.bg=t.value;bgK='';touch()}if(/^roomS\d$/.test(t.id)){S.room.s[+t.id[5]]=t.value;touch()}if(t.id==='optWeather'){S.opt.weather=t.checked;touch();fetchWeather();renderPane()}});
+
+/* ========== Sommeil à la fermeture, sorties, calendrier, carnet ludique ========== */
+/* Il dort quand on quitte le jeu */
+let hiddenAt=0;
+function sleepAway(){const p=S.pet;if(!p||p.stage==='egg'||p.ko||p.away)return;if(!p.asleep){p.asleep=true;p.sleepBy='away'}touch();save(true)}
+function wakeBack(gap){const p=S.pet;if(!p||p.sleepBy!=='away')return;p.asleep=false;p.sleepBy='';p.awakeUntil=Date.now()+30*6e4;touch();if(gap>12e4&&SPR&&mode==='idle')flash(`${petName(p)} se réveille : il a dormi ${fmtGap(gap)} pendant ton absence.`,5000)}
+document.addEventListener('visibilitychange',()=>{if(document.hidden){hiddenAt=Date.now();sleepAway()}else{const g=hiddenAt?Date.now()-hiddenAt:0;hiddenAt=0;wakeBack(g);paint()}});
+addEventListener('pagehide',sleepAway);
+
+/* Calendrier */
+function easter(y){const a=y%19,b=Math.floor(y/100),c=y%100,d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3),h=(19*a+b-d-g+15)%30,i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-h-k)%7,m=Math.floor((a+11*h+22*l)/451),mo=Math.floor((h+l-7*m+114)/31),da=((h+l-7*m+114)%31)+1;return new Date(y,mo-1,da)}
+function season(t=Date.now()){const d=new Date(t),m=d.getMonth()+1,j=d.getDate(),y=d.getFullYear(),dd=Math.round((new Date(y,m-1,j)-easter(y))/864e5);
+  if((m===12&&j===31)||(m===1&&j<=2))return{k:'nouvelan',n:'Nouvel An',txt:'Feux d\'artifice ! Les Poké Dollars gagnés sont doublés.',fx:'fireworks',money:2,gift:['candy',2]};
+  if(m===2&&j===27)return{k:'pokeday',n:'Pokémon Day',txt:'Anniversaire de Pokémon : les Pokémon rares sortent trois fois plus.',rare:3,gift:['hyper',3],hat:'star'};
+  if(m===4&&j===1)return{k:'avril',n:'Poisson d\'avril',txt:'Il y a des Magicarpe partout. Vraiment partout.',carpe:1,gift:['ball',3]};
+  if(dd>=-2&&dd<=1)return{k:'paques',n:'Pâques',txt:'Des œufs sont cachés : chaque sortie peut en trouver un.',fx:'eggs',eggHunt:1,gift:['candy',1]};
+  if(m===6&&j===21)return{k:'musique',n:'Fête de la musique',txt:'Le Rythme rapporte trois fois plus de Poké Dollars.',rhythm:3,boost:[13]};
+  if(m===6&&(j===22||j===23))return{k:'fetenat',n:'Fête nationale',txt:'Feux d\'artifice sur le Luxembourg. Un cadeau t\'attend dans le Sac.',fx:'fireworks',gift:['super',5]};
+  if(m===12&&j===6)return{k:'nicolas',n:'Saint-Nicolas',txt:'Saint-Nicolas est passé : regarde dans le Sac.',gift:['candy',3]};
+  if((m===10&&j>=20)||(m===11&&j<=5))return{k:'halloween',n:'Halloween',txt:'Les Pokémon Spectre rôdent partout.',boost:[8],hat:'pump',fx:'bats'};
+  if(m===12&&j<=26)return{k:'noel',n:'Noël',txt:'Il neige, et les Pokémon Glace sont de sortie.',boost:[15],hat:'bonnet',snow:1,gift:['master',1]};
+  if(j===13&&d.getDay()===5)return{k:'v13',n:'Vendredi 13',txt:'Les Pokémon Ténèbres et Spectre rôdent.',boost:[17,8]};
+  if(m===1||(m===2&&j<10))return{k:'hiver',n:'Hiver',txt:'Il neige.',boost:[15],snow:1};
+  if(m===2&&j>=10&&j<=16)return{k:'valentin',n:'Saint-Valentin',txt:'Tous les œufs de pension vont deux fois plus vite.',boost:[14],hat:'bow',eggFast:1};
+  if(m>=3&&m<=5)return{k:'printemps',n:'Printemps',txt:'Les Pokémon Plante et Insecte sont de sortie.',boost:[12,7]};
+  if(m>=7&&m<=8)return{k:'ete',n:'Été',txt:'Les Pokémon Eau et Feu sont de sortie.',boost:[10,11]};
+  if(m>=9&&m<=11)return{k:'automne',n:'Automne',txt:'Les feuilles tombent : les Pokémon Sol et Normal sont de sortie.',boost:[5,1]};
+  return null}
+function upcoming(n=6){const out=[],seen=new Set(),now=new Date(),today0=new Date(now.getFullYear(),now.getMonth(),now.getDate());let prev=season()&&season().k;
+  for(let i=1;i<370&&out.length<n;i++){const d=new Date(today0.getFullYear(),today0.getMonth(),today0.getDate()+i,12),s=season(+d);if(s&&s.k!==prev&&!seen.has(s.k)&&!['hiver','printemps','ete','automne'].includes(s.k)){seen.add(s.k);out.push([d,s])}prev=s&&s.k}return out}
+const isBirthday=p=>{if(!p||p.stage==='egg')return false;const b=new Date(p.bornAt),n=new Date();return b.getDate()===n.getDate()&&b.getMonth()===n.getMonth()&&b.getFullYear()<n.getFullYear()};
+{const _nd=newDay;newDay=function(){const d=today(),first=S.lastDay!==d;_nd();if(!first)return;const se=season(),y=d.slice(0,4);
+  if(se&&se.gift&&!S.gifts['g'+se.k+y]){S.gifts['g'+se.k+y]=1;give(se.gift[0],se.gift[1]);log(`${se.n} : tu reçois ${se.gift[1]} × ${ITEMS[se.gift[0]][0]}.`);setTimeout(()=>flash(`${se.n} ! Cadeau : ${se.gift[1]} × ${ITEMS[se.gift[0]][0]}.`,5000),1500)}
+  const p=S.pet;if(isBirthday(p)&&!S.gifts['anniv'+p.uid+y]){S.gifts['anniv'+p.uid+y]=1;give('candy',2);if(!S.furn.includes('gateau'))S.furn.push('gateau');p.joy=100;log(`Joyeux anniversaire, ${petName(p)} ! Un gâteau et 2 Super Bonbons.`);setTimeout(()=>flash(`Joyeux anniversaire, ${petName(p)} ! Un gâteau t'attend dans le décor.`,6000),3000)}}}
+{const _e=earn;earn=function(n){const s=season();_e(Math.round(n*((s&&s.money)||1)))}}
+{const _wp=wildPick;wildPick=function(){const s=season();if(s&&s.carpe&&Math.random()<.5)return 129;if(s&&s.rare&&Math.random()<.25){const l=DEX.map((x,i)=>i+1).filter(i=>i<=SPR.imgs.length&&!dex(i).flag&&depth(i)>=1);return pick(l)}return _wp()}}
+function eventFx(){const s=season();if(!s||reduce)return;if(s.fx==='fireworks'&&(isNight(Date.now())||tt%400<200)){for(let k=0;k<3;k++){const ph=(tt+k*37)%60,cx=30+k*50,cy=30+(k*13)%20,r=ph/3;if(ph<40){const c=['#ff6b5a','#ffd23f','#7fe08a'][k];g.fillStyle=c;for(let a=0;a<8;a++)g.fillRect(Math.round(cx+Math.cos(a*.785)*r),Math.round(cy+Math.sin(a*.785)*r),2,2)}}}
+  if(s.fx==='eggs'){[[20,124,'#ff9aa8'],[118,130,'#7fe0d0'],[146,118,'#ffd23f']].forEach(([x,y,c])=>{g.fillStyle='#14162a';g.fillRect(x-1,y-1,6,8);g.fillStyle=c;g.fillRect(x,y,4,6);g.fillStyle='#fff';g.fillRect(x+1,y+2,2,1)})}
+  if(s.fx==='bats'&&tt%300<150){g.fillStyle='#2b2140';for(let k=0;k<3;k++){const x=(tt*.8+k*60)%180-10,y=24+k*9+Math.round(Math.sin(tt*.2+k)*3);g.fillRect(x,y,6,1);g.fillRect(x+2,y+1,2,1);if(tt%10<5){g.fillRect(x-1,y-1,2,1);g.fillRect(x+5,y-1,2,1)}}}}
+
+/* Sorties */
+const PLACES=[{k:'parc',n:'Parc',bg:'prairie',t:[1,12,7,3]},{k:'plage',n:'Plage',bg:'eau',t:[11,6]},{k:'foret',n:'Forêt',bg:'foret',t:[7,12,4]},{k:'montagne',n:'Montagne',bg:'roche',t:[6,5,2]},{k:'volcan',n:'Volcan',bg:'volcan',t:[10,6,16]},{k:'grotte',n:'Grotte',bg:'nuit',t:[8,17,6,14]},{k:'glacier',n:'Glacier',bg:'neige',t:[15,11]}];
+function placePick(pl){let tot=0;const w=[];for(let i=1;i<=SPR.imgs.length;i++){const d=dex(i),x=!d.flag&&d.t.some(t=>pl.t.includes(t))?[1,.25,.06][depth(i)]||.06:0;tot+=x;w.push(x)}let r=Math.random()*tot;for(let i=0;i<w.length;i++){r-=w[i];if(r<=0)return i+1}return 16}
+function sortieMenu(){if(S.pet.energy<20){flash(`${petName(S.pet)} est trop fatigué pour sortir.`);return}openMenu('Où aller ?',PLACES.map(pl=>({l:pl.n,f:()=>startWalk(pl)})))}
+function startWalk(pl){closeMenu();const now=Date.now(),ev=[];for(let i=0;i<4;i++){const kind=pick(['item','item','money','meet','wild']);const e={at:now+3500+i*5200+rnd(1200),kind,state:0};if(kind==='meet'||kind==='wild'){e.id=placePick(pl);sprite(e.id)}ev.push(e)}
+  mode='walk';G={pl,t0:now,end:now+25000,ev,cur:null,got:[],wild:0};setMsg(`En route pour : ${pl.n} !`);beep(SND.ok)}
+function walkTap(){const e=G.cur;if(!e||e.state!==1)return;e.state=2;const p=S.pet;beep(SND.yum);
+  if(e.kind==='wild'){G.wild=e.id;G.got.push(nameOf(e.id)+' à capturer');return setMsg(`${petName(p)} suit ${nameOf(e.id)}. Il t'attendra à la maison.`)}
+  if(e.kind==='money'){const n=60+rnd(160);earn(n);G.got.push(n+' ₽');return setMsg(`${petName(p)} trouve ${n} ₽ par terre !`)}
+  const se=season();if(se&&se.eggHunt&&Math.random()<.35){const l=DEX.map((x,i)=>i+1).filter(i=>!dex(i).prev&&!dex(i).flag&&i<=SPR.imgs.length),o=newPet(pick(l));S.pension.push(o);G.got.push('un œuf de Pâques');return setMsg('Un œuf de Pâques caché dans l\'herbe !')}
+  const r=Math.random();if(r<.4){p.hunger=clamp(p.hunger+12);p.joy=clamp(p.joy+5);G.got.push('une baie');setMsg(`${petName(p)} croque une baie trouvée en chemin.`)}else if(r<.75){const k=Math.random()<.3?'super':'ball';give(k);G.got.push(ITEMS[k][0]);setMsg(`Une ${ITEMS[k][0]} cachée dans un buisson !`)}else if(r<.9){const k=pick(STONES);give(k);G.got.push(ITEMS[k][0]);setMsg(`${petName(p)} déterre une ${ITEMS[k][0]} !`)}else{const k=pick(['cap','bow','melon','glasses','star']);if(giveHat(k)){G.got.push(HATS[k][0]);setMsg(`Un chapeau abandonné : ${HATS[k][0]} !`)}else{earn(100);G.got.push('100 ₽');setMsg('Un porte-monnaie perdu : 100 ₽.')}}}
+function endWalk(){const p=S.pet,pl=G.pl,got=G.got,w=G.wild;mode='idle';G=null;p.joy=clamp(p.joy+15);p.energy=clamp(p.energy-15);p.hunger=clamp(p.hunger-6);p.bond=Math.min(100,p.bond+2);xp(6);S.st.walk=st('walk')+1;
+  if(w&&!S.wild){S.wild={id:w,until:Date.now()+15*6e4,shiny:rnd(64)===0};if(!S.dex[w])S.dex[w]=1;sprite(w,S.wild.shiny)}
+  const t=`Sortie ${pl.k==='plage'||pl.k==='foret'||pl.k==='montagne'||pl.k==='grotte'?'à la':'au'} ${pl.n.toLowerCase()}${got.length?' : '+got.join(', '):''}.`;log(fill('{n} : '+t,p));flash(`${t}${got.length?'':' Rien trouvé, mais quelle balade !'}`,5500);burst('heart','#e8486a',4);beep(SND.fan);touch();paint()}
+function renderWalk(now,p){const e2=now-G.t0,bg=buildBg(G.pl.bg),off=Math.floor(e2*.03)%160;g.drawImage(bg,-off,0);g.drawImage(bg,160-off,0);
+  G.ev.forEach(e=>{if(e.state===0&&now>=e.at&&!G.cur){e.state=1;G.cur=e;e.until=now+(e.kind==='meet'?2600:1700);if(e.kind==='meet'){e.state=2;const n=nameOf(e.id);p.joy=clamp(p.joy+3);if(!S.dex[e.id])S.dex[e.id]=1;G.got.push('un copain '+n);setMsg(`${petName(p)} dit bonjour à un ${n} !`)}else setMsg(e.kind==='wild'?'Un Pokémon sauvage ! Touche vite pour le suivre.':'Quelque chose brille ! Touche vite.');beep(SND.tap)}});
+  const c=G.cur;if(c){const k=Math.min(1,(now-(c.until-(c.kind==='meet'?2600:1700)))/400),x=Math.round(170-k*48);
+    if(c.kind==='meet'||c.kind==='wild'){const sp=sprite(c.id);if(sp)drawFit(sp,x,110,34,false)}else{g.fillStyle='#2f7a43';g.fillRect(x-10,100,20,10);g.fillStyle='#46a85f';g.fillRect(x-8,96,16,6);if(c.state===1&&tt%8<5)icon(g,'star',x-4,86,'#ffe08a')}
+    if(c.state===1&&tt%10<7)icon(g,'excl',x-4,64,'#fff');if(now>c.until){if(c.state===1)setMsg('Trop tard, c\'est passé.');G.cur=null}}
+  const sp=sprite(p.id,p.shiny);if(sp)drawFit(sp,50,110-(tt%8<4?1:0),40,true);weatherFx();bars(p);
+  if(now>G.end&&!G.cur)endWalk()}
+lcd.addEventListener('pointerdown',()=>{if(mode==='walk')walkTap()});
+addEventListener('keydown',e=>{if(mode==='walk'&&(e.key===' '||e.key==='Enter')){e.preventDefault();walkTap()}});
+ACH.push(['balade','Promeneur','20 sorties',()=>st('walk')>=20,1500],['fetard','Fêtard','Fêter l\'anniversaire de ton compagnon',()=>Object.keys(S.gifts).some(k=>k.startsWith('anniv')),1000]);
+
+/* Icônes des onglets */
+Object.assign(ICON,{bag:'..####..|.#....#.|########|#.####.#|#..##..#|#......#|#......#|########',book:'.######.|#.#....#|#.#.##.#|#.#....#|#.#.##.#|#.#....#|#.#....#|.######.',house:'...##...|..####..|.######.|########|.#....#.|.#.##.#.|.#.##.#.|.######.',pals:'.##..##.|########|####.###|.##..##.|........|.##..##.|####.###|####.###',trophy:'########|#.####.#|.######.|..####..|...##...|...##...|..####..|.######.',scroll:'.######.|#......#|.#.###.#|.#.....#|.#.###.#|.#.....#|#......#|.######.',gear:'...##...|.#.##.#.|..####..|###..###|###..###|..####..|.#.##.#.|...##...',sword:'......##|.....###|....###.|#..###..|.####...|..##....|.####...|##..#...'});
+const TABC={fiche:'#e04a6f',sac:'#d9731f',gym:'#d33f2f',dex:'#3a78d4',pension:'#2e9466',amis:'#8352d0',succes:'#b8860b',journal:'#22959a',options:'#5b6276'};
+const TABI={fiche:'heart',sac:'bag',gym:'sword',dex:'book',pension:'house',amis:'pals',succes:'trophy',journal:'scroll',options:'gear'};
+document.querySelectorAll('.tab').forEach(b=>{const c=document.createElement('canvas');c.width=c.height=8;c.className='tabic';b.prepend(c)});
+function paintTabs(){document.querySelectorAll('.tab').forEach(b=>{const c=b.querySelector('canvas'),q=c.getContext('2d'),on=b.getAttribute('aria-selected')==='true',col=TABC[b.dataset.tab];b.style.setProperty('--tc',col);q.clearRect(0,0,8,8);icon(q,TABI[b.dataset.tab],0,0,on?'#ffffff':col);if(on){document.querySelector('.book').style.setProperty('--tab',col);const t=b.parentElement;if(t.scrollWidth>t.clientWidth){const l=b.offsetLeft-t.offsetLeft;if(l<t.scrollLeft||l+b.offsetWidth>t.scrollLeft+t.clientWidth)t.scrollLeft=l-12}}})}
+{const _rp=renderPane;renderPane=function(){_rp();paintTabs()}}
+function renderCalendar(){const up=upcoming(),f=new Intl.DateTimeFormat('fr-FR',{weekday:'long',day:'numeric',month:'long'}),s=season();
+  return `<div><h3 class="sub" style="margin-top:0">Calendrier</h3>${s?`<p class="band"><b>Aujourd'hui : ${esc(s.n)}.</b> ${esc(s.txt)}</p>`:''}<div class="cal">${up.map(([d,e])=>`<div class="calrow"><span class="caldate">${f.format(d)}</span><b>${esc(e.n)}</b><span class="small">${esc(e.txt)}</span></div>`).join('')}</div></div>`}
+{const _rl=renderLog;renderLog=function(){return `<div class="stack">${renderCalendar()}${_rl()}</div>`}}
+
+
+/* Délai entre deux œufs mystère */
+const EGG_CD=()=>24*36e5/PACE[S.opt.pace],EGG_PRICE=2500;
+const eggFree=()=>S.retireFree||(!S.pet&&!S.pension.some(q=>q.stage!=='egg'));
+const eggLeft=()=>eggFree()||!S.lastEgg?0:Math.max(0,S.lastEgg+EGG_CD()-Date.now());
+{const _my=mystery;mystery=function(paid){if(!paid&&eggLeft()>0){flash(`Prochain œuf mystère dans ${fmtGap(eggLeft())}.`);beep(SND.no);return}S.lastEgg=Date.now();S.retireFree=false;_my()}}
+function eggButtons(){const l=eggLeft(),mo=S.money||0;return l>0?`<div class="row"><button class="btn" type="button" disabled>Prochain œuf dans ${fmtGap(l)}</button><button class="btn" type="button" data-x="buyegg" ${mo<EGG_PRICE?'disabled':''}>Œuf tout de suite : ${EGG_PRICE.toLocaleString('fr-FR')} ₽</button></div>`:''}
+$('pane').addEventListener('click',e=>{const b=e.target.closest('button');if(!b||b.disabled||b.dataset.x!=='buyegg')return;if((S.money||0)<EGG_PRICE)return;S.money-=EGG_PRICE;touch();if(!picking&&S.pet){picking=true}mystery(true)});
+
+/* ---------- Démarrage et boucles ---------- */
+function boot(){
+  const l=readLocal();if(l)S=l;migrate();
+  paint();autoLoad().then(()=>{loadTried=true;if(!SPR)paint()});connectCloud();
+  setInterval(render,33);fetchWeather();setInterval(fetchWeather,30*6e4);
+  setInterval(()=>{if(S.pet&&S.pet.stage!=='egg'&&mode!=='evo')advance(S.pet,Date.now());lifeTick();refreshMsg();touch()},1000);
+  setInterval(()=>{const a=document.activeElement;if(tab==='fiche'&&SPR&&S.pet&&!picking&&$('stats')&&S.pet.stage!=='egg')$('stats').innerHTML=statRows(S.pet)},2000);
+  setInterval(()=>save(false),5000);setInterval(()=>save(true),60000);
+  document.addEventListener('visibilitychange',()=>{if(document.hidden)save(true);else{catchUp();paint()}});
+  addEventListener('pagehide',()=>save(false));
+}
+boot();
+</script>
+
+</body></html>

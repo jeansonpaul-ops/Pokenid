@@ -94,6 +94,7 @@ button,.lcd{touch-action:manipulation}
 .band.danger{border-color:#c0283c;box-shadow:0 3px 0 #c0283c;background:#fff1f2}.band.danger b{color:#c0283c}.graves{display:grid;gap:8px}.grave{display:flex;gap:10px;align-items:center;padding:6px 10px;border-radius:12px;background:#f1f2f6}.grave img{width:40px;height:40px;object-fit:contain;image-rendering:pixelated;filter:grayscale(1);opacity:.75}
 .tab{position:relative}.tab.dot::after{content:"";position:absolute;top:2px;right:4px;width:11px;height:11px;border-radius:50%;background:#e8334a;border:2px solid #fff}
 details.online{border:2px solid color-mix(in oklab,var(--tab,#8a6cf0) 35%,#fff);border-radius:14px;padding:10px 14px;background:#fff}details.online summary{cursor:pointer;font-weight:700;font-family:var(--display);font-size:16px}
+.book{position:relative}.acct-chip{position:absolute;top:-14px;right:18px;z-index:3;font:600 12px/1 var(--display);padding:6px 12px;border-radius:999px;border:2px solid #fff;background:#2f9e5b;color:#fff;box-shadow:0 2px 0 rgba(16,20,31,.2);cursor:pointer}.acct-chip[hidden]{display:none}
 .tabic{width:16px;height:16px;image-rendering:pixelated}
 .tab[aria-selected="true"]{background:var(--tc);border-color:var(--tc);color:#fff;box-shadow:0 3px 0 color-mix(in oklab,var(--tc) 60%,#000)}
 .tab:hover{background:color-mix(in oklab,var(--tc,#888) 10%,#fff)}.tab[aria-selected="true"]:hover{background:var(--tc)}
@@ -1297,7 +1298,8 @@ const loadJs=src=>new Promise((ok,ko)=>{if(document.querySelector(`script[src="$
 const netErr=e=>{const c=e&&(e.code||e.message)||'';if(/admin-restricted|operation-not-allowed/.test(c))return 'La connexion anonyme n\'est pas encore activée sur le serveur.';if(/permission/.test(c))return 'Le serveur a refusé l\'accès (règles pas encore publiées ?).';if(/script|network|unavailable|Failed to fetch/.test(c))return 'Serveur injoignable. Vérifie ta connexion internet.';return 'Erreur du serveur : '+c};
 async function netInit(){if(NET.st==='ok'||NET.st==='loading')return;if(!netCan()){NET.st='na';return}NET.st='loading';NET.err='';if(tab==='amis')renderPane();
   try{for(const m of ['app','auth','firestore'])await loadJs(`https://www.gstatic.com/firebasejs/${FB_V}/firebase-${m}-compat.js`);
-    if(!firebase.apps.length)firebase.initializeApp(FB_CFG);const A=firebase.auth();if(!A.currentUser)await A.signInAnonymously();
+    if(!firebase.apps.length)firebase.initializeApp(FB_CFG);const A=firebase.auth();
+    await new Promise(ok=>{const off=A.onAuthStateChanged(()=>{off();ok()})});if(!A.currentUser)await A.signInAnonymously();
     NET.uid=A.currentUser.uid;NET.db=firebase.firestore();NET.st='ok';await netPublish(true);await netRefresh(true)}
   catch(e){NET.st='err';NET.err=netErr(e)}if(tab==='amis')renderPane()}
 const netTeam=()=>JSON.parse(JSON.stringify(myTeam().filter(p=>p&&p.stage!=='egg').map(packPet).slice(0,3)));
@@ -1382,7 +1384,7 @@ function acctBox(){const ago=t=>t?fmtGap(Date.now()-t)+' ':'';
   if(NET.st==='na')return `<div class="band"><b>Compte</b> : disponible sur la version en ligne du jeu (GitHub Pages).</div>`;
   if(NET.st!=='ok')return `<div class="band">${NET.st==='err'?esc(NET.err):'Connexion au serveur…'}</div>`;
   const msg=ACC.msg?`<p class="band">${esc(ACC.msg)}</p>`:'';
-  if(isAcct())return `<div class="stack" style="margin-bottom:14px"><h3 class="sub" style="margin-top:0">Compte</h3><p>Connecté en tant que <b>${esc(pseudoOf(fbUser()))}</b>. Ta partie est sauvegardée en ligne${ACC.up?` (il y a ${ago(ACC.up)})`:''} : connecte-toi avec le même pseudo sur un autre appareil pour la retrouver.</p>${msg}
+  if(isAcct())return `<div class="stack" style="margin-bottom:14px"><h3 class="sub" style="margin-top:0">Compte</h3><p>Connecté en tant que <b>${esc(pseudoOf(fbUser()))}</b>. Ta partie est sauvegardée en ligne${ACC.up?` (${Date.now()-ACC.up<6e4?'à l\'instant':'il y a '+fmtGap(Date.now()-ACC.up)})`:''} : connecte-toi avec le même pseudo sur un autre appareil pour la retrouver.</p>${msg}
     <div class="row"><button class="btn" type="button" data-acc="push">Sauvegarder maintenant</button><button class="btn" type="button" data-acc="out">Se déconnecter</button></div><p class="small">Joue sur un seul appareil à la fois : c'est la dernière partie sauvegardée qui gagne.</p></div>`;
   return `<div class="stack" style="margin-bottom:14px"><h3 class="sub" style="margin-top:0">Compte</h3><p class="small">Pour jouer sur plusieurs appareils (téléphone, tablette, ordinateur) avec la même partie et les mêmes amis. Pas d'e-mail demandé.</p>${msg}
     <div class="grid2"><div class="stack"><b>Créer mon compte</b><label class="fld"><span>Pseudo</span><input id="acNew" autocomplete="username" maxlength="16" placeholder="Paul_57"></label><label class="fld"><span>Mot de passe (6 caractères min.)</span><input id="acPw1" type="password" autocomplete="new-password"></label><label class="fld"><span>Confirme le mot de passe</span><input id="acPw2" type="password" autocomplete="new-password"></label><button class="btn primary" type="button" data-acc="new">Créer mon compte</button></div>
@@ -1424,6 +1426,12 @@ $('pane').addEventListener('change',e=>{if(e.target.id!=='onlListed')return;S.op
 /* Présence : signale toutes les 3 minutes que le joueur est là (si la page est visible) */
 if(netCan())setInterval(()=>{if(NET.st==='ok'&&!document.hidden&&listed())netPublish(true).catch(()=>{})},3*60e3);
 addEventListener('visibilitychange',()=>{if(!document.hidden&&NET.st==='ok'&&listed())netPublish(true).catch(()=>{})});
+
+
+/* Pastille « Connecté : PSEUDO » visible sur tous les onglets */
+{const bk=document.querySelector('.book');if(bk&&!$('acctChip')){const c=document.createElement('button');c.id='acctChip';c.type='button';c.className='acct-chip';c.hidden=true;c.onclick=()=>{tab='options';renderPane()};bk.prepend(c)}}
+function acctChip(){const c=$('acctChip');if(!c)return;const on=typeof isAcct==='function'&&isAcct();c.hidden=!on;if(on)c.textContent='Connecté : '+pseudoOf(fbUser())}
+{const _rp=renderPane;renderPane=function(){_rp();acctChip()}}
 
 /* ---------- Démarrage et boucles ---------- */
 function boot(){

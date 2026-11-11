@@ -33,3 +33,9 @@ match /pokenid_links/{id} {
   allow delete: if signedIn()
     && (resource.data.from == request.auth.uid || resource.data.to == request.auth.uid);
 }
+match /pokenid_saves/{uid} {
+  allow read: if signedIn() && request.auth.uid == uid;
+  allow write: if signedIn() && request.auth.uid == uid
+    && request.resource.data.keys().hasOnly(['data', 'at', 'v'])
+    && request.resource.data.data is string && request.resource.data.data.size() < 900000;
+}

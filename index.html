@@ -362,7 +362,7 @@ function mystery(){const l=DEX.map((d,i)=>i+1).filter(i=>!dex(i).prev&&!dex(i).f
 function raised(id){S.dex[id]=2;if(S.pet&&S.pet.shiny)S.shinies[id]=1;touch()}
 const busy=()=>mode!=='idle';
 function guard(){const p=S.pet;
-  if(!p||busy()){if(mode==='none')flash('Charge d\'abord pokelabel.html.');else if(mode==='egg')flash('Touche l\'œuf pour le réchauffer !');else if(mode==='empty')flash('Prends ton œuf mystère dans le carnet.');return false}
+  if(!p||busy()){if(mode==='none')flash('Charge d\'abord pokelabel.html.');else if(mode==='egg')flash('Touche l\'œuf pour le réchauffer !');else if(mode==='empty')flash('Touche l\'écran pour prendre ton œuf mystère.');return false}
   if(p.ko){flash(`${petName(p)} est K.O. Emmène-le au Centre Pokémon.`);return false}
   if(p.away){flash(`${petName(p)} est en expédition.`);return false}
   if(p.asleep){flash(`${petName(p)} dort. Touche Dormir pour le réveiller.`);return false}
@@ -523,7 +523,7 @@ function refreshMsg(){
   ['kFeed','kPlay','kWash','kHeal','kSleep'].forEach(id=>{$(id).classList.toggle('alert',id===hint);$(id).setAttribute('aria-disabled',mode==='idle'?'false':'true')});
   document.title=(hint?'(!) ':'')+'PokéNid';
   if(['quiz','catch','evo','capture','battle','fish','memo','rhythm','walk'].includes(mode)||Date.now()<msgUntil||!$('menu').hidden)return;
-  let t='';if(mode==='none')t=loadTried?'Charge pokelabel.html pour commencer.':'Chargement des Pokémon…';else if(mode==='empty')t='Prends ton œuf mystère dans le carnet.';else if(mode==='egg')t='Touche l\'œuf pour le réchauffer !';else if(S.pet)t=status(S.pet).t;
+  let t='';if(mode==='none')t=loadTried?'Charge pokelabel.html pour commencer.':'Chargement des Pokémon…';else if(mode==='empty')t='Touche l\'écran pour prendre ton œuf mystère.';else if(mode==='egg')t='Touche l\'œuf pour le réchauffer !';else if(S.pet)t=status(S.pet).t;
   setMsg(t);
 }
 lcd.addEventListener('pointerdown',e=>{catchMove(e);
@@ -1342,6 +1342,61 @@ $('pane').addEventListener('click',e=>{const b=e.target.closest('[data-net]');if
     if(a==='no')netAct(async()=>{await L().doc(id).delete();await netRefresh()});return}
   const d=e.target.closest('[data-fdel]');if(d&&NET.st==='ok'){const f=S.friends[+d.dataset.fdel];if(f&&f.uid){const u=f.uid;NET.db.collection('pokenid_links').doc(NET.uid+'_'+u).delete().catch(()=>{});NET.db.collection('pokenid_links').doc(u+'_'+NET.uid).delete().catch(()=>{})}}},true);
 if(netCan()){setTimeout(()=>{if(S&&NET.st==='off')netInit()},2500);setInterval(()=>{if(NET.st==='ok'&&!document.hidden)netPublish(false).then(()=>netRefresh()).catch(()=>{})},10*60e3)}
+
+
+/* Œuf : toucher l'écran vide prend l'œuf ; l'écran reste visible sur mobile */
+const lcdInView=()=>{const r=$('lcd').getBoundingClientRect();if(r.top<0||r.bottom>innerHeight)$('lcd').scrollIntoView({behavior:reduce?'auto':'smooth',block:'center'})};
+$('lcd').addEventListener('pointerdown',()=>{if(mode!=='empty')return;let b=document.querySelector('#pane [data-do="mystery"]');if(!b){tab='fiche';renderPane();b=document.querySelector('#pane [data-do="mystery"]')}if(b&&!b.disabled){b.click();setTimeout(lcdInView,60)}else{tab='fiche';renderPane();$('pane').scrollIntoView({behavior:reduce?'auto':'smooth',block:'start'});flash(eggLeft()>0?`Prochain œuf mystère dans ${fmtGap(eggLeft())}.`:'Regarde dans le carnet.')}});
+$('pane').addEventListener('click',e=>{if(e.target.closest('[data-do="mystery"]'))setTimeout(()=>{if(mode==='egg')lcdInView()},60)});
+
+
+/* ---------- Compte joueur : pseudo + mot de passe, partie synchronisée entre appareils ---------- */
+const ACCT_DOMAIN='pokenid.invalid';
+const ACC={busy:false,msg:'',up:0,last:0,timer:null};
+const fbUser=()=>NET.st==='ok'&&window.firebase&&firebase.auth().currentUser||null;
+const isAcct=()=>{const u=fbUser();return !!(u&&!u.isAnonymous)};
+const pseudoOf=u=>u&&u.email?u.email.split('@')[0].toUpperCase():'';
+const pseudoOk=v=>/^[A-Za-z0-9_-]{3,16}$/.test(v);
+const acctMail=v=>v.trim().toLowerCase()+'@'+ACCT_DOMAIN;
+const acctErr=e=>{const c=(e&&e.code)||'';if(/email-already-in-use|credential-already-in-use/.test(c))return 'Ce pseudo est déjà pris.';if(/weak-password/.test(c))return 'Mot de passe trop court : 6 caractères minimum.';if(/invalid-credential|wrong-password|user-not-found|invalid-login/.test(c))return 'Pseudo ou mot de passe incorrect.';if(/too-many-requests/.test(c))return 'Trop d\'essais. Réessaie dans quelques minutes.';if(/operation-not-allowed|admin-restricted/.test(c))return 'Les comptes ne sont pas encore activés sur le serveur.';if(/invalid-email/.test(c))return 'Pseudo invalide.';return netErr(e)};
+const saveDoc=()=>NET.db.collection('pokenid_saves').doc(fbUser().uid);
+async function acctPush(){if(!isAcct())return;clearTimeout(ACC.timer);ACC.timer=null;
+  const d=await saveDoc().get();if(d.exists&&(d.data().at||0)>(S.syncAt||0)){await acctPull(true);return}
+  const at=Date.now();S.syncAt=at;const data=JSON.stringify(S);if(data.length>900000)return;try{localStorage.setItem(KEY,data)}catch(e){}
+  await saveDoc().set({data,at,v:1});ACC.up=at}
+function acctSchedule(){if(!isAcct()||ACC.timer)return;ACC.timer=setTimeout(()=>acctPush().catch(()=>{}),15000)}
+async function acctPull(replace){const d=await saveDoc().get();if(!d.exists)return false;const c=d.data();
+  if(replace||(c.at||0)>(S.syncAt||0)){let o;try{o=JSON.parse(c.data)}catch(e){return false}o.syncAt=c.at;S=o;c.data=JSON.stringify(o);dirty=false;localStorage.setItem(KEY,c.data);try{sessionStorage.setItem('pokenid.pulled','1')}catch(e){}location.reload();return true}return false}
+{const _s=save;save=function(tc){const was=dirty;_s(tc);if(was||tc)acctSchedule()}}
+addEventListener('visibilitychange',()=>{if(document.hidden&&isAcct()){save(true);acctPush().catch(()=>{})}});
+{const _ni=netInit;netInit=async function(){await _ni();if(isAcct()){try{if(!(await acctPull(false)))await acctPush()}catch(e){}}if(S&&(tab==='options'||tab==='fiche'))renderPane()}}
+try{if(sessionStorage.getItem('pokenid.pulled')){sessionStorage.removeItem('pokenid.pulled');setTimeout(()=>flash('Partie récupérée depuis ton compte.',4000),1500)}}catch(e){}
+async function acctCreate(ps,pw,pw2){if(!pseudoOk(ps))return 'Pseudo : 3 à 16 lettres, chiffres, - ou _.';if(pw.length<6)return 'Mot de passe : 6 caractères minimum.';if(pw!==pw2)return 'Les deux mots de passe ne sont pas identiques.';
+  const cred=firebase.auth.EmailAuthProvider.credential(acctMail(ps),pw);await firebase.auth().currentUser.linkWithCredential(cred);
+  if(!S.opt.trainer||trainer()==='Dresseur')S.opt.trainer=ps.slice(0,14);touch();save(true);await acctPush();await netPublish(true);return ''}
+async function acctLogin(ps,pw){if(!pseudoOk(ps)||!pw)return 'Pseudo ou mot de passe incorrect.';await firebase.auth().signInWithEmailAndPassword(acctMail(ps),pw);NET.uid=fbUser().uid;
+  if(!(await acctPull(true))){touch();save(true);await acctPush();await netPublish(true);await netRefresh()}return ''}
+async function acctLogout(){if(isAcct()){save(true);await acctPush().catch(()=>{})}await firebase.auth().signOut();NET.st='off';NET.uid='';NET.inbox=[];NET.sent=[];S.friends=S.friends.filter(f=>!f.uid);touch();save(true);await netInit()}
+function acctBox(){const ago=t=>t?fmtGap(Date.now()-t)+' ':'';
+  if(NET.st==='na')return `<div class="band"><b>Compte</b> : disponible sur la version en ligne du jeu (GitHub Pages).</div>`;
+  if(NET.st!=='ok')return `<div class="band">${NET.st==='err'?esc(NET.err):'Connexion au serveur…'}</div>`;
+  const msg=ACC.msg?`<p class="band">${esc(ACC.msg)}</p>`:'';
+  if(isAcct())return `<div class="stack" style="margin-bottom:14px"><h3 class="sub" style="margin-top:0">Compte</h3><p>Connecté en tant que <b>${esc(pseudoOf(fbUser()))}</b>. Ta partie est sauvegardée en ligne${ACC.up?` (il y a ${ago(ACC.up)})`:''} : connecte-toi avec le même pseudo sur un autre appareil pour la retrouver.</p>${msg}
+    <div class="row"><button class="btn" type="button" data-acc="push">Sauvegarder maintenant</button><button class="btn" type="button" data-acc="out">Se déconnecter</button></div><p class="small">Joue sur un seul appareil à la fois : c'est la dernière partie sauvegardée qui gagne.</p></div>`;
+  return `<div class="stack" style="margin-bottom:14px"><h3 class="sub" style="margin-top:0">Compte</h3><p class="small">Pour jouer sur plusieurs appareils (téléphone, tablette, ordinateur) avec la même partie et les mêmes amis. Pas d'e-mail demandé.</p>${msg}
+    <div class="grid2"><div class="stack"><b>Créer mon compte</b><label class="fld"><span>Pseudo</span><input id="acNew" autocomplete="username" maxlength="16" placeholder="Paul_57"></label><label class="fld"><span>Mot de passe (6 caractères min.)</span><input id="acPw1" type="password" autocomplete="new-password"></label><label class="fld"><span>Confirme le mot de passe</span><input id="acPw2" type="password" autocomplete="new-password"></label><button class="btn primary" type="button" data-acc="new">Créer mon compte</button></div>
+    <div class="stack"><b>J'ai déjà un compte</b><label class="fld"><span>Pseudo</span><input id="acUser" autocomplete="username" maxlength="16"></label><label class="fld"><span>Mot de passe</span><input id="acPw" type="password" autocomplete="current-password"></label><button class="btn" type="button" data-acc="in">Me connecter</button><p class="small">La partie de ton compte remplacera celle de cet appareil.</p></div></div>
+    <p class="small">Note bien ton mot de passe : sans e-mail, il ne peut pas être récupéré.</p></div>`}
+{const _rp=renderPane;renderPane=function(){_rp();if(!S)return;if(tab==='options'){if(NET.st==='off')setTimeout(netInit,0);$('pane').insertAdjacentHTML('afterbegin',acctBox())}
+  if(tab==='fiche'&&mode==='empty'&&NET.st==='ok'&&!isAcct())$('pane').insertAdjacentHTML('afterbegin',`<div class="band">Tu as déjà un compte ? <button class="btn" type="button" data-acc="goto">Connecte-toi</button> pour retrouver ta partie.</div>`)}}
+$('pane').addEventListener('click',e=>{const b=e.target.closest('[data-acc]');if(!b)return;const a=b.dataset.acc,v=id=>($(id)||{}).value||'';
+  if(a==='goto'){tab='options';renderPane();return}if(ACC.busy)return;
+  const run=async(fn,ok)=>{ACC.busy=true;try{const r=await fn();ACC.msg=r||ok||''}catch(x){ACC.msg=acctErr(x)}ACC.busy=false;if(tab==='options')renderPane()};
+  const f={n:v('acNew').trim(),p1:v('acPw1'),p2:v('acPw2'),u:v('acUser').trim(),p:v('acPw')};b.disabled=true;b.textContent='…';
+  if(a==='new')run(()=>acctCreate(f.n,f.p1,f.p2),'Compte créé. Ta partie est maintenant sauvegardée en ligne.');
+  if(a==='in')run(()=>acctLogin(f.u,f.p),'Connecté.');
+  if(a==='push')run(async()=>{save(true);await acctPush();return ''},'Partie sauvegardée.');
+  if(a==='out')run(acctLogout,'Déconnecté. Cette partie reste sur cet appareil.')});
 
 /* ---------- Démarrage et boucles ---------- */
 function boot(){

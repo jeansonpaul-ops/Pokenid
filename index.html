@@ -93,6 +93,7 @@ button,.lcd{touch-action:manipulation}
 .keyimg{width:68%;height:68%;object-fit:contain;image-rendering:pixelated;pointer-events:none}.tabimg{width:22px;height:22px;object-fit:contain;image-rendering:pixelated;background:#fff;border-radius:50%;padding:1px;flex:0 0 auto}.fld{display:grid;gap:4px;font-size:13px;font-weight:600}.fld input{font:inherit;font-weight:500;padding:8px 10px;border:2px solid #d8dce6;border-radius:10px;min-width:0;width:100%;box-sizing:border-box}.grid2{display:grid;align-items:end;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}.row.wrap{flex-wrap:wrap}.band.annonce{border-left:4px solid var(--tab,#e04a6f)}.band.annonce p{margin:0 0 4px}
 .band.danger{border-color:#c0283c;box-shadow:0 3px 0 #c0283c;background:#fff1f2}.band.danger b{color:#c0283c}.graves{display:grid;gap:8px}.grave{display:flex;gap:10px;align-items:center;padding:6px 10px;border-radius:12px;background:#f1f2f6}.grave img{width:40px;height:40px;object-fit:contain;image-rendering:pixelated;filter:grayscale(1);opacity:.75}
 .tab{position:relative}.tab.dot::after{content:"";position:absolute;top:2px;right:4px;width:11px;height:11px;border-radius:50%;background:#e8334a;border:2px solid #fff}
+details.online{border:2px solid color-mix(in oklab,var(--tab,#8a6cf0) 35%,#fff);border-radius:14px;padding:10px 14px;background:#fff}details.online summary{cursor:pointer;font-weight:700;font-family:var(--display);font-size:16px}
 .tabic{width:16px;height:16px;image-rendering:pixelated}
 .tab[aria-selected="true"]{background:var(--tc);border-color:var(--tc);color:#fff;box-shadow:0 3px 0 color-mix(in oklab,var(--tc) 60%,#000)}
 .tab:hover{background:color-mix(in oklab,var(--tc,#888) 10%,#fff)}.tab[aria-selected="true"]:hover{background:var(--tc)}
@@ -1397,6 +1398,32 @@ $('pane').addEventListener('click',e=>{const b=e.target.closest('[data-acc]');if
   if(a==='in')run(()=>acctLogin(f.u,f.p),'Connecté.');
   if(a==='push')run(async()=>{save(true);await acctPush();return ''},'Partie sauvegardée.');
   if(a==='out')run(acctLogout,'Déconnecté. Cette partie reste sur cet appareil.')});
+
+
+/* ---------- Joueurs en ligne (liste repliée, pour ajouter des amis facilement) ---------- */
+const ONLINE_MIN=10;
+const ONL={open:false,list:[],at:0,loading:false};
+const listed=()=>S.opt.listed!==false;
+{const _np=netPublish;netPublish=async function(force){if(NET.st!=='ok')return;if(!listed()){const prof={name:String(trainer()).slice(0,16),tag:await netTag(),b:Math.min(16,S.badges.length|0),team:netTeam()},k='h'+JSON.stringify(prof);if(!force&&k===NET.last)return;await NET.db.collection('pokenid_profiles').doc(NET.uid).set({...prof,at:0});NET.last=k;return}return _np(force)}}
+async function onlineLoad(){if(NET.st!=='ok'||ONL.loading)return;ONL.loading=true;try{const since=firebase.firestore.Timestamp.fromMillis(Date.now()-ONLINE_MIN*6e4);
+  const q=await NET.db.collection('pokenid_profiles').where('at','>=',since).limit(40).get();
+  ONL.list=q.docs.map(d=>({uid:d.id,...d.data()})).filter(p=>p.uid!==NET.uid&&p.tag&&p.team&&p.team.length).sort((a,b)=>(b.at&&b.at.toMillis?b.at.toMillis():0)-(a.at&&a.at.toMillis?a.at.toMillis():0));ONL.at=Date.now()}
+  catch(e){ONL.list=[];ONL.err=netErr(e)}ONL.loading=false;if(tab==='amis')renderPane()}
+function onlineBox(){const fr=new Set(S.friends.filter(f=>f.uid).map(f=>f.uid)),sent=new Set(NET.sent.map(l=>l.to)),inb=new Set(NET.inbox.map(l=>l.from));
+  const rows=ONL.list.map(p=>{const t=p.team[0]||{},st=fr.has(p.uid)?'<span class="small">Déjà ami</span>':sent.has(p.uid)?'<span class="small">Demande envoyée</span>':inb.has(p.uid)?'<span class="small">T\'a envoyé une demande</span>':`<button class="btn" type="button" data-onl="${esc(p.tag)}">Ajouter</button>`;
+    return `<div class="card"><img alt="" src="${webSrc(Math.max(1,Math.min(493,t.i|0||1)),!!t.s)}"><div><b>${esc(String(p.name||'?').slice(0,16))}</b><span class="small">${(p.team||[]).map(x=>esc(nameOf(Math.max(1,Math.min(493,x.i|0||1))))+' n.'+(x.l|0)).join(', ')} · ${p.b|0} badge${(p.b|0)>1?'s':''}</span></div><div class="row">${st}</div></div>`}).join('');
+  return `<details class="online" ${ONL.open?'open':''}><summary>Joueurs en ligne${ONL.at?` (${ONL.list.length})`:''}</summary>
+  <div class="stack" style="margin-top:8px">${ONL.loading?'<p class="small">Chargement…</p>':ONL.err?`<p class="small">${esc(ONL.err)}</p>`:ONL.at&&!rows?`<p class="small">Personne d'autre n'a joué ces ${ONLINE_MIN} dernières minutes.</p>`:rows}
+  <div class="row"><button class="btn" type="button" data-onl-r="1">Actualiser la liste</button></div>
+  <label class="check"><input type="checkbox" id="onlListed" ${listed()?'checked':''}>Apparaître dans cette liste pour les autres joueurs</label></div></details>`}
+{const _nb=netBand;netBand=function(){const h=_nb();if(NET.st!=='ok')return h;const i=h.lastIndexOf('</div>');return i>0?h.slice(0,i)+onlineBox()+h.slice(i):h+onlineBox()}}
+$('pane').addEventListener('toggle',e=>{if(!e.target.matches||!e.target.matches('details.online'))return;ONL.open=e.target.open;if(ONL.open&&(!ONL.at||Date.now()-ONL.at>60e3))onlineLoad()},true);
+$('pane').addEventListener('click',e=>{const a=e.target.closest('[data-onl]');if(a){const t=a.dataset.onl;a.disabled=true;netAct(()=>netAdd(t),'Demande envoyée. Ton ami doit l\'accepter.');return}
+  if(e.target.closest('[data-onl-r]'))onlineLoad()});
+$('pane').addEventListener('change',e=>{if(e.target.id!=='onlListed')return;S.opt.listed=e.target.checked;touch();save(true);netPublish(true).catch(()=>{});flash(S.opt.listed?'Tu apparais dans la liste des joueurs en ligne.':'Tu n\'apparais plus dans la liste.')});
+/* Présence : signale toutes les 3 minutes que le joueur est là (si la page est visible) */
+if(netCan())setInterval(()=>{if(NET.st==='ok'&&!document.hidden&&listed())netPublish(true).catch(()=>{})},3*60e3);
+addEventListener('visibilitychange',()=>{if(!document.hidden&&NET.st==='ok'&&listed())netPublish(true).catch(()=>{})});
 
 /* ---------- Démarrage et boucles ---------- */
 function boot(){

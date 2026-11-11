@@ -1,5 +1,7 @@
 # PokéNid
 
+<p align="center"><img src="logo.png" alt="PokéNid" width="420"></p>
+
 Un petit jeu façon Tamagotchi avec les Pokémon des générations 1 à 4, dans une seule page web.
 
 **Jouer :** https://jeansonpaul-ops.github.io/Pokenid/

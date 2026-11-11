@@ -7,6 +7,19 @@
   "oeufPrix": 3000,
   "shiny": 64,
   "annonce": "",
-  "evt": {"du": "", "au": "", "gain": 1, "txt": ""},
-  "cadeau": {"id": "", "txt": "", "argent": 0, "ball": 0, "candy": 0}
+  "evt": {
+    "du": "",
+    "au": "",
+    "gain": 1,
+    "txt": ""
+  },
+  "cadeau": {
+    "id": "",
+    "txt": "",
+    "argent": 0,
+    "ball": 0,
+    "candy": 0
+  },
+  "mort": true,
+  "repasMin": 40
 }

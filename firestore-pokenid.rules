@@ -1,0 +1,35 @@
+// Règles Firestore de PokéNid (projet Firebase moving-7a506), à coller dans Console Firebase > Firestore > Règles.
+// Les autres blocs du fichier (déménagement) restent inchangés.
+function signedIn() { return request.auth != null; }
+
+match /pokenid_profiles/{uid} {
+  allow read: if signedIn();
+  allow write: if signedIn() && request.auth.uid == uid
+    && request.resource.data.keys().hasOnly(['name', 'tag', 'b', 'team', 'at'])
+    && request.resource.data.name is string && request.resource.data.name.size() <= 16
+    && request.resource.data.tag is string && request.resource.data.tag.size() <= 20
+    && request.resource.data.b is int && request.resource.data.b >= 0 && request.resource.data.b <= 16
+    && request.resource.data.team is list && request.resource.data.team.size() <= 3;
+}
+match /pokenid_tags/{tag} {
+  allow read: if signedIn();
+  allow create: if signedIn() && tag.size() <= 20
+    && request.resource.data.keys().hasOnly(['uid'])
+    && request.resource.data.uid == request.auth.uid;
+  allow delete: if signedIn() && resource.data.uid == request.auth.uid;
+}
+match /pokenid_links/{id} {
+  allow read: if signedIn()
+    && (resource.data.from == request.auth.uid || resource.data.to == request.auth.uid);
+  allow create: if signedIn()
+    && request.resource.data.keys().hasOnly(['from', 'to', 'fromName', 'status', 'at'])
+    && request.resource.data.from == request.auth.uid
+    && request.resource.data.to != request.auth.uid
+    && request.resource.data.status == 'pending'
+    && id == request.resource.data.from + '_' + request.resource.data.to;
+  allow update: if signedIn() && resource.data.to == request.auth.uid
+    && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status'])
+    && request.resource.data.status == 'ok';
+  allow delete: if signedIn()
+    && (resource.data.from == request.auth.uid || resource.data.to == request.auth.uid);
+}

@@ -1,5 +1,4 @@
 <!doctype html>
-<!-- PokéNid build 2026-11-11 10:57 -->
 <html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>body{margin:0}img{max-width:100%}</style></head><body>
 <title>PokéNid</title>
 <meta name="claude:viewport-fit-sides" content="cover">
@@ -93,6 +92,7 @@ button{cursor:pointer}
 button,.lcd{touch-action:manipulation}
 .keyimg{width:68%;height:68%;object-fit:contain;image-rendering:pixelated;pointer-events:none}.tabimg{width:22px;height:22px;object-fit:contain;image-rendering:pixelated;background:#fff;border-radius:50%;padding:1px;flex:0 0 auto}.fld{display:grid;gap:4px;font-size:13px;font-weight:600}.fld input{font:inherit;font-weight:500;padding:8px 10px;border:2px solid #d8dce6;border-radius:10px;min-width:0;width:100%;box-sizing:border-box}.grid2{display:grid;align-items:end;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}.row.wrap{flex-wrap:wrap}.band.annonce{border-left:4px solid var(--tab,#e04a6f)}.band.annonce p{margin:0 0 4px}
 .band.danger{border-color:#c0283c;box-shadow:0 3px 0 #c0283c;background:#fff1f2}.band.danger b{color:#c0283c}.graves{display:grid;gap:8px}.grave{display:flex;gap:10px;align-items:center;padding:6px 10px;border-radius:12px;background:#f1f2f6}.grave img{width:40px;height:40px;object-fit:contain;image-rendering:pixelated;filter:grayscale(1);opacity:.75}
+.tab{position:relative}.tab.dot::after{content:"";position:absolute;top:2px;right:4px;width:11px;height:11px;border-radius:50%;background:#e8334a;border:2px solid #fff}
 .tabic{width:16px;height:16px;image-rendering:pixelated}
 .tab[aria-selected="true"]{background:var(--tc);border-color:var(--tc);color:#fff;box-shadow:0 3px 0 color-mix(in oklab,var(--tc) 60%,#000)}
 .tab:hover{background:color-mix(in oklab,var(--tc,#888) 10%,#fff)}.tab[aria-selected="true"]:hover{background:var(--tc)}
@@ -1285,6 +1285,63 @@ $('pane').addEventListener('click',e=>{if(!e.target.closest('[data-rip]'))return
   S.graves=S.graves||[];S.graves.push({id:p.id,nick:p.nick,level:p.level,shiny:!!p.shiny,cause:p.dead.cause,at:p.dead.at||Date.now()});
   log(`${petName(p)} nous a quittés, mort ${CAUSE[p.dead.cause]}. Repose en paix.`,p.id);if(typeof careClear==='function')careClear(p.uid);
   S.pet=null;mode='empty';S.lastEgg=0;tab='fiche';closeMenu();touch();save(true);paint();flash('Un nouvel œuf mystère t\'attend dans le carnet.',5000)});
+
+
+/* ---------- Amis en ligne (Firebase : Auth anonyme + Firestore) ---------- */
+const FB_CFG={apiKey:"AIzaSyAvSatrvm5MDunjoTSBahK4PV9qaPQuUR8",authDomain:"moving-7a506.firebaseapp.com",projectId:"moving-7a506",storageBucket:"moving-7a506.firebasestorage.app",messagingSenderId:"894537780845",appId:"1:894537780845:web:cd481630d98bba0fd9b964"};
+const FB_V='10.12.2';
+const NET={st:'off',uid:'',err:'',inbox:[],sent:[],last:'',busy:false};
+const netCan=()=>/^https?:$/.test(location.protocol)&&!/claude\.ai|claudeusercontent/.test(location.host);
+const loadJs=src=>new Promise((ok,ko)=>{if(document.querySelector(`script[src="${src}"]`))return ok();const s=document.createElement('script');s.src=src;s.onload=ok;s.onerror=()=>ko(new Error('script'));document.head.appendChild(s)});
+const netErr=e=>{const c=e&&(e.code||e.message)||'';if(/admin-restricted|operation-not-allowed/.test(c))return 'La connexion anonyme n\'est pas encore activée sur le serveur.';if(/permission/.test(c))return 'Le serveur a refusé l\'accès (règles pas encore publiées ?).';if(/script|network|unavailable|Failed to fetch/.test(c))return 'Serveur injoignable. Vérifie ta connexion internet.';return 'Erreur du serveur : '+c};
+async function netInit(){if(NET.st==='ok'||NET.st==='loading')return;if(!netCan()){NET.st='na';return}NET.st='loading';NET.err='';if(tab==='amis')renderPane();
+  try{for(const m of ['app','auth','firestore'])await loadJs(`https://www.gstatic.com/firebasejs/${FB_V}/firebase-${m}-compat.js`);
+    if(!firebase.apps.length)firebase.initializeApp(FB_CFG);const A=firebase.auth();if(!A.currentUser)await A.signInAnonymously();
+    NET.uid=A.currentUser.uid;NET.db=firebase.firestore();NET.st='ok';await netPublish(true);await netRefresh(true)}
+  catch(e){NET.st='err';NET.err=netErr(e)}if(tab==='amis')renderPane()}
+const netTeam=()=>JSON.parse(JSON.stringify(myTeam().filter(p=>p&&p.stage!=='egg').map(packPet).slice(0,3)));
+async function netTag(){const db=NET.db;if(S.netTag){const d=await db.collection('pokenid_tags').doc(S.netTag).get();if(d.exists&&d.data().uid===NET.uid)return S.netTag}
+  const base=cleanName(trainer()).slice(0,10)||'DRESSEUR';for(let i=0;i<8;i++){const t=base+'-'+String(1000+Math.floor(Math.random()*9000));try{await db.collection('pokenid_tags').doc(t).set({uid:NET.uid});S.netTag=t;touch();save(true);return t}catch(e){if(!/permission/.test(e.code||''))throw e}}throw new Error('tag')}
+async function netPublish(force){if(NET.st!=='ok')return;const prof={name:String(trainer()).slice(0,16),tag:await netTag(),b:Math.min(16,S.badges.length|0),team:netTeam()},k=JSON.stringify(prof);if(!force&&k===NET.last)return;
+  await NET.db.collection('pokenid_profiles').doc(NET.uid).set({...prof,at:firebase.firestore.FieldValue.serverTimestamp()});NET.last=k}
+async function netRefresh(first){if(NET.st!=='ok')return;const db=NET.db,L=db.collection('pokenid_links');
+  const [a,b]=await Promise.all([L.where('to','==',NET.uid).get(),L.where('from','==',NET.uid).get()]);const links=[...a.docs,...b.docs].map(d=>({id:d.id,...d.data()}));
+  NET.inbox=links.filter(l=>l.to===NET.uid&&l.status==='pending');NET.sent=links.filter(l=>l.from===NET.uid&&l.status==='pending');
+  const ok=[...new Set(links.filter(l=>l.status==='ok').map(l=>l.from===NET.uid?l.to:l.from))];
+  const profs=(await Promise.all(ok.map(u=>db.collection('pokenid_profiles').doc(u).get()))).filter(d=>d.exists).map(d=>({uid:d.id,...d.data()}));
+  const sentTags=await Promise.all(NET.sent.map(l=>db.collection('pokenid_profiles').doc(l.to).get().then(d=>d.exists?d.data().name:'?').catch(()=>'?')));NET.sent.forEach((l,i)=>l.toName=sentTags[i]);
+  const keep=S.friends.filter(f=>!f.uid);const online=profs.filter(p=>p.team&&p.team.length).map(p=>({uid:p.uid,name:String(p.name||'Ami').slice(0,16),tag:p.tag||'',b:Math.max(0,Math.min(16,p.b|0)),team:p.team.slice(0,3),at:p.at&&p.at.toMillis?p.at.toMillis():Date.now()}));
+  S.friends=[...online,...keep.filter(f=>!online.some(o=>o.name===f.name))].slice(0,24);if(typeof viewFriend!=='undefined')viewFriend=-1;touch();
+  if(first&&NET.inbox.length)flash(`${NET.inbox.length===1?esc(NET.inbox[0].fromName||'Quelqu\'un')+' veut':NET.inbox.length+' dresseurs veulent'} devenir ton ami. Va dans l'onglet Amis.`,6000);
+  paintTabs();if(tab==='amis')renderPane()}
+async function netAdd(raw){const t=String(raw||'').toUpperCase().replace(/\s+/g,'').replace(/[^A-Z0-9-]/g,'');if(!/^[A-Z0-9]{1,10}-\d{4}$/.test(t))return 'Le code ami ressemble à PAUL-1234.';if(t===S.netTag)return 'C\'est ton propre code.';
+  const db=NET.db,d=await db.collection('pokenid_tags').doc(t).get();if(!d.exists)return 'Aucun dresseur avec ce code.';const to=d.data().uid;if(to===NET.uid)return 'C\'est ton propre code.';
+  const L=db.collection('pokenid_links'),back=NET.inbox.find(l=>l.from===to);if(back){await L.doc(back.id).update({status:'ok'});await netRefresh();return ''}
+  if(S.friends.some(f=>f.uid===to))return 'Vous êtes déjà amis.';
+  await L.doc(NET.uid+'_'+to).set({from:NET.uid,to,fromName:String(trainer()).slice(0,16),status:'pending',at:firebase.firestore.FieldValue.serverTimestamp()}).catch(async e=>{if(/permission/.test(e.code||''))return;throw e});await netRefresh();return ''}
+async function netAct(fn,okMsg){if(NET.busy)return;NET.busy=true;try{const r=await fn();if(r)flash(r,4000);else if(okMsg)flash(okMsg)}catch(e){flash(netErr(e),5000)}NET.busy=false;if(tab==='amis')renderPane()}
+function netBand(){if(NET.st==='na')return `<div class="band"><b>Amis en ligne</b> : disponibles sur la version en ligne du jeu (GitHub Pages). Ici, utilise les codes dresseur ci-dessous.</div>`;
+  if(NET.st==='off'||NET.st==='loading')return `<div class="band">Connexion au serveur des amis…</div>`;
+  if(NET.st==='err')return `<div class="band danger"><p>${esc(NET.err)}</p><div class="row"><button class="btn" type="button" data-net="retry">Réessayer</button></div></div>`;
+  const inb=NET.inbox.map(l=>`<div class="row" style="justify-content:space-between"><span><b>${esc(l.fromName||'?')}</b> veut devenir ton ami.</span><span class="row"><button class="btn primary" type="button" data-net="ok" data-id="${esc(l.id)}">Accepter</button><button class="btn" type="button" data-net="no" data-id="${esc(l.id)}">Refuser</button></span></div>`).join('');
+  const snt=NET.sent.map(l=>`<div class="row" style="justify-content:space-between"><span class="small">Demande envoyée à <b>${esc(l.toName||'?')}</b>, en attente.</span><button class="btn" type="button" data-net="no" data-id="${esc(l.id)}">Annuler</button></div>`).join('');
+  return `<div class="stack" style="margin-bottom:14px"><h3 class="sub" style="margin-top:0">Amis en ligne</h3>
+  <div class="row"><span>Ton code ami : <b class="code" style="font-size:18px">${esc(S.netTag||'…')}</b></span><button class="btn" type="button" data-net="copy">Copier</button></div>
+  <p class="small">Donne-le à tes amis. Quand ils l'ajoutent et que tu acceptes, vous vous voyez tous les deux, et vos équipes se mettent à jour toutes seules.</p>
+  <div class="row"><input class="code" id="netIn" placeholder="LEO-1234" autocomplete="off" style="max-width:220px"><button class="btn primary" type="button" data-net="add">Envoyer une demande</button><button class="btn" type="button" data-net="refresh">Actualiser</button></div>
+  ${inb?`<div class="band">${inb}</div>`:''}${snt}</div>`}
+{const _rp=renderPane;renderPane=function(){_rp();if(tab!=='amis'||!S)return;if(NET.st==='off')setTimeout(netInit,0);$('pane').insertAdjacentHTML('afterbegin',netBand());
+  const t=document.querySelector('.tab[data-tab="amis"]');if(t)t.classList.toggle('dot',NET.inbox.length>0)}}
+{const _pt=paintTabs;paintTabs=function(){_pt();const t=document.querySelector('.tab[data-tab="amis"]');if(t)t.classList.toggle('dot',NET.inbox.length>0)}}
+$('pane').addEventListener('click',e=>{const b=e.target.closest('[data-net]');if(b){const a=b.dataset.net,id=b.dataset.id,L=()=>NET.db.collection('pokenid_links');
+    if(a==='retry'){NET.st='off';netInit()}
+    if(a==='refresh')netAct(async()=>{await netPublish(true);await netRefresh()},'Amis à jour.');
+    if(a==='copy'){navigator.clipboard&&navigator.clipboard.writeText(S.netTag||'').then(()=>flash('Code ami copié.'),()=>flash(S.netTag))}
+    if(a==='add'){const v=$('netIn').value;netAct(()=>netAdd(v),'Demande envoyée. Ton ami doit l\'accepter.')}
+    if(a==='ok')netAct(async()=>{await L().doc(id).update({status:'ok'});await netRefresh()},'Vous êtes maintenant amis.');
+    if(a==='no')netAct(async()=>{await L().doc(id).delete();await netRefresh()});return}
+  const d=e.target.closest('[data-fdel]');if(d&&NET.st==='ok'){const f=S.friends[+d.dataset.fdel];if(f&&f.uid){const u=f.uid;NET.db.collection('pokenid_links').doc(NET.uid+'_'+u).delete().catch(()=>{});NET.db.collection('pokenid_links').doc(u+'_'+NET.uid).delete().catch(()=>{})}}},true);
+if(netCan()){setTimeout(()=>{if(S&&NET.st==='off')netInit()},2500);setInterval(()=>{if(NET.st==='ok'&&!document.hidden)netPublish(false).then(()=>netRefresh()).catch(()=>{})},10*60e3)}
 
 /* ---------- Démarrage et boucles ---------- */
 function boot(){

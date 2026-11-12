@@ -1306,8 +1306,10 @@ async function netInit(){if(NET.st==='ok'||NET.st==='loading')return;if(!netCan(
     NET.uid=A.currentUser.uid;NET.db=firebase.firestore();NET.st='ok';await netPublish(true);await netRefresh(true)}
   catch(e){NET.st='err';NET.err=netErr(e)}if(tab==='amis')renderPane()}
 const netTeam=()=>JSON.parse(JSON.stringify(myTeam().filter(p=>p&&p.stage!=='egg').map(packPet).slice(0,3)));
-async function netTag(){const db=NET.db;if(S.netTag){const d=await db.collection('pokenid_tags').doc(S.netTag).get();if(d.exists&&d.data().uid===NET.uid)return S.netTag}
-  const base=cleanName(trainer()).slice(0,10)||'DRESSEUR';for(let i=0;i<8;i++){const t=base+'-'+String(1000+Math.floor(Math.random()*9000));try{await db.collection('pokenid_tags').doc(t).set({uid:NET.uid});S.netTag=t;touch();save(true);return t}catch(e){if(!/permission/.test(e.code||''))throw e}}throw new Error('tag')}
+async function netTag(){const db=NET.db,want=cleanName(trainer()).slice(0,10)||'DRESSEUR';let old='';if(S.netTag){const d=await db.collection('pokenid_tags').doc(S.netTag).get();if(d.exists&&d.data().uid===NET.uid){if(S.netTag.split('-')[0]===want)return S.netTag;old=S.netTag}}
+  const t0=await netTagNew(want);if(old)db.collection('pokenid_tags').doc(old).delete().catch(()=>{});return t0}
+async function netTagNew(base){const db=NET.db;
+  for(let i=0;i<8;i++){const t=base+'-'+String(1000+Math.floor(Math.random()*9000));try{await db.collection('pokenid_tags').doc(t).set({uid:NET.uid});S.netTag=t;touch();save(true);return t}catch(e){if(!/permission/.test(e.code||''))throw e}}throw new Error('tag')}
 async function netPublish(force){if(NET.st!=='ok')return;const prof={name:String(trainer()).slice(0,16),tag:await netTag(),b:Math.min(16,S.badges.length|0),team:netTeam()},k=JSON.stringify(prof);if(!force&&k===NET.last)return;
   await NET.db.collection('pokenid_profiles').doc(NET.uid).set({...prof,at:firebase.firestore.FieldValue.serverTimestamp()});NET.last=k}
 async function netRefresh(first){if(NET.st!=='ok')return;const db=NET.db,L=db.collection('pokenid_links');
@@ -1332,9 +1334,10 @@ function netBand(){if(NET.st==='na')return `<div class="band"><b>Amis en ligne</
   const inb=NET.inbox.map(l=>`<div class="row" style="justify-content:space-between"><span><b>${esc(l.fromName||'?')}</b> veut devenir ton ami.</span><span class="row"><button class="btn primary" type="button" data-net="ok" data-id="${esc(l.id)}">Accepter</button><button class="btn" type="button" data-net="no" data-id="${esc(l.id)}">Refuser</button></span></div>`).join('');
   const snt=NET.sent.map(l=>`<div class="row" style="justify-content:space-between"><span class="small">Demande envoyée à <b>${esc(l.toName||'?')}</b>, en attente.</span><button class="btn" type="button" data-net="no" data-id="${esc(l.id)}">Annuler</button></div>`).join('');
   return `<div class="stack" style="margin-bottom:14px"><h3 class="sub" style="margin-top:0">Amis en ligne</h3>
-  <div class="row"><span>Ton code ami : <b class="code" style="font-size:18px">${esc(S.netTag||'…')}</b></span><button class="btn" type="button" data-net="copy">Copier</button></div>
+  <div class="row"><span>Ton code dresseur : <b class="code" style="font-size:18px">${esc(S.netTag||'…')}</b></span><button class="btn" type="button" data-net="copy">Copier</button></div>
   <p class="small">Donne-le à tes amis. Quand ils l'ajoutent et que tu acceptes, vous vous voyez tous les deux, et vos équipes se mettent à jour toutes seules.</p>
-  <div class="row"><input class="code" id="netIn" placeholder="LEO-1234" autocomplete="off" style="max-width:220px"><button class="btn primary" type="button" data-net="add">Envoyer une demande</button><button class="btn" type="button" data-net="refresh">Actualiser</button></div>
+  <label class="small" for="netIn">Code d'un ami (ou code d'échange reçu)</label>
+  <div class="row"><input class="code" id="netIn" placeholder="LEO-1234" autocomplete="off" autocapitalize="characters" spellcheck="false" style="max-width:260px"><button class="btn primary" type="button" data-net="add">Ajouter</button><button class="btn" type="button" data-net="refresh">Actualiser</button></div>
   ${inb?`<div class="band">${inb}</div>`:''}${snt}</div>`}
 {const _rp=renderPane;renderPane=function(){_rp();if(tab!=='amis'||!S)return;if(NET.st==='off')setTimeout(netInit,0);$('pane').insertAdjacentHTML('afterbegin',netBand());
   const t=document.querySelector('.tab[data-tab="amis"]');if(t)t.classList.toggle('dot',NET.inbox.length>0)}}
@@ -1343,7 +1346,7 @@ $('pane').addEventListener('click',e=>{const b=e.target.closest('[data-net]');if
     if(a==='retry'){NET.st='off';netInit()}
     if(a==='refresh')netAct(async()=>{const t0=Date.now();await netPublish(true);await netRefresh();return (window.FL_AT||0)>t0?'':'Amis à jour.'});
     if(a==='copy'){navigator.clipboard&&navigator.clipboard.writeText(S.netTag||'').then(()=>flash('Code ami copié.'),()=>flash(S.netTag))}
-    if(a==='add'){const v=$('netIn').value;netAct(()=>netAdd(v),'Demande envoyée. Ton ami doit l\'accepter.')}
+    if(a==='add'){const v=$('netIn').value.trim();if(!v)return;if(/^[A-Za-z0-9]{1,10}\s*-\s*\d{4}$/.test(v))netAct(()=>netAdd(v),'Demande envoyée. Ton ami doit l\'accepter.');else{inCodeVal=v;readCode()}}
     if(a==='ok')netAct(async()=>{await L().doc(id).update({status:'ok'});await netRefresh()},'Vous êtes maintenant amis.');
     if(a==='no')netAct(async()=>{await L().doc(id).delete();await netRefresh()});return}
   const d=e.target.closest('[data-fdel]');if(d&&NET.st==='ok'){const f=S.friends[+d.dataset.fdel];if(f&&f.uid){const u=f.uid;NET.db.collection('pokenid_links').doc(NET.uid+'_'+u).delete().catch(()=>{});NET.db.collection('pokenid_links').doc(u+'_'+NET.uid).delete().catch(()=>{})}}},true);
@@ -1433,7 +1436,7 @@ addEventListener('visibilitychange',()=>{if(!document.hidden&&NET.st==='ok'&&lis
 
 /* Pastille « Connecté : PSEUDO » visible sur tous les onglets */
 {const bk=document.querySelector('.book');if(bk&&!$('acctChip')){const c=document.createElement('button');c.id='acctChip';c.type='button';c.className='acct-chip';c.hidden=true;c.onclick=()=>{tab='options';renderPane()};bk.prepend(c)}}
-function acctChip(){const c=$('acctChip');if(!c)return;const on=typeof isAcct==='function'&&isAcct();c.hidden=!on;if(on)c.textContent='Connecté : '+pseudoOf(fbUser())}
+function acctChip(){const c=$('acctChip');if(!c)return;const on=typeof isAcct==='function'&&isAcct()&&!!pseudoOf(fbUser());c.hidden=!on;if(on)c.textContent='Connecté : '+pseudoOf(fbUser())}
 {const _rp=renderPane;renderPane=function(){_rp();acctChip()}}
 
 
@@ -1527,6 +1530,15 @@ $('pane').addEventListener('click',e=>{const b=e.target.closest('[data-ct-buy],[
   if(d.trOk){const t=TR.incoming.find(x=>x.id===d.trOk);if(t)tradeAccept(t)}
   if(d.trNo){const t=TR.incoming.find(x=>x.id===d.trNo);if(t)netAct(async()=>{await trCol().doc(t.id).update({status:'refused'}).catch(()=>{});await trRefresh();return ''},'Échange refusé.')}
   if(d.trCancel){const t=TR.outgoing.find(x=>x.id===d.trCancel);if(t)tradeCancel(t)}});
+
+
+/* Amis en ligne : un seul code dresseur, un seul champ de saisie */
+{const _rp=renderPane;renderPane=function(){_rp();if(!S||tab!=='amis'||NET.st!=='ok')return;const pane=$('pane'),h3=t=>[...pane.querySelectorAll('h3.sub')].find(h=>h.textContent.trim()===t);
+  const intro=[...pane.querySelectorAll('h2')].find(h=>h.textContent.trim()==='Amis');if(intro&&intro.nextElementSibling)intro.nextElementSibling.textContent='Partage ton code dresseur : tes amis te retrouvent, et vos équipes se mettent à jour toutes seules.';
+  const own=h3('Ton code de dresseur');if(own)own.parentElement.remove();
+  const inp=$('inCode');if(inp){const box=inp.parentElement;inp.nextElementSibling&&inp.nextElementSibling.remove();inp.remove();const t=h3('Coller un code reçu');if(t)t.remove();if(!box.textContent.trim()&&!box.querySelector('.card,select'))box.remove()}
+  const off=h3('Proposer un échange');if(off&&!Object.keys(S.pending||{}).length)off.parentElement.remove();
+  if(intro){const head=intro.parentElement,nm=$('trainer')&&$('trainer').parentElement;if(nm)pane.prepend(nm);pane.prepend(head);head.style.marginBottom='10px';if(nm)nm.style.marginBottom='14px'}}}
 
 /* ---------- Démarrage et boucles ---------- */
 function boot(){

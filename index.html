@@ -1472,8 +1472,12 @@ function ctSection(){S.tms=S.tms||{};const p=S.pet,ok=p&&p.stage!=='egg'&&!p.dea
   ${mine||'<p class="small">Tu n\'as aucune CT.</p>'}<details><summary>Acheter des CT</summary><div class="stack" style="margin-top:8px">${shop}</div></details></div>`}
 
 /* ---------- Pension : soins automatiques et entraînement ---------- */
-const TRAIN_XP=8,TRAIN_COST=5;
-function penTick(){if(!S||!S.pension)return;const now=Date.now(),news=[];if(S.pet)delete S.pet.pAt;
+const TRAIN_XP=8,TRAIN_COST=5,TRAIN_STEPS=[4,8];
+const trainSlots=()=>1+TRAIN_STEPS.filter(n=>S.badges.length>=n).length;
+const trainNext=()=>TRAIN_STEPS.find(n=>S.badges.length<n);
+const training=()=>S.pension.filter(p=>p.train&&p.stage!=='egg');
+function trainClamp(){const t=training(),max=trainSlots();if(t.length>max){t.slice(max).forEach(p=>p.train=false);touch()}}
+function penTick(){if(!S||!S.pension)return;trainClamp();const now=Date.now(),news=[];if(S.pet)delete S.pet.pAt;
   for(const p of S.pension){if(p.stage==='egg')continue;if(!p.pAt){p.pAt=now;continue}const h=(now-p.pAt)/36e5*PACE[S.opt.pace];if(h<.02)continue;p.pAt=now;
     for(const k of ['hunger','joy','energy','clean'])p[k]=Math.min(100,(p[k]||0)+25*h);Object.assign(p,{sick:false,ko:false,neg:0,poops:0,sickD:0,dirtH:0,tiredH:0,asleep:false});delete p.dead;
     if(p.train&&p.level<100){const cost=Math.ceil(TRAIN_COST*h);if((S.money||0)<cost){p.train=false;news.push(`${petName(p)} arrête l'entraînement : plus assez d'argent.`);continue}S.money-=cost;
@@ -1482,9 +1486,11 @@ function penTick(){if(!S||!S.pension)return;const now=Date.now(),news=[];if(S.pe
       if(SPR&&evoTimeOk(p)){const o=evoOpts(p);if(o.length===1&&!o[0].item){const old=nameOf(p.id);p.id=o[0].id;p.stageAge=p.ageH;S.dex[p.id]=2;if(p.shiny)S.shinies[p.id]=1;sprite(p.id,p.shiny);log(`À la pension, ${old} a évolué en ${nameOf(p.id)} !`,p.id);news.push(`${old} a évolué en ${nameOf(p.id)} à la pension !`)}}}}
   if(news.length){touch();news.forEach(n=>{if(!/évolué/.test(n))log(n)});flash(news.slice(-2).join(' '),5000)}}
 setInterval(()=>{try{penTick()}catch(e){}},60e3);
-function penDecorate(){document.querySelectorAll('#pane [data-take]').forEach(b=>{const p=S.pension[+b.dataset.take];if(!p||p.stage==='egg')return;const card=b.closest('.card'),sm=card&&card.querySelector('.small');
+function penDecorate(){const n=training().length,max=trainSlots(),nx=trainNext(),h2=$('pane').querySelector('h2');
+  if(h2&&!$('trainInfo'))h2.parentElement.insertAdjacentHTML('beforeend',`<p class="band" id="trainInfo"><b>Entraînement : ${n}/${max} place${max>1?'s':''} occupée${n>1?'s':''}.</b> ${nx?`Une place de plus à ${nx} badges (tu en as ${S.badges.length}).`:'Toutes les places sont débloquées.'}</p>`);
+  document.querySelectorAll('#pane [data-take]').forEach(b=>{const p=S.pension[+b.dataset.take];if(!p||p.stage==='egg')return;const card=b.closest('.card'),sm=card&&card.querySelector('.small');
   if(sm&&!sm.dataset.pen){sm.dataset.pen=1;const pct=p.level>=100?100:Math.floor(100*(p.xp||0)/(p.level*3));sm.insertAdjacentHTML('beforeend',` · ${p.train?`<b>à l'entraînement</b> (${pct} % du niveau suivant)`:'au repos'}${p.tm&&TMS[p.tm]?' · CT '+TMS[p.tm][0]:''}`)}
-  if(!card.querySelector('[data-train]'))b.insertAdjacentHTML('beforebegin',`<button class="btn ${p.train?'primary':''}" type="button" data-train="${p.uid}">${p.train?'Arrêter':'Entraîner'}</button>`)})}
+  if(!card.querySelector('[data-train]')){const full=!p.train&&n>=max;b.insertAdjacentHTML('beforebegin',`<button class="btn ${p.train?'primary':''}" type="button" data-train="${p.uid}" ${full?'aria-disabled="true" style="opacity:.55"':''}>${p.train?'Arrêter':'Entraîner'}</button>`)}})}
 
 /* ---------- Échanges en ligne entre amis ---------- */
 const TR={incoming:[],outgoing:[]};
@@ -1525,7 +1531,7 @@ $('pane').addEventListener('click',e=>{if(e.target.closest('[data-take]'))penTic
 $('pane').addEventListener('click',e=>{const b=e.target.closest('[data-ct-buy],[data-ct-learn],[data-train],[data-tr-to],[data-tr-ok],[data-tr-no],[data-tr-cancel]');if(!b)return;const d=b.dataset;
   if(d.ctBuy){const k=d.ctBuy,pr=PX(TMS[k][3]);if((S.money||0)<pr)return;S.money-=pr;S.tms[k]=(S.tms[k]||0)+1;beep(SND.ok);flash(`CT ${TMS[k][0]} achetée.`);touch();save(true);renderPane()}
   if(d.ctLearn){const k=d.ctLearn,p=S.pet;if(!tmOk(p,k)||!(S.tms[k]>0))return;const old=p.tm&&TMS[p.tm]?TMS[p.tm][0]:'';p.tm=k;S.tms[k]--;burst('star','#ffe08a',5);beep(SND.fan);flash(`${petName(p)} apprend ${TMS[k][0]}${old?` et oublie ${old}`:''} !`,4500);log(`${petName(p)} apprend ${TMS[k][0]} grâce à une CT.`,p.id);touch();save(true);renderPane()}
-  if(d.train){const p=S.pension.find(q=>q.uid===d.train);if(!p)return;penTick();p.train=!p.train;p.pAt=Date.now();flash(p.train?`${petName(p)} commence l'entraînement (${TRAIN_COST} ₽ par heure).`:`${petName(p)} se repose.`);touch();save(true);renderPane()}
+  if(d.train){const p=S.pension.find(q=>q.uid===d.train);if(!p)return;penTick();if(!p.train&&training().length>=trainSlots()){const nx=trainNext();flash(nx?`Tu peux entraîner ${trainSlots()} Pokémon à la fois. Gagne ${nx-S.badges.length} badge${nx-S.badges.length>1?'s':''} de plus pour une nouvelle place.`:`Toutes tes places d'entraînement sont prises.`,5000);beep(SND.no);return}p.train=!p.train;p.pAt=Date.now();flash(p.train?`${petName(p)} commence l'entraînement (${TRAIN_COST} ₽ par heure).`:`${petName(p)} se repose.`);touch();save(true);renderPane()}
   if(d.trTo){const f=S.friends.find(x=>x.uid===d.trTo);if(f)tradePropose(f)}
   if(d.trOk){const t=TR.incoming.find(x=>x.id===d.trOk);if(t)tradeAccept(t)}
   if(d.trNo){const t=TR.incoming.find(x=>x.id===d.trNo);if(t)netAct(async()=>{await trCol().doc(t.id).update({status:'refused'}).catch(()=>{});await trRefresh();return ''},'Échange refusé.')}

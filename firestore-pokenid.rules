@@ -39,3 +39,18 @@ match /pokenid_saves/{uid} {
     && request.resource.data.keys().hasOnly(['data', 'at', 'v'])
     && request.resource.data.data is string && request.resource.data.data.size() < 900000;
 }
+match /pokenid_trades/{id} {
+  allow read: if signedIn()
+    && (resource.data.from == request.auth.uid || resource.data.to == request.auth.uid);
+  allow create: if signedIn()
+    && request.resource.data.keys().hasOnly(['from', 'to', 'fromName', 'toName', 'offer', 'status', 'reply', 'at'])
+    && request.resource.data.from == request.auth.uid
+    && request.resource.data.to != request.auth.uid
+    && request.resource.data.status == 'offer'
+    && request.resource.data.offer is map;
+  allow update: if signedIn() && resource.data.to == request.auth.uid
+    && resource.data.status == 'offer'
+    && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'reply'])
+    && request.resource.data.status in ['done', 'refused'];
+  allow delete: if signedIn() && resource.data.from == request.auth.uid;
+}

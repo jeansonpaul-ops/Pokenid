@@ -29,3 +29,5 @@ Icônes des boutons et des onglets : sprites d'objets Pokémon issus de [msikma/
 ## Administration
 
 Le panneau Admin s'ouvre avec `#admin` à la fin de l'adresse. Il demande une clé GitHub (fine-grained token) avec l'accès « Contents : Read and write » sur ce dépôt uniquement. Les réglages publiés sont écrits dans `config.json` et lus par tous les joueurs au chargement.
+
+Sprites des champions d'arène : style HeartGold/SoulSilver (© Nintendo / Game Freak), récupérés via [christt105/pokemon-hof-generator](https://github.com/christt105/pokemon-hof-generator).

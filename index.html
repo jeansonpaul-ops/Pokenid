@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>body{margin:0}img{max-width:100%}</style></head><body>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>PokéNid</title><meta name="theme-color" content="#f7b13a"><link rel="manifest" href="manifest.webmanifest"><link rel="icon" type="image/png" href="icons/favicon-64.png"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="PokéNid"><meta name="apple-mobile-web-app-status-bar-style" content="default"><style>body{margin:0}img{max-width:100%}</style></head><body>
 <title>PokéNid</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1603,7 +1603,7 @@ $('pane').addEventListener('click',e=>{const a=e.target.closest('[data-pre]'),go
 
 /* ---------- Nouveautés : note de mise à jour par jour ---------- */
 const NEWS=[
- ['2026-11-13','Équipes de combat',['Avant une arène, la Ligue ou la Tour, tu choisis ton équipe.','L\'équipe peut compter jusqu\'à 6 Pokémon (au lieu de 3).','En combat, « Changer » envoie un autre Pokémon de ton équipe.','Vive-Attaque frappe toujours en premier, comme dans les vrais jeux.','Cet écran « Nouveautés » apparaît après chaque mise à jour, et l\'historique est dans le Journal.']],
+ ['2026-11-13','Équipes de combat',['Avant une arène, la Ligue ou la Tour, tu choisis ton équipe.','L\'équipe peut compter jusqu\'à 6 Pokémon (au lieu de 3).','En combat, « Changer » envoie un autre Pokémon de ton équipe.','Vive-Attaque frappe toujours en premier, comme dans les vrais jeux.','PokéNid s\'installe comme une appli, avec son icône sur l\'écran d\'accueil du téléphone ou de la tablette.','Cet écran « Nouveautés » apparaît après chaque mise à jour, et l\'historique est dans le Journal.']],
  ['2026-11-12','Pension, CT et 5e génération',['649 Pokémon : les 156 de la région d\'Unys arrivent.','Pokédex : filtres par région et fiche détaillée avec les lieux où trouver chaque Pokémon dans les vrais jeux.','Pension : tes Pokémon y sont nourris, lavés, soignés et reposés. Ils peuvent s\'entraîner et évoluer (1 place, puis 2 à 4 badges, 3 à 8 badges).','Capsules techniques : une 4e attaque en combat. Les champions d\'arène en donnent une à la première victoire.','Les champions d\'arène ont leur portrait.','Échanges en un clic avec tes amis en ligne.','Un seul code dresseur, plus court, à partager.','Délais entre deux bains, deux soins et deux couchers.']],
  ['2026-11-11','Survie, amis en ligne et comptes',['Ton Pokémon peut mourir de faim, de saleté ou de fatigue : surveille les alertes rouges ! (Jamais en combat.)','La saleté se voit : boue, puis slime et mouches.','Un délai entre deux repas.','Amis en ligne : demandes d\'amis, liste des joueurs en ligne, équipes mises à jour toutes seules.','Comptes avec pseudo et mot de passe pour jouer sur plusieurs appareils.','Nouveau logo, et toucher l\'écran suffit pour prendre son œuf.']],
  ['2026-11-10','Économie et nouveau décor',['Codes dresseur plus courts.','Les gains d\'argent sont plafonnés à 600 ₽ par jour pour les combats et mini-jeux.','Nouveaux objets et fonds de décor.','Icônes en couleur et titres plus lisibles.']]
@@ -1618,6 +1618,8 @@ setTimeout(()=>{try{if(S&&!S.newsSeen&&!S.pet){S.newsSeen=NEWS[0][0];touch()}els
 {const _rp=renderPane;renderPane=function(){_rp();if(!S||tab!=='journal')return;const top=$('pane').querySelector('.stack')||$('pane');if(!$('newsLink'))top.insertAdjacentHTML('afterbegin',`<div class="band" id="newsLink"><b>Mises à jour du jeu</b> : dernière le ${new Date(NEWS[0][0]+'T12:00').toLocaleDateString('fr-FR',{day:'numeric',month:'long'})}. <button class="btn" type="button" data-news="1">Voir les nouveautés</button></div>`)}}
 $('pane').addEventListener('click',e=>{if(e.target.closest('[data-news]'))showNews(true)});
 
+/* Installation sur l'écran d'accueil (version en ligne uniquement) */
+if('serviceWorker' in navigator&&location.protocol==='https:'&&!/claude\.ai|claudeusercontent/.test(location.host))navigator.serviceWorker.register('sw.js').catch(()=>{});
 /* ---------- Démarrage et boucles ---------- */
 function boot(){
   const l=readLocal();if(l)S=l;migrate();

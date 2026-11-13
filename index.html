@@ -99,6 +99,7 @@ details.online{border:2px solid color-mix(in oklab,var(--tab,#8a6cf0) 35%,#fff);
 #pane .card .row{flex-wrap:wrap;justify-content:flex-end}
 .acct-hint{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 16px;margin-top:22px;padding-top:16px;border-top:2px dashed color-mix(in oklab,var(--tab,#e04a6f) 30%,#fff)}.acct-hint>div{display:grid;gap:2px;min-width:0;flex:1 1 220px}
 .dexf{margin:2px 0 4px}.dexf .btn{padding:6px 12px}.dexf .btn .small{margin-left:6px;color:inherit;opacity:.8}.cell[data-dexid]{cursor:pointer}.cell.sel{outline:3px solid var(--tab,#3b6fd8);outline-offset:-3px}.dexdetail{border:2px solid color-mix(in oklab,var(--tab,#3b6fd8) 35%,#fff);border-radius:16px;padding:14px;background:#fff}.dexdetail img{width:88px;height:88px;object-fit:contain;image-rendering:pixelated}.locs{list-style:none;margin:6px 0 0;padding:0;display:grid;gap:6px}.locs li{display:grid;gap:1px;padding:7px 10px;border-radius:10px;background:#f3f5fa}
+.teampick{border:2px solid color-mix(in oklab,var(--tab,#e04a6f) 45%,#fff);border-radius:16px;padding:14px;background:#fff;margin-bottom:14px}.tdot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:2px;vertical-align:1px}.news-overlay{position:fixed;inset:0;z-index:50;background:rgba(16,20,31,.55);display:grid;place-items:center;padding:16px}.news-card{width:min(520px,100%);max-height:min(80vh,640px);overflow:auto;background:#fff;border-radius:20px;padding:18px 20px;box-shadow:0 10px 40px rgba(0,0,0,.3)}.news-card h2{margin:0 0 8px;font-family:var(--display)}.news{padding:10px 0;border-top:2px dashed #e6e9f2}.news:first-child{border-top:0}.news>.small::first-letter{text-transform:uppercase}.news ul{margin:6px 0 0;padding-left:20px;display:grid;gap:3px}
 .tabic{width:16px;height:16px;image-rendering:pixelated}
 .tab[aria-selected="true"]{background:var(--tc);border-color:var(--tc);color:#fff;box-shadow:0 3px 0 color-mix(in oklab,var(--tc) 60%,#000)}
 .tab:hover{background:color-mix(in oklab,var(--tc,#888) 10%,#fff)}.tab[aria-selected="true"]:hover{background:var(--tc)}
@@ -828,7 +829,7 @@ const LEAGUE=[{n:'Olga',t:15,l:56,team:[87,91,124,131]},{n:'Aldo',t:2,l:58,team:
 const KANTO=[0,1,2,3,4,5,6,7],JOH=[8,9,10,11,12,13,14,15],hasAll=a=>a.every(i=>S.badges.includes(i));
 const leagueSpec=(i,keep)=>({kind:'league',stage:i,who:LEAGUE[i].n,foes:LEAGUE[i].team.map((id,k,a)=>[id,LEAGUE[i].l-a.length+1+k]),keep});
 function towerSpec(f,keep){const l=Math.min(100,8+f*3),foes=[];for(let i=0;i<3;i++){let w=wildPick(),n=0;while((dex(w).flag||(f>8&&!depth(w)&&kids(w).length))&&n++<40)w=wildPick();foes.push([w,l])}return{kind:'tower',floor:f,who:`Étage ${f}`,foes,keep}}
-function myTeam(){const t=[S.pet];S.team=(S.team||[]).filter(u=>S.pension.some(x=>x.uid===u&&x.stage!=='egg'));S.team.forEach(u=>{const q=S.pension.find(x=>x.uid===u);if(q&&t.length<3)t.push(q)});return t}
+function myTeam(){const t=[S.pet];S.team=(S.team||[]).filter(u=>S.pension.some(x=>x.uid===u&&x.stage!=='egg'));S.team.forEach(u=>{const q=S.pension.find(x=>x.uid===u);if(q&&t.length<6)t.push(q)});return t}
 const fname=f=>f.p?petName(f.p):nameOf(f.id);
 function xpTo(p,n){if(!p||p.level>=100)return;p.xp=(p.xp||0)+Math.round(n*(1+.1*(S.legacy||0)));while(p.xp>=p.level*3&&p.level<100){p.xp-=p.level*3;p.level++}touch()}
 function startBattle(spec,chained){if(mode!=='idle'||!S.pet||S.pet.stage==='egg')return;const p=S.pet;if(!chained){if(!guard())return;if(p.energy<25){flash(`${petName(p)} est trop fatigué pour combattre.`);return}}else if(p.away||p.ko)return;closeMenu();
@@ -975,7 +976,7 @@ function renderGym(){if(!SPR)return noSpr();const p=S.pet,ok=p&&p.stage!=='egg',
   const gym=(i)=>{const y=GYMS[i],w=S.badges.includes(i),op=w||i===(i<8?nK:nJ);return `<div class="card ${op?'':'locked'}"><span class="leader"><img alt="" src="${LEADERS[i]||''}"><span class="badge" style="background:${w?T[y.t][1]:'#d5d9e3'}"></span></span><div><b>${esc(y.n)}</b><span class="small">Badge ${esc(y.b)}, type ${T[y.t][0]}, niveau ${y.l}</span></div>${ok&&op?`<button class="btn" type="button" data-gym="${i}">${w?'Revanche':'Défier'}</button>`:''}</div>`};
   return `<div class="stack"><div><h2>Combats</h2><p class="small">${ok?`${KANTO.filter(i=>S.badges.includes(i)).length} badges de Kanto, ${JOH.filter(i=>S.badges.includes(i)).length} de Johto. Chaque combat coûte de l'énergie à ${esc(petName(p))}.`:'Il te faut un compagnon pour combattre.'}</p></div>
   ${ok?`<div><h3 class="sub" style="margin-top:0">Équipe (${team.length}/3)</h3><p class="small">Ton compagnon mène l'équipe. Ajoute jusqu'à 2 Pokémon de la pension : ils gagnent aussi de l'expérience.</p>
-  ${cands.length?`<div class="row" style="margin-top:8px">${cands.map(q=>{const on=S.team.includes(q.uid);return `<button class="btn ${on?'primary':''}" type="button" data-team="${q.uid}" ${!on&&team.length>=3?'disabled':''}>${on?'✓ ':''}${esc(petName(q))} n.${q.level}</button>`}).join('')}</div>`:'<p class="small">Ta pension est vide : capture des Pokémon pour former une équipe.</p>'}</div>
+  ${cands.length?`<div class="row" style="margin-top:8px">${cands.map(q=>{const on=S.team.includes(q.uid);return `<button class="btn ${on?'primary':''}" type="button" data-team="${q.uid}" ${!on&&team.length>=6?'disabled':''}>${on?'✓ ':''}${esc(petName(q))} n.${q.level}</button>`}).join('')}</div>`:'<p class="small">Ta pension est vide : capture des Pokémon pour former une équipe.</p>'}</div>
   <div class="row"><button class="btn" type="button" data-x="train">Entraînement</button><span class="small">Un duel contre un Pokémon sauvage.</span></div>`:''}
   <div><h3 class="sub" style="margin-top:0">Arènes de Kanto</h3><div class="stack" style="gap:6px">${KANTO.map(gym).join('')}</div></div>
   <div><h3 class="sub" style="margin-top:0">Ligue Pokémon</h3><div class="card ${kan?'':'locked'}"><span class="badge" style="background:${lg?'#b8860b':'#d5d9e3'}"></span><div><b>Conseil 4 et Maître</b><span class="small">${kan?`Olga, Aldo, Agatha, Peter puis Régis, niveaux 53 à 65. Cinq combats d'affilée, l'équipe récupère un peu entre chacun.${lg?` Victoires : ${S.league.wins}.`:''}`:'Gagne les 8 badges de Kanto pour entrer.'}</span></div>${ok&&kan?'<button class="btn" type="button" data-x="league">Entrer</button>':''}</div></div>
@@ -989,7 +990,7 @@ function retire(){const p=S.pet;S.hof.unshift({id:p.id,nick:p.nick,shiny:p.shiny
 /* Actions du carnet */
 $('pane').addEventListener('click',e=>{const b=e.target.closest('button');if(!b||b.disabled)return;const D=b.dataset;
   if(D.buy){const[k,v]=D.buy.split(':');buy(k,v)}
-  if(D.team){const u=D.team,i=S.team.indexOf(u);if(i>=0)S.team.splice(i,1);else if(myTeam().length<3)S.team.push(u);touch();renderPane()}
+  if(D.team){const u=D.team,i=S.team.indexOf(u);if(i>=0)S.team.splice(i,1);else if(myTeam().length<6)S.team.push(u);touch();renderPane()}
   if(D.copy)copyText(D.copy);
   if(D.cancel){const v=S.pending[D.cancel];if(v){S.pension.push(v.p);delete S.pending[D.cancel];touch();renderPane()}}
   if(D.fview!==undefined){viewFriend=+D.fview;friendPet=null;renderPane()}
@@ -1573,6 +1574,48 @@ $('pane').addEventListener('click',e=>{const f=e.target.closest('[data-dexf]'),c
   if(f){DEXF=+f.dataset.dexf;DEXSEL=0;renderPane();return}
   if(x){DEXSEL=0;renderPane();return}
   if(c){DEXSEL=+c.dataset.dexid;renderPane();const d=$('dexDetail');if(d)d.scrollIntoView({behavior:reduce?'auto':'smooth',block:'nearest'})}});
+
+
+/* ---------- Équipe : choix avant arène / Ligue / Tour, jusqu'à 6, et changement en combat ---------- */
+const TEAM_MAX=6;
+let PRE=null;
+const preLabel=k=>k.kind==='gym'?`Arène de ${GYMS[k.gi].n}`:k.kind==='league'?'Ligue Pokémon':'Tour de combat';
+function preBox(){if(!PRE||!S.pet||S.pet.stage==='egg')return '';const c=S.pension.filter(q=>q.stage!=='egg'),n=1+PRE.sel.length,dot=q=>dex(q.id).t.map(t=>`<i class="tdot" style="background:${T[t][1]}" title="${T[t][0]}"></i>`).join('');
+  return `<div class="teampick" id="teamPick"><h3 class="sub" style="margin-top:0">${esc(preLabel(PRE))} : choisis ton équipe (${n}/${TEAM_MAX})</h3>
+  <p class="small">${esc(petName(S.pet))} mène l'équipe. Ajoute jusqu'à ${TEAM_MAX-1} Pokémon de la pension. En combat, « Changer » permet d'envoyer un autre Pokémon.</p>
+  <div class="row wrap"><span class="btn primary" aria-disabled="true">${dot(S.pet)} ${esc(petName(S.pet))} n.${S.pet.level} · chef</span>${c.map(q=>{const on=PRE.sel.includes(q.uid);return `<button class="btn ${on?'primary':''}" type="button" data-pre="${q.uid}" ${!on&&n>=TEAM_MAX?'disabled':''}>${dot(q)} ${on?'✓ ':''}${esc(petName(q))} n.${q.level}</button>`}).join('')}</div>
+  ${c.length?'':'<p class="small">Ta pension est vide : ton compagnon combattra seul.</p>'}
+  <div class="row" style="margin-top:10px"><button class="btn primary" type="button" data-pre-go="1">Combattre</button><button class="btn" type="button" data-pre-no="1">Annuler</button></div></div>`}
+{const _rp=renderPane;renderPane=function(){_rp();if(!S||tab!=='gym')return;
+  const h=$('pane').querySelector('h3.sub');if(h&&/Équipe \(/.test(h.textContent))h.textContent=h.textContent.replace(/\/3\)/,`/${TEAM_MAX})`);
+  const p=[...$('pane').querySelectorAll('p.small')].find(x=>/Ajoute jusqu'à 2/.test(x.textContent));if(p)p.textContent=`Ton compagnon mène l'équipe. Ajoute jusqu'à ${TEAM_MAX-1} Pokémon de la pension : ils gagnent aussi de l'expérience. Tu peux aussi la choisir juste avant chaque arène, la Ligue ou la Tour.`;
+  if(PRE){const top=$('pane').querySelector('.stack');(top||$('pane')).insertAdjacentHTML('afterbegin',preBox())}}}
+$('pane').addEventListener('click',e=>{if(!S||!S.pet||S.pet.stage==='egg'||mode!=='idle')return;const g=e.target.closest('[data-gym]'),x=e.target.closest('[data-x="league"],[data-x="tower"]');if(!g&&!x)return;
+  e.stopPropagation();e.preventDefault();PRE=g?{kind:'gym',gi:+g.dataset.gym,sel:[...(S.team||[])]}:{kind:x.dataset.x,sel:[...(S.team||[])]};PRE.sel=PRE.sel.filter(u=>S.pension.some(q=>q.uid===u&&q.stage!=='egg')).slice(0,TEAM_MAX-1);
+  renderPane();const b=$('teamPick');if(b)b.scrollIntoView({behavior:reduce?'auto':'smooth',block:'start'})},true);
+$('pane').addEventListener('click',e=>{const a=e.target.closest('[data-pre]'),go=e.target.closest('[data-pre-go]'),no=e.target.closest('[data-pre-no]');if(!PRE)return;
+  if(a){const u=a.dataset.pre,i=PRE.sel.indexOf(u);if(i>=0)PRE.sel.splice(i,1);else if(PRE.sel.length<TEAM_MAX-1)PRE.sel.push(u);renderPane();return}
+  if(no){PRE=null;renderPane();return}
+  if(go){const k=PRE;PRE=null;S.team=k.sel.slice();touch();renderPane();if(k.kind==='gym')startBattle(k.gi);else if(k.kind==='league')startBattle(leagueSpec(0));else startBattle(towerSpec(1));if(mode==='battle')setTimeout(lcdInView,80)}});
+
+
+
+/* ---------- Nouveautés : note de mise à jour par jour ---------- */
+const NEWS=[
+ ['2026-11-13','Équipes de combat',['Avant une arène, la Ligue ou la Tour, tu choisis ton équipe.','L\'équipe peut compter jusqu\'à 6 Pokémon (au lieu de 3).','En combat, « Changer » envoie un autre Pokémon de ton équipe.','Cet écran « Nouveautés » apparaît après chaque mise à jour, et l\'historique est dans le Journal.']],
+ ['2026-11-12','Pension, CT et 5e génération',['649 Pokémon : les 156 de la région d\'Unys arrivent.','Pokédex : filtres par région et fiche détaillée avec les lieux où trouver chaque Pokémon dans les vrais jeux.','Pension : tes Pokémon y sont nourris, lavés, soignés et reposés. Ils peuvent s\'entraîner et évoluer (1 place, puis 2 à 4 badges, 3 à 8 badges).','Capsules techniques : une 4e attaque en combat. Les champions d\'arène en donnent une à la première victoire.','Les champions d\'arène ont leur portrait.','Échanges en un clic avec tes amis en ligne.','Un seul code dresseur, plus court, à partager.','Délais entre deux bains, deux soins et deux couchers.']],
+ ['2026-11-11','Survie, amis en ligne et comptes',['Ton Pokémon peut mourir de faim, de saleté ou de fatigue : surveille les alertes rouges ! (Jamais en combat.)','La saleté se voit : boue, puis slime et mouches.','Un délai entre deux repas.','Amis en ligne : demandes d\'amis, liste des joueurs en ligne, équipes mises à jour toutes seules.','Comptes avec pseudo et mot de passe pour jouer sur plusieurs appareils.','Nouveau logo, et toucher l\'écran suffit pour prendre son œuf.']],
+ ['2026-11-10','Économie et nouveau décor',['Codes dresseur plus courts.','Les gains d\'argent sont plafonnés à 600 ₽ par jour pour les combats et mini-jeux.','Nouveaux objets et fonds de décor.','Icônes en couleur et titres plus lisibles.']]
+];
+const newsHtml=list=>list.map(([d,t,items])=>`<div class="news"><div class="small">${new Date(d+'T12:00').toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'})}</div><b>${esc(t)}</b><ul>${items.map(i=>`<li>${esc(i)}</li>`).join('')}</ul></div>`).join('');
+function showNews(force){if(!S)return;const seen=S.newsSeen||'',fresh=NEWS.filter(n=>n[0]>seen);if(!force&&(!fresh.length||!seen&&!S.pet))return;
+  const list=force?NEWS:fresh.slice(0,3);let o=$('newsBox');if(o)o.remove();o=document.createElement('div');o.id='newsBox';o.className='news-overlay';o.setAttribute('role','dialog');o.setAttribute('aria-modal','true');o.setAttribute('aria-label','Nouveautés');
+  o.innerHTML=`<div class="news-card"><h2>Nouveautés</h2><div class="news-list">${newsHtml(list)}</div><div class="row" style="justify-content:flex-end;margin-top:12px"><button class="btn primary" type="button" id="newsOk">C'est parti !</button></div></div>`;
+  document.body.appendChild(o);const close=()=>{o.remove();S.newsSeen=NEWS[0][0];touch();save(true)};$('newsOk').onclick=close;o.addEventListener('click',e=>{if(e.target===o)close()});$('newsOk').focus()}
+/* Premier lancement : on ne montre rien, on retient la date. Ensuite : à chaque nouvelle note. */
+setTimeout(()=>{try{if(S&&!S.newsSeen&&!S.pet){S.newsSeen=NEWS[0][0];touch()}else showNews(false)}catch(e){}},2200);
+{const _rp=renderPane;renderPane=function(){_rp();if(!S||tab!=='journal')return;const top=$('pane').querySelector('.stack')||$('pane');if(!$('newsLink'))top.insertAdjacentHTML('afterbegin',`<div class="band" id="newsLink"><b>Mises à jour du jeu</b> : dernière le ${new Date(NEWS[0][0]+'T12:00').toLocaleDateString('fr-FR',{day:'numeric',month:'long'})}. <button class="btn" type="button" data-news="1">Voir les nouveautés</button></div>`)}}
+$('pane').addEventListener('click',e=>{if(e.target.closest('[data-news]'))showNews(true)});
 
 /* ---------- Démarrage et boucles ---------- */
 function boot(){

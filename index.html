@@ -100,6 +100,7 @@ details.online{border:2px solid color-mix(in oklab,var(--tab,#8a6cf0) 35%,#fff);
 .acct-hint{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 16px;margin-top:22px;padding-top:16px;border-top:2px dashed color-mix(in oklab,var(--tab,#e04a6f) 30%,#fff)}.acct-hint>div{display:grid;gap:2px;min-width:0;flex:1 1 220px}
 .dexf{margin:2px 0 4px}.dexf .btn{padding:6px 12px}.dexf .btn .small{margin-left:6px;color:inherit;opacity:.8}.cell[data-dexid]{cursor:pointer}.cell.sel{outline:3px solid var(--tab,#3b6fd8);outline-offset:-3px}.dexdetail{border:2px solid color-mix(in oklab,var(--tab,#3b6fd8) 35%,#fff);border-radius:16px;padding:14px;background:#fff}.dexdetail img{width:88px;height:88px;object-fit:contain;image-rendering:pixelated}.locs{list-style:none;margin:6px 0 0;padding:0;display:grid;gap:6px}.locs li{display:grid;gap:1px;padding:7px 10px;border-radius:10px;background:#f3f5fa}
 .teampick{border:2px solid color-mix(in oklab,var(--tab,#e04a6f) 45%,#fff);border-radius:16px;padding:14px;background:#fff;margin-bottom:14px}.tdot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:2px;vertical-align:1px}.news-overlay{position:fixed;inset:0;z-index:50;background:rgba(16,20,31,.55);display:grid;place-items:center;padding:16px}.news-card{width:min(520px,100%);max-height:min(80vh,640px);overflow:auto;background:#fff;border-radius:20px;padding:18px 20px;box-shadow:0 10px 40px rgba(0,0,0,.3)}.news-card h2{margin:0 0 8px;font-family:var(--display)}.news{padding:10px 0;border-top:2px dashed #e6e9f2}.news:first-child{border-top:0}.news>.small::first-letter{text-transform:uppercase}.news ul{margin:6px 0 0;padding-left:20px;display:grid;gap:3px}
+.expebox{margin-bottom:14px}.awaycard{opacity:.85;background:repeating-linear-gradient(135deg,#fff,#fff 10px,#f6f1e4 10px,#f6f1e4 20px)}
 .tabic{width:16px;height:16px;image-rendering:pixelated}
 .tab[aria-selected="true"]{background:var(--tc);border-color:var(--tc);color:#fff;box-shadow:0 3px 0 color-mix(in oklab,var(--tc) 60%,#000)}
 .tab:hover{background:color-mix(in oklab,var(--tc,#888) 10%,#fff)}.tab[aria-selected="true"]:hover{background:var(--tc)}
@@ -1581,7 +1582,7 @@ $('pane').addEventListener('click',e=>{const f=e.target.closest('[data-dexf]'),c
 const TEAM_MAX=6;
 let PRE=null;
 const preLabel=k=>k.kind==='gym'?`Arène de ${GYMS[k.gi].n}`:k.kind==='league'?'Ligue Pokémon':'Tour de combat';
-function preBox(){if(!PRE||!S.pet||S.pet.stage==='egg')return '';const c=S.pension.filter(q=>q.stage!=='egg'),n=1+PRE.sel.length,dot=q=>dex(q.id).t.map(t=>`<i class="tdot" style="background:${T[t][1]}" title="${T[t][0]}"></i>`).join('');
+function preBox(){if(!PRE||!S.pet||S.pet.stage==='egg')return '';const c=S.pension.filter(q=>q.stage!=='egg'&&!q.away),n=1+PRE.sel.length,dot=q=>dex(q.id).t.map(t=>`<i class="tdot" style="background:${T[t][1]}" title="${T[t][0]}"></i>`).join('');
   return `<div class="teampick" id="teamPick"><h3 class="sub" style="margin-top:0">${esc(preLabel(PRE))} : choisis ton équipe (${n}/${TEAM_MAX})</h3>
   <p class="small">${esc(petName(S.pet))} mène l'équipe. Ajoute jusqu'à ${TEAM_MAX-1} Pokémon de la pension. En combat, « Changer » permet d'envoyer un autre Pokémon.</p>
   <div class="row wrap"><span class="btn primary" aria-disabled="true">${dot(S.pet)} ${esc(petName(S.pet))} n.${S.pet.level} · chef</span>${c.map(q=>{const on=PRE.sel.includes(q.uid);return `<button class="btn ${on?'primary':''}" type="button" data-pre="${q.uid}" ${!on&&n>=TEAM_MAX?'disabled':''}>${dot(q)} ${on?'✓ ':''}${esc(petName(q))} n.${q.level}</button>`}).join('')}</div>
@@ -1592,7 +1593,7 @@ function preBox(){if(!PRE||!S.pet||S.pet.stage==='egg')return '';const c=S.pensi
   const p=[...$('pane').querySelectorAll('p.small')].find(x=>/Ajoute jusqu'à 2/.test(x.textContent));if(p)p.textContent=`Ton compagnon mène l'équipe. Ajoute jusqu'à ${TEAM_MAX-1} Pokémon de la pension : ils gagnent aussi de l'expérience. Tu peux aussi la choisir juste avant chaque arène, la Ligue ou la Tour.`;
   if(PRE){const top=$('pane').querySelector('.stack');(top||$('pane')).insertAdjacentHTML('afterbegin',preBox())}}}
 $('pane').addEventListener('click',e=>{if(!S||!S.pet||S.pet.stage==='egg'||mode!=='idle')return;const g=e.target.closest('[data-gym]'),x=e.target.closest('[data-x="league"],[data-x="tower"]');if(!g&&!x)return;
-  e.stopPropagation();e.preventDefault();PRE=g?{kind:'gym',gi:+g.dataset.gym,sel:[...(S.team||[])]}:{kind:x.dataset.x,sel:[...(S.team||[])]};PRE.sel=PRE.sel.filter(u=>S.pension.some(q=>q.uid===u&&q.stage!=='egg')).slice(0,TEAM_MAX-1);
+  e.stopPropagation();e.preventDefault();PRE=g?{kind:'gym',gi:+g.dataset.gym,sel:[...(S.team||[])]}:{kind:x.dataset.x,sel:[...(S.team||[])]};PRE.sel=PRE.sel.filter(u=>S.pension.some(q=>q.uid===u&&q.stage!=='egg'&&!q.away)).slice(0,TEAM_MAX-1);
   renderPane();const b=$('teamPick');if(b)b.scrollIntoView({behavior:reduce?'auto':'smooth',block:'start'})},true);
 $('pane').addEventListener('click',e=>{const a=e.target.closest('[data-pre]'),go=e.target.closest('[data-pre-go]'),no=e.target.closest('[data-pre-no]');if(!PRE)return;
   if(a){const u=a.dataset.pre,i=PRE.sel.indexOf(u);if(i>=0)PRE.sel.splice(i,1);else if(PRE.sel.length<TEAM_MAX-1)PRE.sel.push(u);renderPane();return}
@@ -1603,7 +1604,7 @@ $('pane').addEventListener('click',e=>{const a=e.target.closest('[data-pre]'),go
 
 /* ---------- Nouveautés : note de mise à jour par jour ---------- */
 const NEWS=[
- ['2026-11-13','Équipes de combat',['Avant une arène, la Ligue ou la Tour, tu choisis ton équipe.','L\'équipe peut compter jusqu\'à 6 Pokémon (au lieu de 3).','En combat, « Changer » envoie un autre Pokémon de ton équipe.','Vive-Attaque frappe toujours en premier, comme dans les vrais jeux.','PokéNid s\'installe comme une appli, avec son icône sur l\'écran d\'accueil du téléphone ou de la tablette.','Cet écran « Nouveautés » apparaît après chaque mise à jour, et l\'historique est dans le Journal.']],
+ ['2026-11-13','Équipes de combat',['Avant une arène, la Ligue ou la Tour, tu choisis ton équipe.','L\'équipe peut compter jusqu\'à 6 Pokémon (au lieu de 3).','En combat, « Changer » envoie un autre Pokémon de ton équipe.','Vive-Attaque frappe toujours en premier, comme dans les vrais jeux.','PokéNid s\'installe comme une appli, avec son icône sur l\'écran d\'accueil du téléphone ou de la tablette.','Expéditions : tu peux envoyer un Pokémon de la pension et garder ton compagnon. Les voyageurs apparaissent dans la Pension avec leur butin à ouvrir au retour.','Cet écran « Nouveautés » apparaît après chaque mise à jour, et l\'historique est dans le Journal.']],
  ['2026-11-12','Pension, CT et 5e génération',['649 Pokémon : les 156 de la région d\'Unys arrivent.','Pokédex : filtres par région et fiche détaillée avec les lieux où trouver chaque Pokémon dans les vrais jeux.','Pension : tes Pokémon y sont nourris, lavés, soignés et reposés. Ils peuvent s\'entraîner et évoluer (1 place, puis 2 à 4 badges, 3 à 8 badges).','Capsules techniques : une 4e attaque en combat. Les champions d\'arène en donnent une à la première victoire.','Les champions d\'arène ont leur portrait.','Échanges en un clic avec tes amis en ligne.','Un seul code dresseur, plus court, à partager.','Délais entre deux bains, deux soins et deux couchers.']],
  ['2026-11-11','Survie, amis en ligne et comptes',['Ton Pokémon peut mourir de faim, de saleté ou de fatigue : surveille les alertes rouges ! (Jamais en combat.)','La saleté se voit : boue, puis slime et mouches.','Un délai entre deux repas.','Amis en ligne : demandes d\'amis, liste des joueurs en ligne, équipes mises à jour toutes seules.','Comptes avec pseudo et mot de passe pour jouer sur plusieurs appareils.','Nouveau logo, et toucher l\'écran suffit pour prendre son œuf.']],
  ['2026-11-10','Économie et nouveau décor',['Codes dresseur plus courts.','Les gains d\'argent sont plafonnés à 600 ₽ par jour pour les combats et mini-jeux.','Nouveaux objets et fonds de décor.','Icônes en couleur et titres plus lisibles.']]
@@ -1620,6 +1621,31 @@ $('pane').addEventListener('click',e=>{if(e.target.closest('[data-news]'))showNe
 
 /* Installation sur l'écran d'accueil (version en ligne uniquement) */
 if('serviceWorker' in navigator&&location.protocol==='https:'&&!/claude\.ai|claudeusercontent/.test(location.host))navigator.serviceWorker.register('sw.js').catch(()=>{});
+
+/* ---------- Expéditions : envoyer un Pokémon de la pension, suivi dans la pension ---------- */
+const expeOk=q=>q&&q.stage!=='egg'&&!q.away&&!q.dead&&!q.ko;
+{const _se=startExpe;startExpe=function(h){const me=S.pet,cands=S.pension.filter(q=>expeOk(q)&&!q.train);
+  if(!cands.length)return _se(h);closeMenu();
+  openMenu('Qui part en expédition ?',[...(expeOk(me)?[{l:`${petName(me)} (ton compagnon, tu ne pourras plus jouer avec lui)`,f:()=>_se(h)}]:[]),...cands.map(q=>({l:`${petName(q)} n.${q.level} (pension)`,f:()=>sendPen(q,h)}))])}}
+function sendPen(q,h){closeMenu();q.away={h,until:Date.now()+h*36e5/PACE[S.opt.pace]};q.train=false;mission('expe');log(fill(`{n} part en expédition pour ${h} h depuis la pension.`,q));beep(SND.ok);
+  flash(`${petName(q)} part en expédition. Suis son retour dans la Pension.`,4500);touch();save(true);if(tab==='pension')renderPane()}
+function lootPen(q){if(!q||!q.away||!q.away.done)return;const keep=S.pet;S.pet=q;try{expeBack()}finally{S.pet=keep}q.pAt=Date.now();delete q.lastTick;touch();save(true);paint();renderPane()}
+{const _pt=penTick;penTick=function(){if(S&&S.pension){const now=Date.now();for(const q of S.pension){if(!q.away)continue;q.pAt=now;q.train=false;
+    if(!q.away.done&&now>=q.away.until){q.away.done=true;touch();flash(`${petName(q)} est revenu d'expédition ! Ouvre son butin dans la Pension.`,6000);beep(SND.fan)}}}
+  if(!S||!S.pension)return _pt();const keep=S.pension;S.pension=keep.filter(q=>!q.away);try{_pt()}finally{S.pension=keep}}}
+setInterval(()=>{try{if(S&&S.pension.some(q=>q.away&&!q.away.done&&Date.now()>=q.away.until))penTick()}catch(e){}},15e3);
+{const _mt=myTeam;myTeam=function(){return _mt().filter(q=>q===S.pet||!q.away)}}
+{const _tp=tradePick;tradePick=function(title,cb){const keep=S.pension;S.pension=keep.filter(q=>!q.away);try{_tp(title,cb)}finally{S.pension=keep}}}
+function awayBox(){const list=[...(S.pet&&S.pet.away?[[S.pet,true]]:[]),...S.pension.filter(q=>q.away).map(q=>[q,false])];if(!list.length)return '';
+  return `<div class="stack expebox"><h3 class="sub" style="margin-top:0">En expédition</h3>${list.map(([q,me])=>{const a=q.away,done=a.done||Date.now()>=a.until;
+    return `<div class="card"><img alt="" src="${url(q.id,q.shiny)}"><div><b>${esc(petName(q))}</b><span class="small">${me?'ton compagnon · ':''}${done?'de retour !':`retour dans ${fmtGap(a.until-Date.now())}`}</span></div><div class="row">${done?(me?'<span class="small">Touche l\'écran pour voir son butin</span>':`<button class="btn primary" type="button" data-loot="${q.uid}">Ouvrir le butin</button>`):''}</div></div>`}).join('')}
+    ${S.pet&&S.pet.away?'<p class="small">En attendant son retour, tu peux reprendre un autre Pokémon de la pension pour jouer : ton compagnon y reviendra avec son butin.</p>':''}</div>`}
+{const _rp=renderPane;renderPane=function(){_rp();if(!S||tab!=='pension')return;const h=awayBox();if(h){const top=$('pane').querySelector('h2');(top?top.parentElement:$('pane')).insertAdjacentHTML('afterend',h)}
+  document.querySelectorAll('#pane [data-take]').forEach(b=>{const q=S.pension[+b.dataset.take];if(!q||!q.away)return;const card=b.closest('.card');if(!card)return;card.classList.add('awaycard');
+    card.querySelectorAll('button').forEach(x=>{if(!x.dataset.loot)x.remove()});const row=card.querySelector('.row')||card;const done=q.away.done||Date.now()>=q.away.until;
+    row.insertAdjacentHTML('beforeend',done?`<button class="btn primary" type="button" data-loot="${q.uid}">Ouvrir le butin</button>`:`<span class="small">En expédition · retour dans ${fmtGap(q.away.until-Date.now())}</span>`)})}}
+$('pane').addEventListener('click',e=>{const b=e.target.closest('[data-loot]');if(!b)return;const q=S.pension.find(x=>x.uid===b.dataset.loot);if(q){if(!q.away.done&&Date.now()>=q.away.until)q.away.done=true;lootPen(q)}});
+
 /* ---------- Démarrage et boucles ---------- */
 function boot(){
   const l=readLocal();if(l)S=l;migrate();

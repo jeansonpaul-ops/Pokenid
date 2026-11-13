@@ -848,7 +848,8 @@ function afterTurn(){if(mode!=='battle')return;if(G.foe.hp<=0)return nextFoe();i
 function swapTo(f){closeMenu();G.me=f;setMsg(`${fname(f)}, à toi !`);setTimeout(()=>act(G.foe,G.me,foeMove(),nameOf(G.foe.id),'me',afterTurn),1000)}
 function round(m){closeMenu();const{me,foe}=G,boost=1+((me.p&&me.p.bond)||0)/500,mine=m.heal?m:Object.assign({},m,{pw:m.pw*boost}),his=foeMove(),nm=fname(me),fn=nameOf(foe.id);
   const A=()=>act(me,foe,mine,nm,'foe',()=>foe.hp<=0||me.hp<=0?afterTurn():first?B2():afterTurn()),B2=()=>act(foe,me,his,fn,'me',afterTurn),B=()=>act(foe,me,his,fn,'me',()=>me.hp<=0?afterTurn():A2()),A2=()=>act(me,foe,mine,nm,'foe',afterTurn);
-  const first=m.heal||me.sp>=foe.sp;first?A():B()}
+  const pr=x=>x&&PRIO.includes(x.n)?1:0,first=m.heal||pr(mine)>pr(his)||(pr(mine)===pr(his)&&me.sp>=foe.sp);first?A():B()}
+const PRIO=['Vive-Attaque'];
 function nextFoe(){const q=G.queue,i=q.indexOf(G.foe),gain=G.foe.l*2+6;G.mine.forEach(f=>{if(f.hp>0){if(f.p===S.pet)xp(gain);else xpTo(f.p,Math.round(gain*.7))}});earn(G.foe.l*2,1);
   if(i+1<q.length){G.foe=q[i+1];G.me.hp=Math.min(G.me.max,G.me.hp+Math.round(G.me.max*.15));setMsg(`${G.who} envoie ${nameOf(G.foe.id)} !`);beep(SND.ok);setTimeout(battleMenu,1200)}else endBattle(true)}
 function endBattle(win,fled){const p=S.pet,sp=G.spec||{},kind=G.kind,gi=G.gi,who=G.who,mine=G.mine;mode='idle';G=null;closeMenu();p.energy=clamp(p.energy-(fled?4:12));p.hunger=clamp(p.hunger-5);
@@ -1602,7 +1603,7 @@ $('pane').addEventListener('click',e=>{const a=e.target.closest('[data-pre]'),go
 
 /* ---------- Nouveautés : note de mise à jour par jour ---------- */
 const NEWS=[
- ['2026-11-13','Équipes de combat',['Avant une arène, la Ligue ou la Tour, tu choisis ton équipe.','L\'équipe peut compter jusqu\'à 6 Pokémon (au lieu de 3).','En combat, « Changer » envoie un autre Pokémon de ton équipe.','Cet écran « Nouveautés » apparaît après chaque mise à jour, et l\'historique est dans le Journal.']],
+ ['2026-11-13','Équipes de combat',['Avant une arène, la Ligue ou la Tour, tu choisis ton équipe.','L\'équipe peut compter jusqu\'à 6 Pokémon (au lieu de 3).','En combat, « Changer » envoie un autre Pokémon de ton équipe.','Vive-Attaque frappe toujours en premier, comme dans les vrais jeux.','Cet écran « Nouveautés » apparaît après chaque mise à jour, et l\'historique est dans le Journal.']],
  ['2026-11-12','Pension, CT et 5e génération',['649 Pokémon : les 156 de la région d\'Unys arrivent.','Pokédex : filtres par région et fiche détaillée avec les lieux où trouver chaque Pokémon dans les vrais jeux.','Pension : tes Pokémon y sont nourris, lavés, soignés et reposés. Ils peuvent s\'entraîner et évoluer (1 place, puis 2 à 4 badges, 3 à 8 badges).','Capsules techniques : une 4e attaque en combat. Les champions d\'arène en donnent une à la première victoire.','Les champions d\'arène ont leur portrait.','Échanges en un clic avec tes amis en ligne.','Un seul code dresseur, plus court, à partager.','Délais entre deux bains, deux soins et deux couchers.']],
  ['2026-11-11','Survie, amis en ligne et comptes',['Ton Pokémon peut mourir de faim, de saleté ou de fatigue : surveille les alertes rouges ! (Jamais en combat.)','La saleté se voit : boue, puis slime et mouches.','Un délai entre deux repas.','Amis en ligne : demandes d\'amis, liste des joueurs en ligne, équipes mises à jour toutes seules.','Comptes avec pseudo et mot de passe pour jouer sur plusieurs appareils.','Nouveau logo, et toucher l\'écran suffit pour prendre son œuf.']],
  ['2026-11-10','Économie et nouveau décor',['Codes dresseur plus courts.','Les gains d\'argent sont plafonnés à 600 ₽ par jour pour les combats et mini-jeux.','Nouveaux objets et fonds de décor.','Icônes en couleur et titres plus lisibles.']]

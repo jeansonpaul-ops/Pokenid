@@ -54,3 +54,23 @@ match /pokenid_trades/{id} {
     && request.resource.data.status in ['done', 'refused'];
   allow delete: if signedIn() && resource.data.from == request.auth.uid;
 }
+// profils : champ 'st' (map) autorisé pour le classement de la semaine
+match /pokenid_goal/{wk} {
+  allow read: if signedIn();
+  allow create: if signedIn()
+    && request.resource.data.keys().hasOnly(['t', 'target', 'count'])
+    && request.resource.data.count == 1
+    && request.resource.data.t is int && request.resource.data.target is int
+    && request.resource.data.target <= 1000;
+  allow update: if signedIn()
+    && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['count'])
+    && request.resource.data.count == resource.data.count + 1;
+}
+match /pokenid_refs/{uid} {
+  allow read: if signedIn()
+    && (request.auth.uid == uid || resource.data.by == request.auth.uid);
+  allow create: if signedIn() && request.auth.uid == uid
+    && request.resource.data.keys().hasOnly(['by', 'name', 'at'])
+    && request.resource.data.by is string
+    && request.resource.data.by != uid;
+}

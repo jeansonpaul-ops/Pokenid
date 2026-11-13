@@ -101,6 +101,7 @@ details.online{border:2px solid color-mix(in oklab,var(--tab,#8a6cf0) 35%,#fff);
 .dexf{margin:2px 0 4px}.dexf .btn{padding:6px 12px}.dexf .btn .small{margin-left:6px;color:inherit;opacity:.8}.cell[data-dexid]{cursor:pointer}.cell.sel{outline:3px solid var(--tab,#3b6fd8);outline-offset:-3px}.dexdetail{border:2px solid color-mix(in oklab,var(--tab,#3b6fd8) 35%,#fff);border-radius:16px;padding:14px;background:#fff}.dexdetail img{width:88px;height:88px;object-fit:contain;image-rendering:pixelated}.locs{list-style:none;margin:6px 0 0;padding:0;display:grid;gap:6px}.locs li{display:grid;gap:1px;padding:7px 10px;border-radius:10px;background:#f3f5fa}
 .teampick{border:2px solid color-mix(in oklab,var(--tab,#e04a6f) 45%,#fff);border-radius:16px;padding:14px;background:#fff;margin-bottom:14px}.tdot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:2px;vertical-align:1px}.news-overlay{position:fixed;inset:0;z-index:50;background:rgba(16,20,31,.55);display:grid;place-items:center;padding:16px}.news-card{width:min(520px,100%);max-height:min(80vh,640px);overflow:auto;background:#fff;border-radius:20px;padding:18px 20px;box-shadow:0 10px 40px rgba(0,0,0,.3)}.news-card h2{margin:0 0 8px;font-family:var(--display)}.news{padding:10px 0;border-top:2px dashed #e6e9f2}.news:first-child{border-top:0}.news>.small::first-letter{text-transform:uppercase}.news ul{margin:6px 0 0;padding-left:20px;display:grid;gap:3px}
 .expebox{margin-bottom:14px}.awaycard{opacity:.85;background:repeating-linear-gradient(135deg,#fff,#fff 10px,#f6f1e4 10px,#f6f1e4 20px)}
+.streak{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:10px}.sday{display:grid;gap:2px;text-align:center;padding:8px 2px;border-radius:12px;background:#f1f3f8;font-size:11px;line-height:1.2}.sday b{font-size:13px}.sday.done{background:#d8f2df;opacity:.75}.sday.today{background:#ffe9a8;outline:3px solid #f7b13a}@media (max-width:420px){.streak{grid-template-columns:repeat(4,1fr)}}.rankbox,.goalbox,.refbox{margin-bottom:14px}.rank{list-style:none;padding:0;margin:8px 0 0;display:grid;gap:5px}.rank li{display:flex;align-items:center;gap:10px;padding:7px 12px;border-radius:10px;background:#f3f5fa}.rank li.me{background:#fff3cf}.rank .pos{font-weight:800;width:20px}.rank .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.gbar{height:14px;border-radius:999px;background:#eceff5;overflow:hidden}.gbar i{display:block;height:100%;border-radius:999px}.tuto{position:fixed;z-index:60;background:#1b2340;color:#fff;border-radius:16px;padding:12px 14px;box-shadow:0 8px 30px rgba(0,0,0,.3);font-size:14px}.tuto p{margin:0 0 8px}.tuto .row{gap:8px}.tuto .small{color:#c9d0e6}.tuto .btn:not(.primary){background:transparent;color:#fff;border-color:#5b6488}.tuto-hl{outline:4px solid #ffcf3a!important;outline-offset:3px;animation:tutoPulse 1.2s ease-in-out infinite}@keyframes tutoPulse{50%{outline-color:rgba(255,207,58,.35)}}@media (prefers-reduced-motion:reduce){.tuto-hl{animation:none}}
 .tabic{width:16px;height:16px;image-rendering:pixelated}
 .tab[aria-selected="true"]{background:var(--tc);border-color:var(--tc);color:#fff;box-shadow:0 3px 0 color-mix(in oklab,var(--tc) 60%,#000)}
 .tab:hover{background:color-mix(in oklab,var(--tc,#888) 10%,#fff)}.tab[aria-selected="true"]:hover{background:var(--tc)}
@@ -1314,7 +1315,7 @@ async function netTag(){const db=NET.db,want=cleanName(trainer()).slice(0,10)||'
   const t0=await netTagNew(want);if(old)db.collection('pokenid_tags').doc(old).delete().catch(()=>{});return t0}
 async function netTagNew(base){const db=NET.db;
   for(let i=0;i<8;i++){const t=base+'-'+String(1000+Math.floor(Math.random()*9000));try{await db.collection('pokenid_tags').doc(t).set({uid:NET.uid});S.netTag=t;touch();save(true);return t}catch(e){if(!/permission/.test(e.code||''))throw e}}throw new Error('tag')}
-async function netPublish(force){if(NET.st!=='ok')return;const prof={name:String(trainer()).slice(0,16),tag:await netTag(),b:Math.min(16,S.badges.length|0),team:netTeam()},k=JSON.stringify(prof);if(!force&&k===NET.last)return;
+async function netPublish(force){if(NET.st!=='ok')return;const prof={name:String(trainer()).slice(0,16),tag:await netTag(),b:Math.min(16,S.badges.length|0),team:netTeam(),st:netStats()},k=JSON.stringify(prof);if(!force&&k===NET.last)return;
   await NET.db.collection('pokenid_profiles').doc(NET.uid).set({...prof,at:firebase.firestore.FieldValue.serverTimestamp()});NET.last=k}
 async function netRefresh(first){if(NET.st!=='ok')return;const db=NET.db,L=db.collection('pokenid_links');
   const [a,b]=await Promise.all([L.where('to','==',NET.uid).get(),L.where('from','==',NET.uid).get()]);const links=[...a.docs,...b.docs].map(d=>({id:d.id,...d.data()}));
@@ -1322,7 +1323,7 @@ async function netRefresh(first){if(NET.st!=='ok')return;const db=NET.db,L=db.co
   const ok=[...new Set(links.filter(l=>l.status==='ok').map(l=>l.from===NET.uid?l.to:l.from))];
   const profs=(await Promise.all(ok.map(u=>db.collection('pokenid_profiles').doc(u).get()))).filter(d=>d.exists).map(d=>({uid:d.id,...d.data()}));
   const sentTags=await Promise.all(NET.sent.map(l=>db.collection('pokenid_profiles').doc(l.to).get().then(d=>d.exists?d.data().name:'?').catch(()=>'?')));NET.sent.forEach((l,i)=>l.toName=sentTags[i]);
-  const keep=S.friends.filter(f=>!f.uid);const online=profs.filter(p=>p.team&&p.team.length).map(p=>({uid:p.uid,name:String(p.name||'Ami').slice(0,16),tag:p.tag||'',b:Math.max(0,Math.min(16,p.b|0)),team:p.team.slice(0,3),at:p.at&&p.at.toMillis?p.at.toMillis():Date.now()}));
+  const keep=S.friends.filter(f=>!f.uid);const online=profs.filter(p=>p.team&&p.team.length).map(p=>({uid:p.uid,name:String(p.name||'Ami').slice(0,16),tag:p.tag||'',b:Math.max(0,Math.min(16,p.b|0)),team:p.team.slice(0,3),st:p.st||{},at:p.at&&p.at.toMillis?p.at.toMillis():Date.now()}));
   S.friends=[...online,...keep.filter(f=>!online.some(o=>o.name===f.name))].slice(0,24);if(typeof viewFriend!=='undefined')viewFriend=-1;touch();
   if(first&&NET.inbox.length)flash(`${NET.inbox.length===1?esc(NET.inbox[0].fromName||'Quelqu\'un')+' veut':NET.inbox.length+' dresseurs veulent'} devenir ton ami. Va dans l'onglet Amis.`,6000);
   paintTabs();if(tab==='amis')renderPane()}
@@ -1416,7 +1417,7 @@ $('pane').addEventListener('click',e=>{const b=e.target.closest('[data-acc]');if
 const ONLINE_MIN=10;
 const ONL={open:false,list:[],at:0,loading:false};
 const listed=()=>S.opt.listed!==false;
-{const _np=netPublish;netPublish=async function(force){if(NET.st!=='ok')return;if(!listed()){const prof={name:String(trainer()).slice(0,16),tag:await netTag(),b:Math.min(16,S.badges.length|0),team:netTeam()},k='h'+JSON.stringify(prof);if(!force&&k===NET.last)return;await NET.db.collection('pokenid_profiles').doc(NET.uid).set({...prof,at:0});NET.last=k;return}return _np(force)}}
+{const _np=netPublish;netPublish=async function(force){if(NET.st!=='ok')return;if(!listed()){const prof={name:String(trainer()).slice(0,16),tag:await netTag(),b:Math.min(16,S.badges.length|0),team:netTeam(),st:netStats()},k='h'+JSON.stringify(prof);if(!force&&k===NET.last)return;await NET.db.collection('pokenid_profiles').doc(NET.uid).set({...prof,at:0});NET.last=k;return}return _np(force)}}
 async function onlineLoad(){if(NET.st!=='ok'||ONL.loading)return;ONL.loading=true;try{const since=firebase.firestore.Timestamp.fromMillis(Date.now()-ONLINE_MIN*6e4);
   const q=await NET.db.collection('pokenid_profiles').where('at','>=',since).limit(40).get();
   ONL.list=q.docs.map(d=>({uid:d.id,...d.data()})).filter(p=>p.uid!==NET.uid&&p.tag&&p.team&&p.team.length).sort((a,b)=>(b.at&&b.at.toMillis?b.at.toMillis():0)-(a.at&&a.at.toMillis?a.at.toMillis():0));ONL.at=Date.now()}
@@ -1604,6 +1605,7 @@ $('pane').addEventListener('click',e=>{const a=e.target.closest('[data-pre]'),go
 
 /* ---------- Nouveautés : note de mise à jour par jour ---------- */
 const NEWS=[
+ ['2026-11-13','Série, défis et parrainage',['Série quotidienne : reviens chaque jour, la récompense grossit jusqu\'au 7e jour.','Défi commun de la semaine : tous les joueurs capturent ensemble des Pokémon d\'un type, récompense pour tous.','Classement de la semaine entre amis : victoires, captures, Pokédex, Tour.','Parrainage : invite un ami avec ton code dresseur, vous recevez chacun un œuf spécial.','Partage ta carte d\'identité en un geste (WhatsApp, Messenger…).','Les nouveaux joueurs sont guidés pas à pas au début.']],
  ['2026-11-13','Équipes de combat',['Avant une arène, la Ligue ou la Tour, tu choisis ton équipe.','L\'équipe peut compter jusqu\'à 6 Pokémon (au lieu de 3).','En combat, « Changer » envoie un autre Pokémon de ton équipe.','Vive-Attaque frappe toujours en premier, comme dans les vrais jeux.','PokéNid s\'installe comme une appli, avec son icône sur l\'écran d\'accueil du téléphone ou de la tablette.','Expéditions : tu peux envoyer un Pokémon de la pension et garder ton compagnon. Les voyageurs apparaissent dans la Pension avec leur butin à ouvrir au retour.','Cet écran « Nouveautés » apparaît après chaque mise à jour, et l\'historique est dans le Journal.']],
  ['2026-11-12','Pension, CT et 5e génération',['649 Pokémon : les 156 de la région d\'Unys arrivent.','Pokédex : filtres par région et fiche détaillée avec les lieux où trouver chaque Pokémon dans les vrais jeux.','Pension : tes Pokémon y sont nourris, lavés, soignés et reposés. Ils peuvent s\'entraîner et évoluer (1 place, puis 2 à 4 badges, 3 à 8 badges).','Capsules techniques : une 4e attaque en combat. Les champions d\'arène en donnent une à la première victoire.','Les champions d\'arène ont leur portrait.','Échanges en un clic avec tes amis en ligne.','Un seul code dresseur, plus court, à partager.','Délais entre deux bains, deux soins et deux couchers.']],
  ['2026-11-11','Survie, amis en ligne et comptes',['Ton Pokémon peut mourir de faim, de saleté ou de fatigue : surveille les alertes rouges ! (Jamais en combat.)','La saleté se voit : boue, puis slime et mouches.','Un délai entre deux repas.','Amis en ligne : demandes d\'amis, liste des joueurs en ligne, équipes mises à jour toutes seules.','Comptes avec pseudo et mot de passe pour jouer sur plusieurs appareils.','Nouveau logo, et toucher l\'écran suffit pour prendre son œuf.']],
@@ -1645,6 +1647,108 @@ function awayBox(){const list=[...(S.pet&&S.pet.away?[[S.pet,true]]:[]),...S.pen
     card.querySelectorAll('button').forEach(x=>{if(!x.dataset.loot)x.remove()});const row=card.querySelector('.row')||card;const done=q.away.done||Date.now()>=q.away.until;
     row.insertAdjacentHTML('beforeend',done?`<button class="btn primary" type="button" data-loot="${q.uid}">Ouvrir le butin</button>`:`<span class="small">En expédition · retour dans ${fmtGap(q.away.until-Date.now())}</span>`)})}}
 $('pane').addEventListener('click',e=>{const b=e.target.closest('[data-loot]');if(!b)return;const q=S.pension.find(x=>x.uid===b.dataset.loot);if(q){if(!q.away.done&&Date.now()>=q.away.until)q.away.done=true;lootPen(q)}});
+
+
+/* ================= Fidélisation : série, classement, défi commun, parrainage, partage, tutoriel ================= */
+const SITE='https://jeansonpaul-ops.github.io/Pokenid/';
+const ymdOf=t=>ymd(new Date(t));
+function wkKey(d=new Date()){const t=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())),day=t.getUTCDay()||7;t.setUTCDate(t.getUTCDate()+4-day);const y=t.getUTCFullYear(),w=Math.ceil(((t-Date.UTC(y,0,1))/864e5+1)/7);return y+'-W'+String(w).padStart(2,'0')}
+const wkNum=k=>+k.split('W')[1];
+function ovl(id,html){let o=$(id);if(o)o.remove();o=document.createElement('div');o.id=id;o.className='news-overlay';o.setAttribute('role','dialog');o.setAttribute('aria-modal','true');o.innerHTML=`<div class="news-card">${html}</div>`;document.body.appendChild(o);return o}
+const overlayOpen=()=>!!document.querySelector('.news-overlay');
+
+/* ---------- 1. Série quotidienne ---------- */
+const STREAK=[['2 Poké Balls',()=>give('ball',2)],['150 ₽',()=>earn(150)],['2 Super Balls',()=>give('super',2)],['300 ₽',()=>earn(300)],['1 Hyper Ball',()=>give('hyper')],['1 capsule technique',()=>{const k=pick(Object.keys(TMS));S.tms=S.tms||{};S.tms[k]=(S.tms[k]||0)+1;return 'CT '+TMS[k][0]}],['Super Bonbon + 500 ₽',()=>{give('candy');earn(500)}]];
+function streakTick(){if(!S)return;const d=ymd();S.streak=S.streak||{n:0,last:'',claimed:true};const s=S.streak;if(s.last===d)return;
+  const y=ymdOf(Date.now()-864e5);s.n=s.last===y?s.n+1:1;s.last=d;s.claimed=false;touch()}
+const streakDay=()=>((S.streak.n-1)%7)+1;
+function streakHtml(){const s=S.streak,k=streakDay();return `<h2>Série de ${s.n} jour${s.n>1?'s':''} !</h2><p class="small">Reviens chaque jour : la récompense grossit jusqu'au 7e jour. Si tu manques un jour, la série repart à 1.</p>
+  <div class="streak">${STREAK.map((r,i)=>`<div class="sday ${i+1<k?'done':i+1===k?'today':''}"><b>J${i+1}</b><span>${r[0]}</span></div>`).join('')}</div>
+  <div class="row" style="justify-content:flex-end;margin-top:12px">${s.claimed?'<span class="small">Déjà récupérée aujourd\'hui. À demain !</span><button class="btn" type="button" data-streak-close="1">Fermer</button>':`<button class="btn primary" type="button" data-streak-claim="1">Récupérer : ${STREAK[k-1][0]}</button>`}</div>`}
+function showStreak(){if(!S||!S.pet)return;ovl('streakBox',streakHtml())}
+function claimStreak(){const s=S.streak;if(!s||s.claimed)return;const r=STREAK[streakDay()-1],extra=r[1]();s.claimed=true;log(`Série de ${s.n} jours : ${typeof extra==='string'?extra:r[0]}.`);flash(`Récompense du jour : ${typeof extra==='string'?extra:r[0]} !`,4500);beep(SND.fan);touch();save(true);const o=$('streakBox');if(o)o.remove();renderPane()}
+document.addEventListener('click',e=>{if(e.target.closest('[data-streak-claim]'))claimStreak();else if(e.target.closest('[data-streak-close]')){const o=$('streakBox');if(o)o.remove()}else if(e.target.closest('[data-streak-open]'))showStreak()});
+setInterval(()=>{try{streakTick();if(S&&S.pet&&S.tuto==='done'&&S.streak&&!S.streak.claimed&&!overlayOpen()&&!S.streak.shown){S.streak.shown=ymd();showStreak()}if(S&&S.streak&&S.streak.shown&&S.streak.shown!==ymd())delete S.streak.shown}catch(e){}},3000);
+
+/* ---------- 2. Classement de la semaine (amis en ligne) ---------- */
+function wkTick(){if(!S)return;const k=wkKey();if(!S.wk||S.wk.key!==k){S.wk={key:k,base:{win:st('win'),catch:st('catch'),fwin:st('fwin')}};touch()}}
+const wk=k=>Math.max(0,st(k)-((S.wk&&S.wk.base[k])||0));
+function netStats(){wkTick();return {wk:S.wk.key,dex:Object.values(S.dex).filter(x=>x>=2).length,tower:(S.tower&&S.tower.best)||0,win:wk('win'),cap:wk('catch')}}
+const RANKS=[['win','Victoires de la semaine'],['cap','Captures de la semaine'],['dex','Pokédex'],['tower','Record de la Tour']];
+let RANKK='win';
+function rankBox(){const me={name:String(trainer()).slice(0,16)+' (toi)',st:netStats(),me:1},fr=S.friends.filter(f=>f.uid).map(f=>({name:f.name,st:f.st||{}}));if(!fr.length)return '';
+  const val=(x,k)=>{const s=x.st||{};if((k==='win'||k==='cap')&&s.wk!==wkKey())return 0;return +s[k]||0};
+  const list=[me,...fr].sort((a,b)=>val(b,RANKK)-val(a,RANKK));
+  return `<div class="stack rankbox"><h3 class="sub" style="margin-top:0">Classement de la semaine</h3><div class="row wrap">${RANKS.map(([k,l])=>`<button class="btn ${RANKK===k?'primary':''}" type="button" data-rank="${k}">${l}</button>`).join('')}</div>
+  <ol class="rank">${list.map((x,i)=>`<li class="${x.me?'me':''}"><span class="pos">${i+1}</span><span class="nm">${esc(x.name)}</span><b>${val(x,RANKK)}</b></li>`).join('')}</ol><p class="small">Les compteurs de la semaine repartent à zéro chaque lundi.</p></div>`}
+
+/* ---------- 3. Défi commun de la semaine ---------- */
+const GOAL={doc:null,loading:false};
+function goalDef(k=wkKey()){const n=wkNum(k)+(+k.slice(0,4))*53;return {t:(n*7)%17+1,target:60}}
+async function goalLoad(){if(NET.st!=='ok'||GOAL.loading)return;GOAL.loading=true;try{const d=await NET.db.collection('pokenid_goal').doc(wkKey()).get();GOAL.doc=d.exists?d.data():{...goalDef(),count:0}}catch(e){}GOAL.loading=false;if(tab==='amis')renderPane()}
+let GOALQ=Promise.resolve();function goalAdd(){GOALQ=GOALQ.then(goalAdd1).catch(()=>{});return GOALQ}
+async function goalAdd1(){if(NET.st!=='ok')return;const ref=NET.db.collection('pokenid_goal').doc(wkKey()),def=goalDef();
+  try{await NET.db.runTransaction(async tx=>{const d=await tx.get(ref);if(!d.exists)tx.set(ref,{t:def.t,target:def.target,count:1});else tx.update(ref,{count:(d.data().count||0)+1})})}catch(e){}goalLoad()}
+{const _ms=mission;mission=function(k){_ms(k);try{if(k==='catch'&&G&&G.id){const def=goalDef();if(dex(G.id).t.includes(def.t)){S.goalMine=S.goalMine||{};S.goalMine[wkKey()]=(S.goalMine[wkKey()]||0)+1;goalAdd()}}}catch(e){}}}
+function goalBox(){if(NET.st!=='ok')return '';const def=goalDef(),d=GOAL.doc||{...def,count:0},pct=Math.min(100,Math.round(100*d.count/d.target)),done=d.count>=d.target,got=S.goalGot&&S.goalGot[wkKey()],mine=(S.goalMine&&S.goalMine[wkKey()])||0;
+  return `<div class="stack goalbox"><h3 class="sub" style="margin-top:0">Défi commun de la semaine</h3><p>Tous ensemble, capturez <b>${d.target} Pokémon de type <span class="tmtype" style="background:${T[d.t][1]}">${T[d.t][0]}</span></b>.</p>
+  <div class="gbar"><i style="width:${pct}%;background:${T[d.t][1]}"></i></div><p class="small">${d.count} / ${d.target} · ta participation : ${mine}</p>
+  ${done?(got?'<p class="small"><b>Défi réussi !</b> Récompense récupérée.</p>':`<button class="btn primary" type="button" data-goal-claim="1">Défi réussi ! Récupérer 800 ₽ + 1 Super Bonbon</button>`):'<p class="small">Récompense pour tous les joueurs quand l\'objectif est atteint.</p>'}</div>`}
+
+/* ---------- 4. Parrainage ---------- */
+const REF_EGGS=[1,4,7,152,155,158,252,255,258,387,390,393,495,498,501,25,133];
+try{const r=new URLSearchParams(location.search).get('ref');if(r)localStorage.setItem('pokenid.ref',r.toUpperCase().replace(/[^A-Z0-9-]/g,'').slice(0,20))}catch(e){}
+const refEligible=()=>S&&!S.refBy&&(S.days||0)<=7&&Object.values(S.dex).filter(x=>x>=2).length<=3;
+function refEgg(){const e=newPet(pick(REF_EGGS));S.pension.push(e);return e}
+async function refApply(raw){const t=String(raw||'').toUpperCase().replace(/\s+/g,'').replace(/[^A-Z0-9-]/g,'');if(!/^[A-Z0-9]{1,10}-\d{4}$/.test(t))return 'Le code ressemble à PAUL-1234.';
+  if(t===S.netTag)return 'C\'est ton propre code.';const d=await NET.db.collection('pokenid_tags').doc(t).get();if(!d.exists)return 'Aucun dresseur avec ce code.';const by=d.data().uid;if(by===NET.uid)return 'C\'est ton propre code.';
+  await NET.db.collection('pokenid_refs').doc(NET.uid).set({by,name:String(trainer()).slice(0,16),at:firebase.firestore.FieldValue.serverTimestamp()});
+  S.refBy=by;refEgg();earn(300);try{localStorage.removeItem('pokenid.ref')}catch(e){}log('Parrainage : un œuf spécial et 300 ₽ offerts !');beep(SND.fan);touch();save(true);try{await netAdd(t)}catch(e){}
+  return ''}
+async function refRewards(){if(NET.st!=='ok')return;try{const q=await NET.db.collection('pokenid_refs').where('by','==',NET.uid).get();S.refGot=S.refGot||[];const neu=q.docs.filter(d=>!S.refGot.includes(d.id));
+  for(const d of neu){S.refGot.push(d.id);if(S.refGot.length<=5){refEgg();earn(500)}log(`${d.data().name||'Un nouveau joueur'} a rejoint PokéNid grâce à toi !`)}
+  if(neu.length){flash(`${neu.map(d=>d.data().name||'Un joueur').join(', ')} a rejoint PokéNid grâce à toi ! ${S.refGot.length<=5?'Un œuf spécial et 500 ₽ pour toi.':''}`,7000);beep(SND.fan);touch();save(true)}}catch(e){}}
+function refBox(){if(NET.st!=='ok'||!refEligible())return '';let pre='';try{pre=localStorage.getItem('pokenid.ref')||''}catch(e){}
+  return `<div class="stack refbox"><h3 class="sub" style="margin-top:0">Un ami t'a fait découvrir PokéNid ?</h3><p class="small">Entre son code dresseur : vous recevez chacun un œuf spécial (un Pokémon de départ, Pikachu ou Évoli), et toi 300 ₽ en plus.</p>
+  <div class="row"><input class="code" id="refIn" value="${esc(pre)}" placeholder="LEO-1234" autocomplete="off" style="max-width:220px"><button class="btn primary" type="button" data-ref="1">Valider</button></div></div>`}
+{const _nr=netRefresh;netRefresh=async function(first){await _nr(first);refRewards();goalLoad();if(first){try{const r=localStorage.getItem('pokenid.ref');if(r&&refEligible()&&S.tuto==='done')flash('Un ami t\'a invité ! Va dans l\'onglet Amis pour recevoir ton œuf spécial.',6000)}catch(e){}}}}
+
+/* ---------- 5. Partager sa carte ---------- */
+async function shareCard(){const c=$('idCard');if(!c)return;const p=S.pet,tag=S.netTag||'',link=SITE+(tag?'?ref='+encodeURIComponent(tag):'');
+  const text=`Voici ${petName(p)}, mon ${nameOf(p.id)} niveau ${p.level}, dans PokéNid !${tag?` Mon code dresseur : ${tag}.`:''} Viens jouer :`;
+  const blob=await new Promise(r=>c.toBlob(r,'image/png'));const file=blob&&new File([blob],`pokenid-${nameOf(p.id).toLowerCase()}.png`,{type:'image/png'});
+  try{if(file&&navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],text:text+' '+link});mission('share');return}
+    if(navigator.share){await navigator.share({title:'PokéNid',text,url:link});return}}catch(e){if(e&&e.name==='AbortError')return}
+  if(blob){const u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download=file.name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),2000)}
+  try{await navigator.clipboard.writeText(text+' '+link);flash('Image enregistrée et message copié : colle-le dans WhatsApp ou Messenger avec l\'image.',6000)}catch(e){flash('Image enregistrée. Lien du jeu : '+link,7000)}}
+
+/* ---------- 6. Tutoriel des premières minutes ---------- */
+const TUTO=[{t:'Touche l\'écran pour prendre ton œuf mystère.',el:'lcd',ok:()=>mode==='egg'||(S.pet&&S.pet.stage!=='egg')},
+ {t:'Touche l\'œuf plusieurs fois pour le réchauffer : il va éclore !',el:'lcd',ok:()=>S.pet&&S.pet.stage!=='egg'&&mode==='idle'},
+ {t:'Ton Pokémon est né ! Touche « Manger » pour le nourrir.',el:'kFeed',ok:()=>S.pet&&S.pet.lastMeal},
+ {t:'Les barres en haut de l\'écran montrent sa faim, sa joie, son énergie et sa propreté. Lave-le, soigne-le, couche-le et joue avec lui avec ces boutons.',el:'kPlay',btn:'J\'ai compris'},
+ {t:'Le carnet en dessous cache tout le reste : combats, Pokédex, pension, amis… Bonne aventure, dresseur !',el:'pane',btn:'C\'est parti !'}];
+function tutoDraw(){let b=$('tutoBubble');if(S&&S.tuto===undefined&&typeof SPR!=='undefined'&&SPR)S.tuto=S.pet?'done':0;if(S&&S.tuto===undefined)return;document.querySelectorAll('.tuto-hl').forEach(x=>x.classList.remove('tuto-hl'));
+  if(!S||S.tuto==='done'||overlayOpen()){if(b)b.remove();return}const step=TUTO[S.tuto];if(!step){S.tuto='done';touch();if(b)b.remove();return}
+  if(step.ok&&step.ok()){S.tuto++;touch();return tutoDraw()}const el=$(step.el);if(!el)return;el.classList.add('tuto-hl');
+  if(!b){b=document.createElement('div');b.id='tutoBubble';b.className='tuto';b.setAttribute('role','status');document.body.appendChild(b)}
+  const key=S.tuto+'';if(b.dataset.k!==key){b.dataset.k=key;b.innerHTML=`<p>${esc(step.t)}</p><div class="row">${step.btn?`<button class="btn primary" type="button" data-tuto-next="1">${step.btn}</button>`:''}<button class="btn" type="button" data-tuto-skip="1">Passer</button></div><span class="small">${S.tuto+1}/${TUTO.length}</span>`}
+  const r=el.getBoundingClientRect(),bw=Math.min(300,innerWidth-24),below=r.bottom+12+b.offsetHeight<innerHeight,top=below?r.bottom+10:Math.max(8,r.top-b.offsetHeight-10);
+  b.style.width=bw+'px';b.style.left=Math.max(12,Math.min(innerWidth-bw-12,r.left+r.width/2-bw/2))+'px';b.style.top=Math.max(8,top)+'px'}
+document.addEventListener('click',e=>{if(e.target.closest('[data-tuto-next]')){S.tuto++;touch();tutoDraw()}else if(e.target.closest('[data-tuto-skip]')){S.tuto='done';touch();save(true);tutoDraw()}});
+setInterval(()=>{try{tutoDraw()}catch(e){}},400);addEventListener('resize',()=>{try{tutoDraw()}catch(e){}});addEventListener('scroll',()=>{try{tutoDraw()}catch(e){}},{passive:true});
+
+/* ---------- Branchements ---------- */
+{const _rp=renderPane;renderPane=function(){_rp();if(!S)return;
+  if(tab==='fiche'){if(S.pet&&S.streak&&!S.streak.claimed&&S.tuto==='done')$('pane').insertAdjacentHTML('afterbegin',`<div class="band"><b>Récompense du jour disponible</b> (série de ${S.streak.n} jour${S.streak.n>1?'s':''}). <button class="btn primary" type="button" data-streak-open="1">Voir</button></div>`);
+    const c=$('idCard');if(c&&!$('shareCard'))c.insertAdjacentHTML('afterend',`<div class="row" style="margin-top:8px"><button class="btn" type="button" id="shareCard" data-share="1">Partager ma carte</button>${S.streak?`<button class="btn" type="button" data-streak-open="1">Série : ${S.streak.n} j</button>`:''}</div>`)}
+  if(tab==='amis'&&NET.st==='ok'){const first=$('pane').querySelector('.stack');const h=refBox()+goalBox()+rankBox();if(h)(first||$('pane')).insertAdjacentHTML('afterend',h);if(!GOAL.doc)goalLoad()}}}
+$('pane').addEventListener('click',e=>{const t=e.target;
+  if(t.closest('[data-rank]')){RANKK=t.closest('[data-rank]').dataset.rank;renderPane();return}
+  if(t.closest('[data-share]')){shareCard();return}
+  if(t.closest('[data-goal-claim]')){S.goalGot=S.goalGot||{};if(S.goalGot[wkKey()])return;S.goalGot[wkKey()]=1;earn(800);give('candy');log('Défi commun réussi : 800 ₽ et un Super Bonbon.');flash('Défi commun réussi : 800 ₽ et un Super Bonbon !',5000);beep(SND.fan);touch();save(true);renderPane();return}
+  if(t.closest('[data-ref]')){const v=($('refIn')||{}).value;netAct(()=>refApply(v),'Bienvenue ! Un œuf spécial t\'attend à la pension, et une demande d\'ami est partie vers ton parrain.')}});
+setTimeout(()=>{try{streakTick();wkTick()}catch(e){}},500);
 
 /* ---------- Démarrage et boucles ---------- */
 function boot(){

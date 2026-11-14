@@ -405,7 +405,7 @@ function openMenu(title,opts,back=true,cols2=true){const m=$('menu');m.hidden=fa
 function closeMenu(){$('menu').classList.remove('fight');$('menu').hidden=true;$('msg').hidden=false;$('menu').onclick=null}
 $('kFeed').onclick=()=>{if(guard())openMenu('Que veux-tu lui donner ?',FOODS.map((f,i)=>({l:f.n,f:()=>feed(i)})))};
 $('kPlay').onclick=()=>{if(!guard())return;if(S.pet.energy<12){flash(`${petName(S.pet)} est trop fatigué pour jouer.`);return}
-  const o=[{l:'Mini-jeux',f:()=>openMenu('Quel jeu ?',[{l:'Qui est-ce ?',f:startQuiz},{l:'Attrape-baies',f:startCatch},{l:'Mémoire',f:startMemo},{l:'Rythme',f:startRhythm}])},{l:'Sortie',f:sortieMenu},{l:'Pêche',f:startFish},{l:'Expédition',f:expeMenu},{l:'Combat',f:()=>startBattle()}];if(S.wild)o.unshift({l:'Capturer '+nameOf(S.wild.id),f:startCapture});
+  const o=[{l:'Mini-jeux',f:()=>openMenu('Quel jeu ?',[{l:'Qui est-ce ?',f:startQuiz},{l:'Attrape-baies',f:startCatch},{l:'Mémoire',f:startMemo},{l:'Rythme',f:startRhythm}])},{l:'Sortie',f:sortieMenu},{l:'Pêche',f:startFish},{l:'Combat',f:()=>startBattle()}];if(S.wild)o.unshift({l:'Capturer '+nameOf(S.wild.id),f:startCapture});
   openMenu('Que faire ?',o)};
 function expeMenu(){const P=PACE[S.opt.pace],lb=h=>{const m=Math.round(h*60/P);return m<60?m+' min':(m/60)+' h'};openMenu('Combien de temps ?',[1,3,8].map(h=>({l:lb(h),f:()=>startExpe(h)})))}
 $('kWash').onclick=wash;$('kHeal').onclick=heal;$('kSleep').onclick=sleepKey;
@@ -1508,7 +1508,11 @@ function penDecorate(){const n=training().length,max=trainSlots(),nx=trainNext()
   if(h2&&!$('trainInfo'))h2.parentElement.insertAdjacentHTML('beforeend',`<p class="band" id="trainInfo"><b>Entraînement : ${n}/${max} place${max>1?'s':''} occupée${n>1?'s':''}.</b> ${nx?`Une place de plus à ${nx} badges (tu en as ${S.badges.length}).`:'Toutes les places sont débloquées.'}</p>`);
   document.querySelectorAll('#pane [data-take]').forEach(b=>{const p=S.pension[+b.dataset.take];if(!p||p.stage==='egg')return;const card=b.closest('.card'),sm=card&&card.querySelector('.small');
   if(sm&&!sm.dataset.pen){sm.dataset.pen=1;const pct=p.level>=100?100:Math.floor(100*(p.xp||0)/(p.level*3));sm.insertAdjacentHTML('beforeend',` · ${p.train?`<b>à l'entraînement</b> (${pct} % du niveau suivant)`:'au repos'}${p.tm&&TMS[p.tm]?' · CT '+TMS[p.tm][0]:''}`)}
-  if(!card.querySelector('[data-train]')){const full=!p.train&&n>=max;b.insertAdjacentHTML('beforebegin',`<button class="btn ${p.train?'primary':''}" type="button" data-train="${p.uid}" ${full?'aria-disabled="true" style="opacity:.55"':''}>${p.train?'Arrêter':'Entraîner'}</button>`)}})}
+  if(!card.querySelector('[data-train]')){const full=!p.train&&n>=max;b.insertAdjacentHTML('beforebegin',`<button class="btn ${p.train?'primary':''}" type="button" data-train="${p.uid}" ${full?'aria-disabled="true" style="opacity:.55"':''}>${p.train?'Arrêter':'Entraîner'}</button>`)}
+  if(!card.querySelector('[data-expe]')&&!p.away&&!p.train)b.insertAdjacentHTML('beforebegin',`<button class="btn" type="button" data-expe="${p.uid}">Expédition</button>`)})}
+/* Expédition lancée depuis la carte du Pokémon dans la Pension */
+$('pane').addEventListener('click',e=>{const b=e.target.closest('[data-expe]');if(!b)return;const q=S.pension.find(x=>x.uid===b.dataset.expe);if(!q||!expeOk(q)){flash('Ce Pokémon ne peut pas partir maintenant.');return}
+  const P=PACE[S.opt.pace],lb=h=>{const m=Math.round(h*60/P);return m<60?m+' min':(m/60)+' h'};openMenu(`Combien de temps pour ${petName(q)} ?`,[1,3,8].map(h=>({l:lb(h),f:()=>sendPen(q,h)})))},true);
 
 /* ---------- Échanges en ligne entre amis ---------- */
 const TR={incoming:[],outgoing:[]};

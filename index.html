@@ -1439,9 +1439,9 @@ if(netCan())setInterval(()=>{if(NET.st==='ok'&&!document.hidden&&listed())netPub
 addEventListener('visibilitychange',()=>{if(!document.hidden&&NET.st==='ok'&&listed())netPublish(true).catch(()=>{})});
 
 
-/* Pastille « Connecté : PSEUDO » visible sur tous les onglets */
-{const bk=document.querySelector('.book');if(bk&&!$('acctChip')){const c=document.createElement('button');c.id='acctChip';c.type='button';c.className='acct-chip';c.hidden=true;c.onclick=()=>{tab='options';renderPane()};bk.prepend(c)}}
-function acctChip(){const c=$('acctChip');if(!c)return;const on=typeof isAcct==='function'&&isAcct()&&!!pseudoOf(fbUser());c.hidden=!on;if(on)c.textContent='Connecté : '+pseudoOf(fbUser())}
+/* Petit repère discret « Connecté : PSEUDO » en haut à droite de l'écran, non cliquable (aucun tap raté) */
+{const c=document.createElement('div');c.id='acctChip';c.setAttribute('aria-hidden','true');c.style.cssText='position:fixed;top:4px;right:6px;z-index:50;font:600 10px/1 var(--display);padding:3px 7px;border-radius:999px;background:#2f9e5b;color:#fff;opacity:.6;pointer-events:none;display:none';document.body.appendChild(c)}
+function acctChip(){const c=$('acctChip');if(!c)return;const on=typeof isAcct==='function'&&isAcct()&&!!pseudoOf(fbUser());c.style.display=on?'block':'none';if(on)c.textContent='Connecté : '+pseudoOf(fbUser())}
 {const _rp=renderPane;renderPane=function(){_rp();acctChip()}}
 
 

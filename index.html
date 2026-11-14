@@ -1374,10 +1374,23 @@ const pseudoOk=v=>/^[A-Za-z0-9_-]{3,16}$/.test(v);
 const acctMail=v=>v.trim().toLowerCase()+'@'+ACCT_DOMAIN;
 const acctErr=e=>{const c=(e&&e.code)||'';if(/email-already-in-use|credential-already-in-use/.test(c))return 'Ce pseudo est déjà pris.';if(/weak-password/.test(c))return 'Mot de passe trop court : 6 caractères minimum.';if(/invalid-credential|wrong-password|user-not-found|invalid-login/.test(c))return 'Pseudo ou mot de passe incorrect.';if(/too-many-requests/.test(c))return 'Trop d\'essais. Réessaie dans quelques minutes.';if(/operation-not-allowed|admin-restricted/.test(c))return 'Les comptes ne sont pas encore activés sur le serveur.';if(/invalid-email/.test(c))return 'Pseudo invalide.';return netErr(e)};
 const saveDoc=()=>NET.db.collection('pokenid_saves').doc(fbUser().uid);
+/* Un seul appareil actif à la fois : l'appareil qui a sauvegardé en dernier garde la main (S.dev). */
+function myDev(){try{let i=localStorage.getItem('pokenid.dev');if(!i){i=Math.random().toString(36).slice(2,10)+Date.now().toString(36);localStorage.setItem('pokenid.dev',i)}return i}catch(e){return 'x'+Math.random().toString(36).slice(2,8)}}
 async function acctPush(){if(!isAcct())return;clearTimeout(ACC.timer);ACC.timer=null;
-  const d=await saveDoc().get();if(d.exists&&(d.data().at||0)>(S.syncAt||0)){await acctPull(true);return}
-  const at=Date.now();S.syncAt=at;const data=JSON.stringify(S);if(data.length>900000)return;try{localStorage.setItem(KEY,data)}catch(e){}
+  const d=await saveDoc().get();
+  if(d.exists){const c=d.data();let r=null;try{r=JSON.parse(c.data)}catch(e){}
+    if(r&&r.dev&&r.dev.id!==myDev()){if(!ACC.locked){ACC.locked=true;renderPane()}return}
+    if((c.at||0)>(S.syncAt||0)){await acctPull(true);return}}
+  ACC.locked=false;
+  const at=Date.now();S.syncAt=at;S.dev={id:myDev(),at};const data=JSON.stringify(S);if(data.length>900000)return;try{localStorage.setItem(KEY,data)}catch(e){}
   await saveDoc().set({data,at,v:1});ACC.up=at}
+/* « Jouer ici » : reprend la main, remplace la progression locale par la sauvegarde en ligne */
+async function acctTake(){if(!isAcct())return;const d=await saveDoc().get();if(!d.exists)return;let o;try{o=JSON.parse(d.data().data)}catch(e){flash('Sauvegarde illisible.');return}
+  const at=Date.now();o.syncAt=at;o.dev={id:myDev(),at};const data=JSON.stringify(o);await saveDoc().set({data,at,v:1});
+  S=o;dirty=false;ACC.locked=false;localStorage.setItem(KEY,data);try{sessionStorage.setItem('pokenid.pulled','1')}catch(e){}location.reload()}
+{const _rp=renderPane;renderPane=function(){_rp();if(!S||!ACC.locked||!isAcct())return;
+  $('pane').insertAdjacentHTML('afterbegin',`<div class="band" id="devLock" style="margin-bottom:10px"><b>Ta partie est jouée sur un autre appareil.</b> Ta progression ici n'est pas envoyée. <button class="btn primary" type="button" data-devtake="1">Jouer ici</button><span class="small"> En reprenant la main, ce que tu as fait sur cet appareil depuis la bascule est perdu.</span></div>`)}}
+$('pane').addEventListener('click',e=>{if(!e.target.closest('[data-devtake]'))return;acctTake().catch(()=>flash('Échec, réessaie.'))});
 function acctSchedule(){if(!isAcct()||ACC.timer)return;ACC.timer=setTimeout(()=>acctPush().catch(()=>{}),15000)}
 async function acctPull(replace){const d=await saveDoc().get();if(!d.exists)return false;const c=d.data();
   if(replace||(c.at||0)>(S.syncAt||0)){let o;try{o=JSON.parse(c.data)}catch(e){return false}o.syncAt=c.at;S=o;c.data=JSON.stringify(o);dirty=false;localStorage.setItem(KEY,c.data);try{sessionStorage.setItem('pokenid.pulled','1')}catch(e){}location.reload();return true}return false}

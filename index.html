@@ -829,7 +829,7 @@ const FURN={
  panneau:{n:'Panneau',c:450,pat:['.WWWWWWWWWW.','.WwwwwwwwwW.','.WwkkwkkwwW.','.WwwwwwwwwW.','.WwkkkwkkwW.','.WWWWWWWWWW.','.....WW.....','.....WW.....','.....WW.....','.....WW.....','....WWWW....']}};
 const BGN={prairie:'Prairie',foret:'Forêt',eau:'Plage',neige:'Neige',roche:'Canyon',volcan:'Volcan',ciel:'Ciel',nuit:'Nuit',sakura:'Cerisiers',cristal:'Grotte de cristal',nenuphar:'Lac aux nénuphars',desert:'Dunes',noel:'Village de Noël',halloween:'Halloween'};
 const BG_SEASON={halloween:['halloween','Disponible du 20 oct. au 5 nov.'],noel:['noel','Disponible du 1er au 26 déc.']};
-function bgOff(k){const b=BG_SEASON[k];if(!b)return'';const se=season();return se&&se.k===b[0]?'':`<span class="small">${b[1]}</span>`}
+function bgOff(k){const b=BG_SEASON[k];if(!b)return'';const se=season();return se&&se.k===b[0]?'':`<span class="small" style="grid-column:1/-1;text-align:left">${b[1]}</span>`}
 function drawFurn(q,k,x,bottom,sc){const P=FURN[k].pat;P.forEach((r,j)=>{for(let i=0;i<r.length;i++){const c=FPAL[r[i]];if(c){q.fillStyle=c;q.fillRect(x+i*sc,bottom-(P.length-j)*sc,sc,sc)}}})}
 const FURL={};Object.keys(FURN).forEach(k=>{const c=document.createElement('canvas');c.width=c.height=12;drawFurn(c.getContext('2d'),k,0,12,1);FURL[k]=c.toDataURL()});
 function drawRoom(){const s=S.room&&S.room.s;if(!s)return;[[4,0],[66,1],[132,2]].forEach(([x,i])=>{const k=s[i];if(k&&FURN[k])drawFurn(g,k,x,FURN[k].low?118:100,2)})}

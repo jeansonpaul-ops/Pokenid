@@ -1,0 +1,21 @@
+// À ajouter dans les règles Firestore (dans le bloc "service cloud.firestore { match /databases/{database}/documents { ... } }")
+// Collection : pokenid_suggestions — idées des joueurs, vote avec un seul vote par personne
+
+match /pokenid_suggestions/{id} {
+  allow read: if signedIn();
+  allow create: if signedIn()
+    && request.resource.data.keys().hasOnly(['uid', 'name', 'text', 'at', 'votes'])
+    && request.resource.data.uid == request.auth.uid
+    && request.resource.data.text is string
+    && request.resource.data.text.size() >= 5
+    && request.resource.data.text.size() <= 300
+    && request.resource.data.name is string
+    && request.resource.data.name.size() <= 14
+    && request.resource.data.at is number
+    && request.resource.data.votes == [];
+  allow update: if signedIn()
+    && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['votes'])
+    && request.resource.data.votes.size() == resource.data.votes.size() + 1
+    && request.auth.uid in request.resource.data.votes;
+  allow delete: if false;
+}

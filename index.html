@@ -490,7 +490,7 @@ function render(){
   if(!p.asleep&&!p.ko&&!reduce&&!busyMenu()){if(pos.wait>0)pos.wait--;else{const d=pos.to-pos.x;if(Math.abs(d)<1){pos.wait=20+Math.random()*50|0;pos.to=30+Math.random()*(S.wild?60:100);pos.dir=pos.to>pos.x?1:-1}else pos.x+=Math.sign(d)*(tt%2?.6:.3)}}
   const jump=hopT>0?(hopT--,Math.abs(Math.sin(hopT*.8))*7):(!reduce&&!p.asleep&&!p.ko&&pos.wait===0&&tt%6<3?1:0);
   drawS(sp,pos.x,110-jump,pos.dir>0,null,p.ko);
-  if(sp&&p.hat&&!p.ko){const s=sp.s*sp.w>=44?2:1,hw=sp.w*sp.s,hh=sp.h*sp.s,cx=pos.x-hw/2+(pos.dir>0?hw-sp.hx*sp.s:sp.hx*sp.s),top=110-jump-hh;hatDraw(g,p.hat,Math.round(cx-8*s),Math.round(p.hat==='glasses'?top+3*s:top-11*s),s)}
+  if(false&&sp&&p.hat&&!p.ko){const s=sp.s*sp.w>=44?2:1,hw=sp.w*sp.s,hh=sp.h*sp.s,cx=pos.x-hw/2+(pos.dir>0?hw-sp.hx*sp.s:sp.hx*sp.s),top=110-jump-hh;hatDraw(g,p.hat,Math.round(cx-8*s),Math.round(p.hat==='glasses'?top+3*s:top-11*s),s)}
   if(p.shiny&&tt%40<10)icon(g,'star',pos.x+16,92-(sp?sp.h*sp.s:30)/2,'#ffe08a');
   if(evoReady(p)&&tt%12<6)for(let i=0;i<3;i++)icon(g,'star',pos.x-20+i*14+(tt%9),60+(i*11)%20,'#fff7b0');
   const hint=status(p);if(hint&&hint.ic&&tt%30<20)bubble(pos.x+20,sp?110-sp.h*sp.s-8:60,hint.ic,hint.c);
@@ -573,7 +573,7 @@ function renderFiche(){
   return `<div class="stack"><div class="head"><div class="portrait"><img alt="" src="${url(id,p.shiny)}"></div><div style="min-width:0;flex:1">
     <label class="small" for="nick">Surnom</label><input class="nick" id="nick" maxlength="14" value="${esc(p.nick)}" placeholder="${esc(nameOf(id))}"><div class="chips">${chips(id)}${p.shiny?'<span class="chip" style="background:#b8860b">Chromatique</span>':''}</div></div></div>${seasonBand()}
     <div class="stats" id="stats">${statRows(p)}</div>
-    <dl class="facts"><dt>Espèce</dt><dd>${esc(nameOf(id))}, n° ${String(id).padStart(3,'0')}</dd><dt>Niveau</dt><dd>${p.level}</dd><dt>Caractère</dt><dd>${NATURES[p.nature][0]}. ${NATURES[p.nature][1]}</dd><dt>Âge</dt><dd>${fmtAge(p.ageH)}</dd><dt>État</dt><dd>${p.away?'En expédition':p.ko?'K.O.':p.sick?'Malade':p.asleep?'Endormi':'En forme'}</dd><dt>Plat préféré</dt><dd>${p.favKnown?esc(fav):'À découvrir'}</dd></dl>
+    <dl class="facts"><dt>Espèce</dt><dd>${esc(nameOf(id))}, n° ${String(id).padStart(3,'0')}</dd><dt>Niveau</dt><dd>${p.level}</dd><dt>Caractère</dt><dd>${NATURES[p.nature][0]}. ${NATURES[p.nature][1]}</dd><dt>Âge</dt><dd>${fmtAge(p.ageH)}</dd><dt>État</dt><dd>${p.away?'En expédition':p.ko?'K.O.':p.sick?'Malade':p.asleep?'Endormi':'En forme'}</dd><dt>Objet tenu</dt><dd>${p.held&&HELD[p.held]?esc(HELD[p.held][0]):'Aucun'}</dd><dt>Plat préféré</dt><dd>${p.favKnown?esc(fav):'À découvrir'}</dd></dl>
     <div><h3 class="sub" style="margin-top:4px">Évolution</h3><div class="chain">${chainOf(id).map((i,n,a)=>`${n?`<span>${a[n-1]!==dex(i).prev?'ou':'›'}</span>`:''}<img alt="${esc(nameOf(i))}" title="${esc(nameOf(i))}" class="${S.dex[i]>=2?'':'un'}" src="${url(i)}">`).join('')}</div>
     <p class="prog">${!k.length?'Forme finale. Tu peux le laisser à la pension et faire éclore un autre œuf.':evoReady(p)?`Prêt à évoluer. Touche ${esc(petName(p))} sur l'écran.`:`Temps : ${Math.round(ag)} %${left>0?` (encore ${fmtGap(left*36e5)})`:''}. Lien : ${Math.round(p.bond)} sur 40 requis.`}${k.some(i=>dex(i).cond)?`<br>Conditions : ${k.map(i=>esc(nameOf(i))+(dex(i).cond?' ('+condText(dex(i).cond)+')':'')).join(', ')}.`:''}</p></div>
     ${p.level>=100?`<div class="band"><b>${esc(petName(p))} est au sommet.</b> Il peut entrer au Panthéon : il y reste exposé et laisse +10 % d'expérience à tous tes Pokémon.<div class="row" style="margin-top:8px"><button class="btn primary" type="button" data-x="retire">Entrer au Panthéon</button></div></div>`:''}
@@ -650,7 +650,7 @@ $('pane').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)
     resetArm=false;const o=S.opt;S=fresh();S.opt=o;mode=SPR?'empty':'none';tab='fiche';closeMenu();dirty=true;save(true);paint()}
 });
 $('pane').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const D=b.dataset;
-  if(D.hat!==undefined&&S.pet&&S.pet.stage!=='egg'){S.pet.hat=D.hat;touch();renderPane()}
+  if(D.held!==undefined&&S.pet&&S.pet.stage!=='egg'){heldEquip(D.held);touch();renderPane()}
   if(D.gym!==undefined)startBattle(+D.gym);
   if(D.pair)coupleTap(D.pair);
   if(D.rel!==undefined){const i=+D.rel;if(relArm!==i){relArm=i;renderPane();setTimeout(()=>{relArm=-1;if(tab==='pension')renderPane()},4000);return}relArm=-1;const p=S.pension.splice(i,1)[0];careClear(p.uid);give('ball');log(`${petName(p)} retourne à la nature. Il laisse une Poké Ball.`,p.id);renderPane()}
@@ -702,7 +702,7 @@ function giveHat(k){if(!S.hats.includes(k)){S.hats.push(k);touch();return true}r
 function xp(n){const p=S.pet;if(!p||p.level>=100)return;p.xp+=Math.round(n*(1+.1*(S.legacy||0)));let up=false;while(p.xp>=p.level*3&&p.level<100){p.xp-=p.level*3;p.level++;up=true}if(up){flash(`${petName(p)} passe au niveau ${p.level} !`);burst('star','#ffe08a',4)}touch()}
 function mission(k){const m=S.mission;if(!m)return;const d=MISSIONS[m.i];if(m.done||d.k!==k)return;m.c++;if(m.c>=d.n){m.done=true;earn(150);give('ball',2);give('super');const it=Math.random()<.5?'candy':pick(STONES);give(it);setTimeout(()=>flash(`Mission réussie : 2 Poké Balls, 1 Super Ball, ${ITEMS[it][0]}.`,4500),1800);log(`Mission du jour réussie : ${d.t}.`);beep(SND.fan)}touch()}
 function newDay(){const d=today();if(S.lastDay===d)return;S.lastDay=d;S.days=(S.days||0)+1;let h=0;for(const c of d)h=(h*31+c.charCodeAt(0))%9973;S.mission={i:h%MISSIONS.length,c:0,done:false};
-  if(S.days%7===0){const left=HAT_POOL.filter(x=>!S.hats.includes(x));if(left.length)giveHat(pick(left));else give('candy',2);flash(`${S.days} jours de présence : un cadeau t'attend dans le sac.`,5000)}
+  if(S.days%7===0){const left=HAT_POOL.filter(x=>!(S.held||[]).includes(HAT2HELD[x]));if(left.length)giveHat(pick(left));else give('candy',2);flash(`${S.days} jours de présence : un cadeau t'attend dans le sac.`,5000)}
   const se=season(),key=se&&se.hat?se.k+d.slice(0,4):0;if(key&&!S.gifts[key]){S.gifts[key]=1;giveHat(se.hat);log(`${se.n} : tu reçois ${HATS[se.hat][0]}.`)}
   if(S.pet&&S.pet.stage!=='egg'){const l=DAYLINE[S.pet.nature];if(l)log(fill(pick(l),S.pet))}touch()}
 /* Évolution réelle */
@@ -712,7 +712,7 @@ const evoTimeOk=p=>p&&p.stage!=='egg'&&kids(p.id).length&&(p.ageH-p.stageAge)>=e
 const evoOpts=p=>kids(p.id).filter(i=>i<=SPR.imgs.length&&condMet(dex(i).cond,p)).map(id=>({id,item:(ITEMS[dex(id).cond]?dex(id).cond:'')}));
 /* Rencontres */
 function wildPick(){const se=season(),n=isNight(Date.now()),wb=weatherBoost();let tot=0;const w=[];for(let i=1;i<=SPR.imgs.length;i++){const d=dex(i);let x=d.flag?.012:[1,.2,.05][depth(i)]||.05;if(se&&se.boost&&d.t.some(t=>se.boost.includes(t)))x*=7;if(wb.length&&d.t.some(t=>wb.includes(t)))x*=5;if(n&&d.t.some(t=>t===8||t===17))x*=3;if(!S.dex[i]||S.dex[i]===1)x*=2;tot+=x;w.push(x)}let r=Math.random()*tot;for(let i=0;i<w.length;i++){r-=w[i];if(r<=0)return i+1}return 19}
-function spawnWild(){const id=wildPick();S.wild={id,until:Date.now()+12*6e4,shiny:rnd(CFG.shiny)===0};if(!S.dex[id])S.dex[id]=1;sprite(id,S.wild.shiny);S.nextWild=Date.now()+(1.5+Math.random()*2)*36e5/PACE[S.opt.pace];beep(SND.ok);closeMenuIfIdle();touch()}
+function spawnWild(){const id=wildPick();S.wild={id,until:Date.now()+12*6e4,shiny:wildShiny()};if(!S.dex[id])S.dex[id]=1;sprite(id,S.wild.shiny);S.nextWild=Date.now()+(1.5+Math.random()*2)*36e5/PACE[S.opt.pace];beep(SND.ok);closeMenuIfIdle();touch()}
 function closeMenuIfIdle(){msgUntil=0}
 const tierOf=id=>{const d=dex(id);if(d.flag)return 3;const t=d.hp+d.at+d.de+d.sp;return Math.max(Math.min(2,depth(id)),t>=360?2:t>=300?1:0)};
 const anyBall=()=>BALLS.some(b=>(S.items[b.k]||0)>0);
@@ -911,7 +911,7 @@ function renderBattle(){const{me,foe,hit,t}=G,bg=buildBg(foe.t[0]);g.drawImage(b
 /* Mini-jeux : pêche, mémoire, rythme */
 function fishPick(){let tot=0;const w=[];for(let i=1;i<=SPR.imgs.length;i++){const d=dex(i);const x=!d.flag&&d.t.includes(11)?[1,.2,.05][depth(i)]||.05:0;tot+=x;w.push(x)}let r=Math.random()*tot;for(let i=0;i<w.length;i++){r-=w[i];if(r<=0)return i+1}return 129}
 function startFish(){if(!S.items.rod){flash('Il te faut une Canne. Elle est à la boutique, dans le Sac.');beep(SND.no);return}closeMenu();mode='fish';G={casts:3,score:0,state:'wait',bite:Date.now()+1500+rnd(3500),poke:0};setMsg('Attends que le bouchon plonge, puis touche l\'écran.')}
-function fishNext(m){G.casts--;if(G.casts<=0){const sc=G.score,id=G.poke;S.st.fish=st('fish')+sc;gameEnd(sc,'Pêche',3);if(id&&!S.wild){S.wild={id,until:Date.now()+10*6e4,shiny:rnd(CFG.shiny)===0};if(!S.dex[id])S.dex[id]=1;sprite(id,S.wild.shiny);setTimeout(()=>flash(`${nameOf(id)} a mordu ! Touche-le pour le capturer.`,5000),4100)}return}G.state='wait';G.bite=Date.now()+1500+rnd(3500);setMsg(`${m} Encore ${G.casts} lancer${G.casts>1?'s':''}.`)}
+function fishNext(m){G.casts--;if(G.casts<=0){const sc=G.score,id=G.poke;S.st.fish=st('fish')+sc;gameEnd(sc,'Pêche',3);if(id&&!S.wild){S.wild={id,until:Date.now()+10*6e4,shiny:wildShiny()};if(!S.dex[id])S.dex[id]=1;sprite(id,S.wild.shiny);setTimeout(()=>flash(`${nameOf(id)} a mordu ! Touche-le pour le capturer.`,5000),4100)}return}G.state='wait';G.bite=Date.now()+1500+rnd(3500);setMsg(`${m} Encore ${G.casts} lancer${G.casts>1?'s':''}.`)}
 function fishTap(){if(G.state==='wait'){beep(SND.no);return fishNext('Trop tôt, le poisson a fui.')}if(G.state==='bite'){G.score++;beep(SND.yum);if(!G.poke&&!S.wild&&Math.random()<.55){G.poke=fishPick();sprite(G.poke);return fishNext(`Un ${nameOf(G.poke)} au bout de la ligne !`)}const n=earn(15+rnd(30),1);fishNext(n?`Tu remontes un trésor : ${n} ₽.`:'Tu remontes un vieux trésor vide.')}}
 function renderFish(now,p){g.drawImage(buildBg('eau'),0,0);if(G.state==='wait'&&now>=G.bite){G.state='bite';beep(SND.tap)}if(G.state==='bite'&&now>G.bite+650){G.state='x';beep(SND.no);fishNext('Raté, il a filé.')}
   const sp=sprite(p.id,p.shiny);if(sp)drawFit(sp,26,108,34,true);const dip=G.state==='bite'?3:Math.round(Math.sin(tt*.15));g.fillStyle='#e8eef8';g.beginPath();g.moveTo(40,74);g.lineTo(112,92+dip);g.lineWidth=1;g.strokeStyle='#e8eef8';g.stroke();
@@ -1000,7 +1000,7 @@ function renderSac(){if(!SPR)return noSpr();const m=S.mission,d=m&&MISSIONS[m.i]
   return `<div class="stack"><div class="row" style="justify-content:space-between"><h2>Sac</h2><span class="money">${mo.toLocaleString('fr-FR')} ₽</span></div><p class="small">${S.days||1} jour${(S.days||1)>1?'s':''} de présence. Un cadeau tous les 7 jours, et rien n'est perdu si tu en rates un.</p>
   ${d?`<div class="card"><div><b>Mission du jour</b><span class="small">${esc(d.t)} : ${m.done?'réussie':Math.min(m.c,d.n)+' / '+d.n}. Récompense : 150 ₽ et des objets.</span></div></div>`:''}
   <div><h3 class="sub" style="margin-top:0">Objets</h3>${it.length?`<div class="items">${it.map(k=>`<div class="item"><span class="itemhead">${BALL_URLS[k]?`<img alt="" src="${BALL_URLS[k]}">`:''}<b>${S.items[k]} × ${esc(ITEMS[k][0])}</b></span><span class="small">${esc(ITEMS[k][1])}</span>${k==='candy'&&h&&h.stage!=='egg'?`<button class="btn" type="button" data-x="candy">Donner</button>`:''}</div>`).join('')}</div>`:'<p class="small">Ton sac est vide.</p>'}</div>
-  <div><h3 class="sub" style="margin-top:0">Chapeaux</h3>${S.hats.length?`<div class="row">${h&&h.stage!=='egg'&&h.hat?'<button class="btn" type="button" data-hat="">Retirer</button>':''}${S.hats.map(k=>`<button class="btn" type="button" data-hat="${k}">${h&&h.hat===k?'✓ ':''}${esc(HATS[k][0])}</button>`).join('')}</div>`:'<p class="small">Aucun pour le moment. Les expéditions en rapportent.</p>'}</div>
+  ${heldBox()}
   <div><h3 class="sub" style="margin-top:0">Décor</h3><div class="decor">${sel('roomBg',S.room.bg,[['','Selon le type'],...S.bgs.map(k=>[k,BGN[k]])],'Fond')}${['Gauche','Centre','Droite'].map((l,i)=>sel('roomS'+i,S.room.s[i],[['','Vide'],...S.furn.map(k=>[k,FURN[k].n])],l)).join('')}</div></div>
   <div><h3 class="sub" style="margin-top:0">Boutique</h3><p class="small">Les Poké Dollars se gagnent en combat, en expédition, aux mini-jeux, avec les missions et les succès. Les activités répétables rapportent au plus ${CFG.cap} ₽ par jour : il en reste ${capLeft()} aujourd'hui.</p>
   <div class="items shop">${SHOP.map(([k,p])=>`<div class="item"><span class="itemhead">${BALL_URLS[k]?`<img alt="" src="${BALL_URLS[k]}">`:''}<b>${esc(ITEMS[k][0])}</b></span>${bt('item',k,p)}</div>`).join('')}${S.items.rod?'':`<div class="item"><b>Canne</b><span class="small">Pour pêcher.</span>${bt('rod','rod',800)}</div>`}</div>
@@ -1095,9 +1095,9 @@ function walkTap(){const e=G.cur;if(!e||e.state!==1)return;e.state=2;const p=S.p
   if(e.kind==='wild'){G.wild=e.id;G.got.push(nameOf(e.id)+' à capturer');return setMsg(`${petName(p)} suit ${nameOf(e.id)}. Il t'attendra à la maison.`)}
   if(e.kind==='money'){const n=sortieMoney(15+rnd(40));G.got.push(n?n+' ₽':'rien (plafond du jour)');return setMsg(n?`${petName(p)} trouve ${n} ₽ par terre !`:`${petName(p)} trouve une pièce, mais tu as déjà atteint le gain du jour.`)}
   const se=season();if(se&&se.eggHunt&&Math.random()<.35){const l=DEX.map((x,i)=>i+1).filter(i=>!dex(i).prev&&!dex(i).flag&&i<=SPR.imgs.length),o=newPet(pick(l));S.pension.push(o);G.got.push('un œuf de Pâques');return setMsg('Un œuf de Pâques caché dans l\'herbe !')}
-  const r=Math.random();if(r<.4){p.hunger=clamp(p.hunger+12);p.joy=clamp(p.joy+5);G.got.push('une baie');setMsg(`${petName(p)} croque une baie trouvée en chemin.`)}else if(r<.75){const k=Math.random()<.3?'super':'ball';give(k);G.got.push(ITEMS[k][0]);setMsg(`Une ${ITEMS[k][0]} cachée dans un buisson !`)}else if(r<.9){const k=pick(STONES);give(k);G.got.push(ITEMS[k][0]);setMsg(`${petName(p)} déterre une ${ITEMS[k][0]} !`)}else{const k=pick(HAT_POOL);if(giveHat(k)){G.got.push(HATS[k][0]);setMsg(`Un chapeau abandonné : ${HATS[k][0]} !`)}else{const n=sortieMoney(40);G.got.push((n||'0')+' ₽');setMsg(n?`Un porte-monnaie perdu : ${n} ₽.`:'Un porte-monnaie vide.')}}}
+  const r=Math.random();if(r<.4){p.hunger=clamp(p.hunger+12);p.joy=clamp(p.joy+5);G.got.push('une baie');setMsg(`${petName(p)} croque une baie trouvée en chemin.`)}else if(r<.75){const k=Math.random()<.3?'super':'ball';give(k);G.got.push(ITEMS[k][0]);setMsg(`Une ${ITEMS[k][0]} cachée dans un buisson !`)}else if(r<.9){const k=pick(STONES);give(k);G.got.push(ITEMS[k][0]);setMsg(`${petName(p)} déterre une ${ITEMS[k][0]} !`)}else{const k=pick(HAT_POOL);if(giveHat(k)){G.got.push(HATS[k][0]);setMsg(`Un objet oublié dans l'herbe : ${HATS[k][0]} !`)}else{const n=sortieMoney(40);G.got.push((n||'0')+' ₽');setMsg(n?`Un porte-monnaie perdu : ${n} ₽.`:'Un porte-monnaie vide.')}}}
 function endWalk(){const p=S.pet,pl=G.pl,got=G.got,w=G.wild;mode='idle';G=null;p.joy=clamp(p.joy+15);p.energy=clamp(p.energy-15);p.hunger=clamp(p.hunger-6);p.bond=Math.min(100,p.bond+2);xp(6);S.st.walk=st('walk')+1;
-  if(w&&!S.wild){S.wild={id:w,until:Date.now()+15*6e4,shiny:rnd(CFG.shiny)===0};if(!S.dex[w])S.dex[w]=1;sprite(w,S.wild.shiny)}
+  if(w&&!S.wild){S.wild={id:w,until:Date.now()+15*6e4,shiny:wildShiny()};if(!S.dex[w])S.dex[w]=1;sprite(w,S.wild.shiny)}
   const t=`Sortie ${pl.k==='plage'||pl.k==='foret'||pl.k==='montagne'||pl.k==='grotte'?'à la':'au'} ${pl.n.toLowerCase()}${got.length?' : '+got.join(', '):''}.`;log(fill('{n} : '+t,p));flash(`${t}${got.length?'':' Rien trouvé, mais quelle balade !'}`,5500);burst('heart','#e8486a',4);beep(SND.fan);touch();paint()}
 function renderWalk(now,p){const e2=now-G.t0,bg=buildBg(G.pl.bg),off=Math.floor(e2*.03)%160;g.drawImage(bg,-off,0);g.drawImage(bg,160-off,0);
   G.ev.forEach(e=>{if(e.state===0&&now>=e.at&&!G.cur){e.state=1;G.cur=e;e.until=now+(e.kind==='meet'?2600:1700);if(e.kind==='meet'){e.state=2;const n=nameOf(e.id);p.joy=clamp(p.joy+3);if(!S.dex[e.id])S.dex[e.id]=1;G.got.push('un copain '+n);setMsg(`${petName(p)} dit bonjour à un ${n} !`)}else setMsg(e.kind==='wild'?'Un Pokémon sauvage ! Touche vite pour le suivre.':'Quelque chose brille ! Touche vite.');beep(SND.tap)}});
@@ -1509,12 +1509,33 @@ const cdMs=(k,def)=>(CFG[k]??def)*6e4/PACE[S.opt.pace];
   const a0=p&&p.asleep;_k();if(p&&p.asleep!==a0)p.lastSleepT=Date.now()}}
 
 {const _w3=wash;wash=function(){const p=S.pet;if(p&&!p.dead&&p.stage!=='egg'&&!busy()){const cd=cdMs('lavMin',30),since=Date.now()-(p.lastWash||0);if(since>=cd)p.washRun=0;
+    if(p.clean>=95&&!(p.poops>0)){flash(`${petName(p)} est déjà tout propre.`);beep(SND.no);return}
     if((p.washRun||0)>=3){flash(`${petName(p)} a déjà eu trois bains d'affilée. Prochain bain dans ${fmtGap(cd-since)}.`);beep(SND.no);return}}
-  const c0=p&&p.clean;_w3();if(p&&!p.dead&&p.stage!=='egg'&&c0!==100&&p.clean===100)p.washRun=(p.washRun||0)+1}}
+  const c0=p&&p.clean,q0=p&&p.poops;_w3();if(p&&!p.dead&&p.stage!=='egg'&&p.clean===100&&(c0!==100||q0>0)){p.washRun=(p.washRun||0)+1;p.lastWash=Date.now()}}}
 
 setInterval(()=>{try{if(S&&!document.hidden&&S.pet)S.playMs=(S.playMs||0)+5000}catch(e){}},5000);
 function fmtPlay(ms){const m=Math.floor((ms||0)/6e4),h=Math.floor(m/60);return h?`${h} h ${String(m%60).padStart(2,'0')} min`:`${m} min`}
 {const _rp2=renderPane;renderPane=function(){_rp2();if(tab==='options'&&S&&!$('playT'))$('pane').insertAdjacentHTML('afterbegin',`<p class="band" id="playT"><b>Temps de jeu :</b> ${fmtPlay(S.playMs)} (temps où la page est ouverte et visible).</p>`)}}
+
+/* ---------- Objets tenus (remplacent les chapeaux) ---------- */
+const HELD={grelot:['Grelot Zen','Le lien grandit 50 % plus vite.','soothe-bell'],restes:['Restes','La faim baisse 30 % moins vite.','leftovers'],bandeau:['Bandeau Muscle','+50 % d\'expérience.','muscle-band'],piece:['Pièce Rune','+25 % de Poké Dollars gagnés, dans la limite du plafond.','amulet-coin'],chroma:['Charme Chroma','Deux fois plus de chances de croiser un Pokémon sauvage chromatique.','shiny-charm']};
+const HAT2HELD={cap:'bandeau',bandana:'bandeau',bow:'grelot',flowers:'grelot',bunny:'grelot',melon:'piece',beret:'piece',straw:'piece',glasses:'chroma',shades:'chroma',star:'chroma',witch:'restes',pump:'restes',bonnet:'restes',crown:'restes',grad:'restes'};
+Object.keys(HAT2HELD).forEach(k=>{if(HATS[k])HATS[k][0]=HELD[HAT2HELD[k]][0]});
+const heldImg=k=>`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/${HELD[k][2]}.png`;
+function heldMigrate(){if(!S)return;S.held=S.held||[];if(!S.heldMig){(S.hats||[]).forEach(h=>{const k=HAT2HELD[h];if(k&&!S.held.includes(k))S.held.push(k)});
+  [S.pet,...(S.pension||[])].forEach(p=>{if(p&&p.hat){const k=HAT2HELD[p.hat];if(k&&!heldOwner(k))p.held=k;p.hat=''}});S.heldMig=1}
+  [S.pet,...(S.pension||[])].forEach(p=>{if(p&&p.hat)p.hat=''})}
+function heldOwner(k){return [S.pet,...(S.pension||[])].find(p=>p&&p.held===k)}
+giveHat=function(h){const k=HAT2HELD[h]||h;if(!HELD[k])return false;S.held=S.held||[];if(S.held.includes(k))return false;S.held.push(k);if(!S.hats.includes(h))S.hats.push(h);touch();return true};
+function heldEquip(k){const p=S.pet;if(!p)return;if(!k){p.held='';return}if(!(S.held||[]).includes(k))return;const o=heldOwner(k);if(o&&o!==p)o.held='';p.held=p.held===k?'':k;flash(p.held?`${petName(p)} tient ${HELD[k][0]}.`:`${petName(p)} ne tient plus rien.`)}
+function heldBox(){const h=S.pet,own=S.held||[];return `<div><h3 class="sub" style="margin-top:0">Objets tenus</h3>${own.length?`<p class="small">Seul ton compagnon profite de l'objet qu'il tient. Un objet ne peut être tenu que par un Pokémon.</p><div class="items">${own.map(k=>{const o=heldOwner(k),mine=h&&h.held===k;return `<div class="item"><span class="itemhead"><img alt="" src="${heldImg(k)}" onerror="this.style.visibility='hidden'"><b>${esc(HELD[k][0])}</b></span><span class="small">${esc(HELD[k][1])}${o&&!mine?` Tenu par ${esc(petName(o))}.`:''}</span>${h&&h.stage!=='egg'?`<button class="btn ${mine?'primary':''}" type="button" data-held="${k}">${mine?'Retirer':'Donner à '+esc(petName(h))}</button>`:''}</div>`}).join('')}</div>`:'<p class="small">Aucun pour le moment. Les expéditions, les sorties et les fêtes en rapportent.</p>'}</div>`}
+function wildShiny(){return rnd(CFG.shiny)===0||(!!S.pet&&S.pet.held==='chroma'&&rnd(CFG.shiny)===0)}
+{const _x=xp;xp=function(n){const p=S.pet;return _x(p&&p.held==='bandeau'?n*1.5:n)}}
+{const _e=earn;earn=function(n,rep){const p=S.pet;return _e(p&&p.held==='piece'?Math.round((n||0)*1.25):n,rep)}}
+{const _a=advance;advance=function(p,to,sum){const h=p&&p.hunger;const r=_a(p,to,sum);if(p&&p.held==='restes'&&p.hunger<h)p.hunger=h-(h-p.hunger)*.7;return r}}
+setInterval(()=>{try{const p=S&&S.pet;if(!p)return;if(p.held==='grelot'&&p._lb!==undefined&&p.bond>p._lb)p.bond=Math.min(100,p.bond+(p.bond-p._lb)*.5);p._lb=p.bond}catch(e){}},1000);
+try{heldMigrate()}catch(e){}
+{const _rp3=renderPane;renderPane=function(){try{heldMigrate()}catch(e){}_rp3()}}
 
 /* ---------- Capsules techniques (CT) : une 4e attaque ---------- */
 const TMS={ct_plaquage:['Plaquage',1,85,1500],ct_cassebrique:['Casse-Brique',2,75,2000],ct_vol:['Vol',3,90,2500],ct_bombbeurk:['Bomb-Beurk',4,90,2500],ct_seisme:['Séisme',5,100,4000],ct_eboulement:['Éboulement',6,75,2000],ct_plaiecroix:['Plaie-Croix',7,80,2000],ct_ballombre:['Ball\'Ombre',8,80,2500],ct_teteferr:['Tête de Fer',9,80,2500],ct_lanceflammes:['Lance-Flammes',10,90,3000],ct_surf:['Surf',11,90,3000],ct_ecosphere:['Éco-Sphère',12,90,3000],ct_tonnerre:['Tonnerre',13,90,3000],ct_psyko:['Psyko',14,90,3000],ct_laserglace:['Laser Glace',15,90,3000],ct_dracogriffe:['Dracogriffe',16,80,3500],ct_machouille:['Mâchouille',17,80,2500]};
@@ -1552,7 +1573,7 @@ function penDecorate(){const n=training().length,max=trainSlots(),nx=trainNext()
   document.querySelectorAll('#pane [data-take]').forEach(b=>{const p=S.pension[+b.dataset.take];if(!p||p.stage==='egg')return;const card=b.closest('.card'),sm=card&&card.querySelector('.small');
   if(sm&&!sm.dataset.pen){sm.dataset.pen=1;const pct=p.level>=100?100:Math.floor(100*(p.xp||0)/(p.level*3));sm.insertAdjacentHTML('beforeend',` · ${p.train?`<b>à l'entraînement</b> (${pct} % du niveau suivant)`:'au repos'}${p.tm&&TMS[p.tm]?' · CT '+TMS[p.tm][0]:''}`)}
   if(!card.querySelector('[data-train]')){const full=!p.train&&n>=max;b.insertAdjacentHTML('beforebegin',`<button class="btn ${p.train?'primary':''}" type="button" data-train="${p.uid}" ${full?'aria-disabled="true" style="opacity:.55"':''}>${p.train?'Arrêter':'Entraîner'}</button>`)}
-  if(card&&!card.querySelector('[data-expe]')&&!p.away&&!p.train)card.insertAdjacentHTML('beforeend',`<div class="row" style="margin-top:6px"><button class="btn" type="button" data-expe="${p.uid}">Expédition</button></div>`)})}
+  if(card&&!card.querySelector('[data-expe]')&&!p.away&&!p.train)b.insertAdjacentHTML('beforebegin',`<button class="btn" type="button" data-expe="${p.uid}">Expédition</button>`)})}
 /* Expédition du compagnon, depuis l'onglet Fiche */
 function compExpe(h){const p=S.pet;closeMenu();if(!p||p.away)return;if(awayN()>=EXPE_MAX){flash(`${EXPE_MAX} Pokémon sont déjà en expédition.`);return}if(p.energy<30){flash(`${petName(p)} est trop fatigué pour partir.`);return}
   p.away={h,until:Date.now()+h*36e5/PACE[S.opt.pace]};p.energy=clamp(p.energy-20);mission('expe');log(fill(`{n} part en expédition pour ${h} h.`,p));beep(SND.ok);touch();paint();if(tab==='fiche')renderPane()}
@@ -1675,7 +1696,7 @@ $('pane').addEventListener('click',e=>{const a=e.target.closest('[data-pre]'),go
 /* ---------- Nouveautés : note de mise à jour par jour ---------- */
 const NEWS=[
  ['2026-11-13','Série, défis et parrainage',['Série quotidienne : reviens chaque jour, la récompense grossit jusqu\'au 7e jour.','Défi commun de la semaine : tous les joueurs capturent ensemble des Pokémon d\'un type, récompense pour tous.','Classement de la semaine entre amis : victoires, captures, Pokédex, Tour.','Parrainage : invite un ami avec ton code dresseur, vous recevez chacun un œuf spécial.','Partage ta carte d\'identité en un geste (WhatsApp, Messenger…).','Les nouveaux joueurs sont guidés pas à pas au début.']],
- ['2026-11-17','Expéditions, bains et temps de jeu',['Expéditions : le bouton est sous chaque Pokémon de la Pension, et il ne fait plus remonter la page.','Expéditions : 3 Pokémon maximum en même temps.','Bain : trois bains d\'affilée maximum, puis il faut attendre le délai. Le bouton Laver respecte désormais ce délai.','Options : ton temps de jeu est affiché (temps où la page est ouverte et visible).']],
+ ['2026-11-17','Expéditions, bains et temps de jeu',['Expéditions : le bouton est sous chaque Pokémon de la Pension, et il ne fait plus remonter la page.','Expéditions : 3 Pokémon maximum en même temps.','Bain : trois bains d\'affilée maximum, puis il faut attendre le délai. Le bouton Laver respecte désormais ce délai.','Options : ton temps de jeu est affiché (temps où la page est ouverte et visible).','Bain : on ne peut plus laver un Pokémon déjà tout propre pour gagner du lien.','Les chapeaux deviennent des objets tenus utiles : Grelot Zen, Restes, Bandeau Muscle, Pièce Rune et Charme Chroma. Tes chapeaux ont été convertis.','Nouvelle apparence sombre, avec un menu sur le côté (ordinateur) ou en bas (téléphone). L\'ancienne reste disponible dans Options.']],
  ['2026-11-16','Pension et expéditions',['Décor : 6 nouveaux fonds (Cerisiers, Grotte de cristal, Lac aux nénuphars, Dunes, Village de Noël et Halloween). Noël et Halloween ne se vendent qu\'en saison.','Objets : les chapeaux passent en 16×16 et 6 nouveaux objets (chapeau de paille, bandana, couronne de fleurs, béret, oreilles de lapin, lunettes de soleil) peuvent être trouvés.','La Pension s\'affiche en grille : on voit beaucoup de Pokémon sans longue liste.','Expéditions : un œuf n\'est possible que pour une expédition de 8 h, et c\'est plus rare. Les 1 h et 3 h rapportent des Poké Balls et des objets.','Expéditions : l\'argent a son propre plafond de 400 ₽ par jour, séparé de celui des combats et mini-jeux.','Sorties : au plus une rencontre sauvage par sortie, et moins souvent.','Sorties : l\'argent trouvé a son propre plafond de 300 ₽ par jour.','Pension : les cartes des Pokémon ne sont plus écrasées et les boutons restent dans la carte.','Options : une boîte « Idées pour les prochaines mises à jour » pour proposer et voter.','Pension : recherche par nom ou surnom, et filtres par niveau, type et région.','Combat : tu choisis ton équipe aussi avant un combat contre un sauvage (menu Combat ou Entraînement).']],
  ['2026-11-13','Équipes de combat',['Avant une arène, la Ligue ou la Tour, tu choisis ton équipe.','L\'équipe peut compter jusqu\'à 6 Pokémon (au lieu de 3).','En combat, « Changer » envoie un autre Pokémon de ton équipe.','Vive-Attaque frappe toujours en premier, comme dans les vrais jeux.','PokéNid s\'installe comme une appli, avec son icône sur l\'écran d\'accueil du téléphone ou de la tablette.','Expéditions : tu peux envoyer un Pokémon de la pension et garder ton compagnon. Les voyageurs apparaissent dans la Pension avec leur butin à ouvrir au retour.','Cet écran « Nouveautés » apparaît après chaque mise à jour, et l\'historique est dans le Journal.']],
  ['2026-11-12','Pension, CT et 5e génération',['649 Pokémon : les 156 de la région d\'Unys arrivent.','Pokédex : filtres par région et fiche détaillée avec les lieux où trouver chaque Pokémon dans les vrais jeux.','Pension : tes Pokémon y sont nourris, lavés, soignés et reposés. Ils peuvent s\'entraîner et évoluer (1 place, puis 2 à 4 badges, 3 à 8 badges).','Capsules techniques : une 4e attaque en combat. Les champions d\'arène en donnent une à la première victoire.','Les champions d\'arène ont leur portrait.','Échanges en un clic avec tes amis en ligne.','Un seul code dresseur, plus court, à partager.','Délais entre deux bains, deux soins et deux couchers.']],
@@ -1854,6 +1875,128 @@ function boot(){
   addEventListener('pagehide',()=>save(false));
 }
 boot();
+/* ===== Thème C : navigation et appareil réduit ===== */
+let DEVX=false;
+function themeOn(){return !S||!S.opt||S.opt.theme!=='clair'}
+function navSetup(){const tabs=document.querySelector('.tabs');if(!tabs||tabs.dataset.nav)return;tabs.dataset.nav=1;
+  const st=document.querySelector('.stage'),nav=document.createElement('nav');nav.className='sidenav';nav.setAttribute('aria-label','Navigation');
+  const lg=document.querySelector('.brand img');if(lg)nav.insertAdjacentHTML('afterbegin',`<img class="logo-s" alt="" src="${lg.src}">`);st.insertBefore(nav,st.firstChild);
+  const order=['fiche','pension','sac','gym'],more=document.createElement('div');more.className='tabmore';
+  order.forEach(k=>{const b=tabs.querySelector(`.tab[data-tab="${k}"]`);if(b)tabs.appendChild(b)});
+  [...tabs.querySelectorAll('.tab')].filter(b=>!order.includes(b.dataset.tab)).forEach(b=>more.appendChild(b));
+  tabs.appendChild(more);
+  const mb=document.createElement('button');mb.type='button';mb.className='morebtn';mb.innerHTML='<b>⋯</b>Plus';tabs.appendChild(mb);
+  mb.addEventListener('click',e=>{e.stopPropagation();tabs.classList.toggle('open')});
+  tabs.addEventListener('click',e=>{if(e.target.closest('.tab'))tabs.classList.remove('open')});
+  document.addEventListener('click',e=>{if(!e.target.closest('.tabs'))tabs.classList.remove('open')});
+  const dev=document.querySelector('.device');dev.insertAdjacentHTML('beforeend','<button class="devx" type="button" id="devx">Agrandir ▾</button><div class="devname" id="devname"></div>');
+  $('devx').onclick=()=>{DEVX=!DEVX;devMini()}}
+function navPlace(){const tabs=document.querySelector('.tabs'),nav=document.querySelector('.sidenav'),book=document.querySelector('.book');if(!tabs||!nav)return;
+  if(themeOn()){if(tabs.parentElement!==nav)nav.appendChild(tabs)}else if(tabs.parentElement!==book)book.insertBefore(tabs,book.firstChild)}
+function devMini(){const d=document.querySelector('.device');if(!d)return;const phone=matchMedia('(max-width:640px)').matches,menuOpen=!$('menu').hidden;
+  if(tab==='fiche')DEVX=false;
+  const want=themeOn()&&phone&&tab!=='fiche'&&!DEVX&&mode==='idle'&&!menuOpen;
+  d.classList.toggle('mini',want);d.classList.toggle('dfiche',tab==='fiche');
+  $('devx').textContent=want?'Agrandir ▾':'Réduire ▴';
+  const p=S&&S.pet,n=$('devname');if(n)n.innerHTML=p&&p.stage!=='egg'?`${esc(petName(p))}<small>N.${p.level}</small>`:'Œuf';
+  const mb=document.querySelector('.morebtn');if(mb)mb.classList.toggle('on',!['fiche','pension','sac','gym'].includes(tab))}
+function themeApply(){document.documentElement.classList.toggle('thC',themeOn());navPlace();devMini()}
+try{navSetup();themeApply()}catch(e){}
+{const _rpT=renderPane;renderPane=function(){_rpT();try{themeApply();if(tab==='options'&&!$('themeBox'))$('pane').insertAdjacentHTML('afterbegin',`<div class="band" id="themeBox"><b>Apparence :</b> <span class="row" style="display:inline-flex;gap:8px;margin-left:6px"><button class="btn ${themeOn()?'primary':''}" type="button" data-theme="sombre">Nouveau (sombre)</button><button class="btn ${themeOn()?'':'primary'}" type="button" data-theme="clair">Classique</button></span></div>`)}catch(e){}}}
+$('pane').addEventListener('click',e=>{const b=e.target.closest('[data-theme]');if(!b)return;S.opt.theme=b.dataset.theme;touch();save(true);renderPane()});
+setInterval(()=>{try{devMini()}catch(e){}},300);
+addEventListener('resize',()=>{try{devMini()}catch(e){}});
 </script>
+<style id="themeC">
+/* ===== Thème C (sombre) ===== */
+.sidenav{display:contents}
+.tabmore{display:contents}
+.morebtn{display:none}
+.devx{display:none}
+.devname{display:none}
+html.thC{color-scheme:dark}
+html.thC body{background-color:#14162a;background-image:radial-gradient(#ffffff12 1.2px,transparent 1.6px);background-size:16px 16px}
+html.thC .sidenav{display:block;min-width:0}
+html.thC .book{--paper:#1d2033;--ink:#eef0f8;--muted:#a3a8c3;--line:#2f3352;--accent:color-mix(in oklab,var(--shell) 70%,#fff);background:#1d2033;color:#eef0f8;border:1px solid #2f3352;border-radius:22px;box-shadow:0 24px 50px -28px #000}
+html.thC .book .pane{padding:22px}
+html.thC .book .pane h2{color:#fff;font-size:28px}
+html.thC .book :is(.card,.item,.calrow,.sday,.cell,.locs li,.rank li,.grave,.dexdetail,.teampick,.news-card,details.online,.code){background:#22253b;border-color:#2f3352;color:#eef0f8}
+html.thC .book .card{border-radius:18px;border-width:1px}
+html.thC .book .item{border-radius:16px;border-width:1px}
+html.thC .book :is(.sday.today,.rank li.me){background:color-mix(in oklab,var(--shell) 30%,#22253b)}
+html.thC .book .band{background:#22253b;border:1px solid #3a3f62;box-shadow:none;border-radius:16px}
+html.thC .book .band.danger{background:#3a1d26;border-color:#c0283c}
+html.thC .book .band.err{background:#3a1d26}
+html.thC .book .btn{background:#2a2e48;color:#eef0f8;border:1px solid #454a70;box-shadow:0 3px 0 #0b0d18;border-radius:13px}
+html.thC .book .btn.primary{background:var(--shell);border-color:var(--shell);color:#14162a;font-weight:700;box-shadow:0 3px 0 color-mix(in oklab,var(--shell) 50%,#000)}
+html.thC .book .btn[disabled],html.thC .book .btn[aria-disabled="true"]{opacity:.45}
+html.thC .book :is(input,select,textarea,.search){background:#14162a;color:#eef0f8;border:1px solid #3a3f62;border-radius:12px;min-height:44px}
+html.thC .book :is(.bar,.gbar){background:#ffffff14}
+html.thC .book .facts dt{color:#a3a8c3}
+html.thC .book .seg span{border:1px solid #3a3f62;border-radius:12px;background:#22253b}
+html.thC .book .seg input:checked+span{background:var(--shell);border-color:var(--shell);color:#14162a;font-weight:700}
+html.thC .book #themeBox,html.thC .book #playT{margin-bottom:10px}
+html.thC .book a{color:color-mix(in oklab,var(--shell) 60%,#fff)}
+/* Navigation : ordinateur */
+html.thC .tabs{background:none;border:0;padding:0;border-radius:0}
+html.thC .tab{background:transparent;border:0;box-shadow:none;color:#c8cce0;font:600 15px/1 var(--display)}
+html.thC .tab:hover{background:#22253b}
+html.thC .tab[aria-selected="true"]{background:#22253b;color:#fff;box-shadow:inset 3px 0 0 var(--shell)}
+html.thC .tabimg{background:#ffffff14}
+@media (min-width:901px){
+  html.thC .stage{grid-template-columns:200px minmax(0,400px) minmax(0,660px);max-width:1340px;gap:28px}
+  html.thC .sidenav{position:sticky;top:24px}
+  html.thC .sidenav .logo-s{display:block;width:150px;margin:2px 0 18px 8px}
+  html.thC .tabs{display:flex;flex-direction:column;flex-wrap:nowrap;gap:4px}
+  html.thC .tab{justify-content:flex-start;width:100%;padding:11px 14px;border-radius:14px;gap:12px}
+  html.thC .tabimg{width:26px;height:26px}
+}
+@media (min-width:901px) and (max-width:1200px){
+  html.thC .stage{grid-template-columns:72px minmax(0,380px) minmax(0,1fr);gap:20px}
+  html.thC .sidenav .logo-s{display:none}
+  html.thC .tab{font-size:0;justify-content:center;padding:12px 0;gap:0}
+}
+.logo-s{display:none}
+/* Navigation : tablette */
+@media (min-width:641px) and (max-width:900px){
+  html.thC .stage{grid-template-columns:minmax(0,300px) minmax(0,1fr)}
+  html.thC .sidenav{grid-column:1/-1}
+  html.thC .tabs{display:flex;flex-wrap:wrap;gap:6px;background:#1d2033;border:1px solid #2f3352;border-radius:18px;padding:8px}
+  html.thC .tab{border-radius:12px;padding:9px 12px}
+  html.thC .tab[aria-selected="true"]{box-shadow:inset 0 -3px 0 var(--shell)}
+}
+/* Navigation : téléphone */
+@media (max-width:640px){
+  html.thC body{padding-bottom:calc(96px + env(safe-area-inset-bottom,0px))}
+  html.thC .sidenav{position:fixed;left:0;right:0;bottom:0;z-index:50}
+  html.thC .tabs{overflow:visible;position:relative;display:flex;flex-wrap:nowrap;justify-content:space-around;background:#1d2033f2;backdrop-filter:blur(10px);border-top:1px solid #2f3352;padding:6px 4px calc(8px + env(safe-area-inset-bottom,0px))}
+  html.thC .tabs>.tab,html.thC .morebtn{display:flex;flex-direction:column;align-items:center;gap:3px;min-width:60px;padding:6px 4px;border-radius:14px;font:600 11px/1.1 var(--body);color:#a3a8c3;background:none;border:0}
+  html.thC .tabs>.tab[aria-selected="true"],html.thC .morebtn.on{background:color-mix(in oklab,var(--shell) 28%,transparent);color:#fff;box-shadow:none}
+  html.thC .tabimg{width:26px;height:26px}
+  html.thC .morebtn{cursor:pointer}
+  html.thC .morebtn b{font-size:20px;line-height:26px;height:26px}
+  html.thC .tabmore{display:none;position:absolute;left:10px;right:10px;bottom:calc(100% + 8px);background:#22253b;border:1px solid #3a3f62;border-radius:20px;padding:8px;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;box-shadow:0 20px 40px -10px #000}
+  html.thC .tabs.open .tabmore{display:grid}
+  html.thC .tabmore .tab{justify-content:flex-start;padding:12px;border-radius:14px;min-height:48px}
+  html.thC .tabmore .tab[aria-selected="true"]{box-shadow:inset 3px 0 0 var(--shell)}
+  /* Appareil réduit en bandeau */
+  html.thC .stage{gap:14px}
+  html.thC .device.mini{display:grid;grid-template-columns:120px minmax(0,1fr);grid-template-rows:auto auto;column-gap:10px;row-gap:6px;align-items:center;padding:8px 12px 10px;border-radius:0 0 24px 24px;position:sticky;top:0;z-index:40;margin:-24px -16px 0;width:auto;box-shadow:0 10px 24px -12px #000}
+  html.thC .device.mini :is(.ring,.brand){display:none}
+  html.thC .device.mini .bezel{grid-row:1/3;grid-column:1;padding:4px;border-radius:12px}
+  html.thC .device.mini :is(.msg,.menu){display:none}
+  html.thC .device.mini .keys{grid-column:2;grid-row:2;margin:0;padding:6px 4px;border-radius:14px}
+  html.thC .device.mini .key{font-size:0;gap:0}
+  html.thC .device.mini .key span{width:38px;height:38px}
+  html.thC .devx{display:inline-flex;align-items:center;gap:4px;justify-self:end;font:600 12px var(--body);background:#fff;color:#1b2030;border:2px solid #1b2030;border-radius:10px;padding:5px 9px;box-shadow:0 2px 0 #1b2030;cursor:pointer}
+  html.thC .device.mini .devx{grid-column:2;grid-row:1}
+  html.thC .device:not(.mini) .devx{position:absolute;top:10px;right:14px;z-index:3}
+  html.thC .device.dfiche .devx{display:none}
+  html.thC .devname{display:none}
+  html.thC .device.mini .devname{display:block;grid-column:2;grid-row:1;font:700 17px var(--display);color:#2a1d00;align-self:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-right:90px}
+  html.thC .device.mini .devname small{font:500 12px var(--body);margin-left:6px}
+}
+</style>
+
 
 </body></html>

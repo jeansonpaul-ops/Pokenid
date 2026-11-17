@@ -184,7 +184,7 @@ textarea{width:100%;min-height:70px;padding:8px;border:2px solid var(--line);bor
 .logline{display:grid;gap:1px;border-bottom:1px solid var(--line);padding-bottom:8px}
 select{min-height:42px;padding:7px;border:2px solid var(--line);border-radius:6px;background:#fff;max-width:100%}
 @media (max-width:520px){.card{flex-wrap:wrap}.card .row{flex:1 1 100%}}
-.pen-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:10px;align-items:start}.pen-grid .card{flex-wrap:wrap;align-items:center}.pen-grid .card img{width:52px;height:52px;flex:none}.pen-grid .card>div:not(.row){flex:1 1 150px;min-width:0}.pen-grid .card .row{flex:1 1 100%;flex-wrap:wrap;gap:6px}.pen-grid .card .btn{padding:6px 9px;font-size:13px}
+.pen-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(360px,100%),1fr));gap:10px;align-items:start}.pen-grid .card{flex-wrap:wrap;align-items:center}.pen-grid .card img{width:52px;height:52px;flex:none}.pen-grid .card>div:not(.row){flex:1 1 150px;min-width:0}.pen-grid .card .row{flex:1 1 100%;flex-wrap:wrap;gap:6px}.pen-grid .card .btn{padding:6px 9px;font-size:13px}
 </style>
 
 <main class="stage">
@@ -410,7 +410,7 @@ $('kPlay').onclick=()=>{if(!guard())return;if(S.pet.energy<12){flash(`${petName(
   const o=[{l:'Mini-jeux',f:()=>openMenu('Quel jeu ?',[{l:'Qui est-ce ?',f:startQuiz},{l:'Attrape-baies',f:startCatch},{l:'Mémoire',f:startMemo},{l:'Rythme',f:startRhythm}])},{l:'Sortie',f:sortieMenu},{l:'Pêche',f:startFish},{l:'Combat',f:()=>teamFirst('train')}];if(S.wild)o.unshift({l:'Capturer '+nameOf(S.wild.id),f:startCapture});
   openMenu('Que faire ?',o)};
 function expeMenu(){const P=PACE[S.opt.pace],lb=h=>{const m=Math.round(h*60/P);return m<60?m+' min':(m/60)+' h'};openMenu('Combien de temps ?',[1,3,8].map(h=>({l:lb(h),f:()=>startExpe(h)})))}
-$('kWash').onclick=wash;$('kHeal').onclick=heal;$('kSleep').onclick=sleepKey;
+$('kWash').onclick=()=>wash();$('kHeal').onclick=()=>heal();$('kSleep').onclick=()=>sleepKey();
 
 /* ---------- Mini-jeu : Qui est-ce ? ---------- */
 function startQuiz(){closeMenu();mode='quiz';G={round:0,score:0,id:0,reveal:false};quizAsk()}
@@ -1508,6 +1508,14 @@ const cdMs=(k,def)=>(CFG[k]??def)*6e4/PACE[S.opt.pace];
     if(left>0&&!urgent){flash(`${petName(p)} vient de ${p.asleep?'s\'endormir':'se réveiller'}. Attends ${fmtGap(left)}.`);beep(SND.no);return}}
   const a0=p&&p.asleep;_k();if(p&&p.asleep!==a0)p.lastSleepT=Date.now()}}
 
+{const _w3=wash;wash=function(){const p=S.pet;if(p&&!p.dead&&p.stage!=='egg'&&!busy()){const cd=cdMs('lavMin',30),since=Date.now()-(p.lastWash||0);if(since>=cd)p.washRun=0;
+    if((p.washRun||0)>=3){flash(`${petName(p)} a déjà eu trois bains d'affilée. Prochain bain dans ${fmtGap(cd-since)}.`);beep(SND.no);return}}
+  const c0=p&&p.clean;_w3();if(p&&!p.dead&&p.stage!=='egg'&&c0!==100&&p.clean===100)p.washRun=(p.washRun||0)+1}}
+
+setInterval(()=>{try{if(S&&!document.hidden&&S.pet)S.playMs=(S.playMs||0)+5000}catch(e){}},5000);
+function fmtPlay(ms){const m=Math.floor((ms||0)/6e4),h=Math.floor(m/60);return h?`${h} h ${String(m%60).padStart(2,'0')} min`:`${m} min`}
+{const _rp2=renderPane;renderPane=function(){_rp2();if(tab==='options'&&S&&!$('playT'))$('pane').insertAdjacentHTML('afterbegin',`<p class="band" id="playT"><b>Temps de jeu :</b> ${fmtPlay(S.playMs)} (temps où la page est ouverte et visible).</p>`)}}
+
 /* ---------- Capsules techniques (CT) : une 4e attaque ---------- */
 const TMS={ct_plaquage:['Plaquage',1,85,1500],ct_cassebrique:['Casse-Brique',2,75,2000],ct_vol:['Vol',3,90,2500],ct_bombbeurk:['Bomb-Beurk',4,90,2500],ct_seisme:['Séisme',5,100,4000],ct_eboulement:['Éboulement',6,75,2000],ct_plaiecroix:['Plaie-Croix',7,80,2000],ct_ballombre:['Ball\'Ombre',8,80,2500],ct_teteferr:['Tête de Fer',9,80,2500],ct_lanceflammes:['Lance-Flammes',10,90,3000],ct_surf:['Surf',11,90,3000],ct_ecosphere:['Éco-Sphère',12,90,3000],ct_tonnerre:['Tonnerre',13,90,3000],ct_psyko:['Psyko',14,90,3000],ct_laserglace:['Laser Glace',15,90,3000],ct_dracogriffe:['Dracogriffe',16,80,3500],ct_machouille:['Mâchouille',17,80,2500]};
 const TM_AFF={1:[13,15,17,5],2:[6,5,17],3:[17,9],4:[5,17,8],5:[6,10,9],6:[5,10,9],7:[4,3,12],8:[14,4,17],9:[5,6,13],10:[5,6,2],11:[15,5,17],12:[4,5,14],13:[9,14],14:[8,13,15],15:[11,5,14],16:[10,11,13,5],17:[8,4,14]};
@@ -1544,14 +1552,19 @@ function penDecorate(){const n=training().length,max=trainSlots(),nx=trainNext()
   document.querySelectorAll('#pane [data-take]').forEach(b=>{const p=S.pension[+b.dataset.take];if(!p||p.stage==='egg')return;const card=b.closest('.card'),sm=card&&card.querySelector('.small');
   if(sm&&!sm.dataset.pen){sm.dataset.pen=1;const pct=p.level>=100?100:Math.floor(100*(p.xp||0)/(p.level*3));sm.insertAdjacentHTML('beforeend',` · ${p.train?`<b>à l'entraînement</b> (${pct} % du niveau suivant)`:'au repos'}${p.tm&&TMS[p.tm]?' · CT '+TMS[p.tm][0]:''}`)}
   if(!card.querySelector('[data-train]')){const full=!p.train&&n>=max;b.insertAdjacentHTML('beforebegin',`<button class="btn ${p.train?'primary':''}" type="button" data-train="${p.uid}" ${full?'aria-disabled="true" style="opacity:.55"':''}>${p.train?'Arrêter':'Entraîner'}</button>`)}
-  if(!card.querySelector('[data-expe]')&&!p.away&&!p.train)b.insertAdjacentHTML('beforebegin',`<button class="btn" type="button" data-expe="${p.uid}">Expédition</button>`)})}
+  if(card&&!card.querySelector('[data-expe]')&&!p.away&&!p.train)card.insertAdjacentHTML('beforeend',`<div class="row" style="margin-top:6px"><button class="btn" type="button" data-expe="${p.uid}">Expédition</button></div>`)})}
 /* Expédition du compagnon, depuis l'onglet Fiche */
-function compExpe(h){const p=S.pet;closeMenu();if(!p||p.away)return;if(p.energy<30){flash(`${petName(p)} est trop fatigué pour partir.`);return}
+function compExpe(h){const p=S.pet;closeMenu();if(!p||p.away)return;if(awayN()>=EXPE_MAX){flash(`${EXPE_MAX} Pokémon sont déjà en expédition.`);return}if(p.energy<30){flash(`${petName(p)} est trop fatigué pour partir.`);return}
   p.away={h,until:Date.now()+h*36e5/PACE[S.opt.pace]};p.energy=clamp(p.energy-20);mission('expe');log(fill(`{n} part en expédition pour ${h} h.`,p));beep(SND.ok);touch();paint();if(tab==='fiche')renderPane()}
 $('pane').addEventListener('click',e=>{if(!e.target.closest('[data-compexpe]')||!S.pet)return;const P=PACE[S.opt.pace],lb=h=>{const m=Math.round(h*60/P);return m<60?m+' min':(m/60)+' h'};openMenu(`Combien de temps pour ${petName(S.pet)} ?`,[1,3,8].map(h=>({l:lb(h),f:()=>compExpe(h)})))},true);
 /* Expédition lancée depuis la carte du Pokémon dans la Pension */
-$('pane').addEventListener('click',e=>{const b=e.target.closest('[data-expe]');if(!b)return;const q=S.pension.find(x=>x.uid===b.dataset.expe);if(!q||!expeOk(q)){flash('Ce Pokémon ne peut pas partir maintenant.');return}
-  const P=PACE[S.opt.pace],lb=h=>{const m=Math.round(h*60/P);return m<60?m+' min':(m/60)+' h'};openMenu(`Combien de temps pour ${petName(q)} ?`,[1,3,8].map(h=>({l:lb(h),f:()=>sendPen(q,h)})))},true);
+$('pane').addEventListener('click',e=>{const b=e.target.closest('[data-expe]');if(!b)return;const q=S.pension.find(x=>x.uid===b.dataset.expe);const row=b.parentElement;
+  const was=row.nextElementSibling&&row.nextElementSibling.classList.contains('expe-pick');document.querySelectorAll('.expe-pick').forEach(x=>x.remove());if(was)return;
+  if(awayN()>=EXPE_MAX){flash(`${EXPE_MAX} Pokémon sont déjà en expédition.`);return}if(!q||!expeOk(q)){flash('Ce Pokémon ne peut pas partir maintenant.');return}
+  const P=PACE[S.opt.pace],lb=h=>{const m=Math.round(h*60/P);return m<60?m+' min':(m/60)+' h'};
+  row.insertAdjacentHTML('afterend',`<div class="row expe-pick" style="margin-top:6px;flex-wrap:wrap;gap:6px;align-items:center"><span class="small">Durée :</span>${[1,3,8].map(h=>`<button class="btn" type="button" data-exph="${h}" data-uid="${q.uid}">${lb(h)}</button>`).join('')}</div>`)},true);
+$('pane').addEventListener('click',e=>{const b=e.target.closest('[data-exph]');if(!b)return;const q=S.pension.find(x=>x.uid===b.dataset.uid);document.querySelectorAll('.expe-pick').forEach(x=>x.remove());
+  if(!q||!expeOk(q)||awayN()>=EXPE_MAX){flash('Ce Pokémon ne peut pas partir maintenant.');return}sendPen(q,+b.dataset.exph)},true);
 
 /* ---------- Échanges en ligne entre amis ---------- */
 const TR={incoming:[],outgoing:[]};
@@ -1662,6 +1675,7 @@ $('pane').addEventListener('click',e=>{const a=e.target.closest('[data-pre]'),go
 /* ---------- Nouveautés : note de mise à jour par jour ---------- */
 const NEWS=[
  ['2026-11-13','Série, défis et parrainage',['Série quotidienne : reviens chaque jour, la récompense grossit jusqu\'au 7e jour.','Défi commun de la semaine : tous les joueurs capturent ensemble des Pokémon d\'un type, récompense pour tous.','Classement de la semaine entre amis : victoires, captures, Pokédex, Tour.','Parrainage : invite un ami avec ton code dresseur, vous recevez chacun un œuf spécial.','Partage ta carte d\'identité en un geste (WhatsApp, Messenger…).','Les nouveaux joueurs sont guidés pas à pas au début.']],
+ ['2026-11-17','Expéditions, bains et temps de jeu',['Expéditions : le bouton est sous chaque Pokémon de la Pension, et il ne fait plus remonter la page.','Expéditions : 3 Pokémon maximum en même temps.','Bain : trois bains d\'affilée maximum, puis il faut attendre le délai. Le bouton Laver respecte désormais ce délai.','Options : ton temps de jeu est affiché (temps où la page est ouverte et visible).']],
  ['2026-11-16','Pension et expéditions',['Décor : 6 nouveaux fonds (Cerisiers, Grotte de cristal, Lac aux nénuphars, Dunes, Village de Noël et Halloween). Noël et Halloween ne se vendent qu\'en saison.','Objets : les chapeaux passent en 16×16 et 6 nouveaux objets (chapeau de paille, bandana, couronne de fleurs, béret, oreilles de lapin, lunettes de soleil) peuvent être trouvés.','La Pension s\'affiche en grille : on voit beaucoup de Pokémon sans longue liste.','Expéditions : un œuf n\'est possible que pour une expédition de 8 h, et c\'est plus rare. Les 1 h et 3 h rapportent des Poké Balls et des objets.','Expéditions : l\'argent a son propre plafond de 400 ₽ par jour, séparé de celui des combats et mini-jeux.','Sorties : au plus une rencontre sauvage par sortie, et moins souvent.','Sorties : l\'argent trouvé a son propre plafond de 300 ₽ par jour.','Pension : les cartes des Pokémon ne sont plus écrasées et les boutons restent dans la carte.','Options : une boîte « Idées pour les prochaines mises à jour » pour proposer et voter.','Pension : recherche par nom ou surnom, et filtres par niveau, type et région.','Combat : tu choisis ton équipe aussi avant un combat contre un sauvage (menu Combat ou Entraînement).']],
  ['2026-11-13','Équipes de combat',['Avant une arène, la Ligue ou la Tour, tu choisis ton équipe.','L\'équipe peut compter jusqu\'à 6 Pokémon (au lieu de 3).','En combat, « Changer » envoie un autre Pokémon de ton équipe.','Vive-Attaque frappe toujours en premier, comme dans les vrais jeux.','PokéNid s\'installe comme une appli, avec son icône sur l\'écran d\'accueil du téléphone ou de la tablette.','Expéditions : tu peux envoyer un Pokémon de la pension et garder ton compagnon. Les voyageurs apparaissent dans la Pension avec leur butin à ouvrir au retour.','Cet écran « Nouveautés » apparaît après chaque mise à jour, et l\'historique est dans le Journal.']],
  ['2026-11-12','Pension, CT et 5e génération',['649 Pokémon : les 156 de la région d\'Unys arrivent.','Pokédex : filtres par région et fiche détaillée avec les lieux où trouver chaque Pokémon dans les vrais jeux.','Pension : tes Pokémon y sont nourris, lavés, soignés et reposés. Ils peuvent s\'entraîner et évoluer (1 place, puis 2 à 4 badges, 3 à 8 badges).','Capsules techniques : une 4e attaque en combat. Les champions d\'arène en donnent une à la première victoire.','Les champions d\'arène ont leur portrait.','Échanges en un clic avec tes amis en ligne.','Un seul code dresseur, plus court, à partager.','Délais entre deux bains, deux soins et deux couchers.']],
@@ -1682,12 +1696,14 @@ $('pane').addEventListener('click',e=>{if(e.target.closest('[data-news]'))showNe
 if('serviceWorker' in navigator&&location.protocol==='https:'&&!/claude\.ai|claudeusercontent/.test(location.host))navigator.serviceWorker.register('sw.js').catch(()=>{});
 
 /* ---------- Expéditions : envoyer un Pokémon de la pension, suivi dans la pension ---------- */
-const expeOk=q=>q&&q.stage!=='egg'&&!q.away&&!q.dead&&!q.ko;
+const awayN=()=>(S.pet&&S.pet.away&&!S.pet.away.done?1:0)+S.pension.filter(q=>q.away&&!q.away.done).length;
+const EXPE_MAX=3;
+const expeOk=q=>q&&q.stage!=='egg'&&!q.away&&!q.dead&&!q.ko&&awayN()<EXPE_MAX;
 {const _se=startExpe;startExpe=function(h){const me=S.pet,cands=S.pension.filter(q=>expeOk(q)&&!q.train);
   if(!cands.length)return _se(h);closeMenu();
   openMenu('Qui part en expédition ?',[...(expeOk(me)?[{l:`${petName(me)} (ton compagnon, tu ne pourras plus jouer avec lui)`,f:()=>_se(h)}]:[]),...cands.map(q=>({l:`${petName(q)} n.${q.level} (pension)`,f:()=>sendPen(q,h)}))])}}
 function sendPen(q,h){closeMenu();q.away={h,until:Date.now()+h*36e5/PACE[S.opt.pace]};q.train=false;mission('expe');log(fill(`{n} part en expédition pour ${h} h depuis la pension.`,q));beep(SND.ok);
-  flash(`${petName(q)} part en expédition. Suis son retour dans la Pension.`,4500);touch();save(true);if(tab==='pension')renderPane()}
+  flash(`${petName(q)} part en expédition. Suis son retour dans la Pension.`,4500);touch();save(true);if(tab==='pension'){const y=$('pane').scrollTop,w=scrollY;renderPane();$('pane').scrollTop=y;scrollTo(0,w)}}
 function lootPen(q){if(!q||!q.away||!q.away.done)return;const keep=S.pet;S.pet=q;try{expeBack()}finally{S.pet=keep}q.pAt=Date.now();delete q.lastTick;touch();save(true);paint();renderPane()}
 {const _pt=penTick;penTick=function(){if(S&&S.pension){const now=Date.now();for(const q of S.pension){if(!q.away)continue;q.pAt=now;q.train=false;
     if(!q.away.done&&now>=q.away.until){q.away.done=true;touch();flash(`${petName(q)} est revenu d'expédition ! Ouvre son butin dans la Pension.`,6000);beep(SND.fan)}}}
